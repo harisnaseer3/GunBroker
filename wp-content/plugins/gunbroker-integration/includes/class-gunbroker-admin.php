@@ -427,7 +427,17 @@ class GunBroker_Admin {
         update_post_meta($product_id, '_gunbroker_duration', $settings['duration']);
         update_post_meta($product_id, '_gunbroker_category', $settings['category']);
 
-        // Sync the product
+        // HERE'S THE FIX - Force fresh authentication before sync
+        $api = new GunBroker_API();
+        $username = get_option('gunbroker_username');
+        $password = get_option('gunbroker_password');
+
+        $auth_result = $api->authenticate($username, $password);
+        if (is_wp_error($auth_result)) {
+            wp_send_json_error('Authentication failed: ' . $auth_result->get_error_message());
+        }
+
+        // Now sync the product
         $sync = new GunBroker_Sync();
         $result = $sync->sync_single_product($product_id);
 
@@ -437,7 +447,6 @@ class GunBroker_Admin {
             wp_send_json_success('Product listed successfully');
         }
     }
-
     /**
      * Load orders from GunBroker via AJAX
      */

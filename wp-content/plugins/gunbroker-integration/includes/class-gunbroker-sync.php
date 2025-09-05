@@ -14,6 +14,29 @@ class GunBroker_Sync {
         if (!wp_next_scheduled('gunbroker_sync_inventory')) {
             wp_schedule_event(time(), 'hourly', 'gunbroker_sync_inventory');
         }
+
+        // Add manual sync action
+        add_action('wp_ajax_gunbroker_manual_sync', array($this, 'handle_manual_sync'));
+    }
+
+    /**
+     * Handle manual sync via AJAX
+     */
+    public function handle_manual_sync() {
+        check_ajax_referer('gunbroker_manual_sync', 'nonce');
+
+        if (!current_user_can('manage_woocommerce')) {
+            wp_die('Unauthorized');
+        }
+
+        $product_id = intval($_POST['product_id']);
+        $result = $this->sync_single_product($product_id);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error($result->get_error_message());
+        } else {
+            wp_send_json_success('Product synced successfully');
+        }
     }
 
     /**
@@ -29,65 +52,81 @@ class GunBroker_Sync {
      * Sync a single product with GunBroker
      */
     public function sync_single_product($product_id) {
+        error_log('GunBroker: Starting sync for product ID: ' . $product_id);
+
         $product = wc_get_product($product_id);
         if (!$product) {
+            error_log('GunBroker: Product not found: ' . $product_id);
             return new WP_Error('invalid_product', 'Product not found');
         }
 
         // Check if GunBroker sync is enabled for this product
         $enabled = get_post_meta($product_id, '_gunbroker_enabled', true);
         if ($enabled !== 'yes') {
+            error_log('GunBroker: Sync not enabled for product: ' . $product_id);
             return new WP_Error('sync_disabled', 'GunBroker sync not enabled for this product');
+        }
+
+        // Check if plugin is configured
+        $settings = new GunBroker_Settings();
+        if (!$settings->is_configured()) {
+            error_log('GunBroker: Plugin not configured');
+            return new WP_Error('not_configured', 'GunBroker plugin is not configured');
         }
 
         $api = new GunBroker_API();
 
-        // Ensure we're authenticated before making API calls
-        $username = get_option('gunbroker_username');
-        $password = get_option('gunbroker_password');
-
-        if (empty($username) || empty($password)) {
-            return new WP_Error('no_credentials', 'GunBroker credentials not configured');
-        }
-
-        // Authenticate fresh for each product sync
-        $auth_result = $api->authenticate($username, $password);
-        if (is_wp_error($auth_result)) {
-            return $auth_result;
-        }
-
         // Check if we already have a listing for this product
         $listing_id = $this->get_listing_id($product_id);
+        error_log('GunBroker: Existing listing ID: ' . ($listing_id ?: 'none'));
 
         try {
             $listing_data = $api->prepare_listing_data($product);
 
+            // Validate required fields
+            if (empty($listing_data['Title']) || empty($listing_data['BuyNowPrice'])) {
+                $error_msg = 'Missing required fields: Title or BuyNowPrice';
+                error_log('GunBroker: ' . $error_msg);
+                $this->log_sync_result($product_id, 'validate', 'error', $error_msg);
+                return new WP_Error('invalid_data', $error_msg);
+            }
+
             if ($listing_id) {
                 // Update existing listing
+                error_log('GunBroker: Updating existing listing: ' . $listing_id);
                 $result = $api->update_listing($listing_id, $listing_data);
                 $action = 'update';
             } else {
                 // Create new listing
+                error_log('GunBroker: Creating new listing');
                 $result = $api->create_listing($listing_data);
                 $action = 'create';
             }
 
             if (is_wp_error($result)) {
-                $this->log_sync_result($product_id, $action, 'error', $result->get_error_message());
+                $error_msg = $result->get_error_message();
+                error_log('GunBroker: API call failed: ' . $error_msg);
+                $this->log_sync_result($product_id, $action, 'error', $error_msg);
                 return $result;
             }
+
+            error_log('GunBroker: API call successful: ' . json_encode($result));
 
             // Save the listing ID if it's a new listing
             if ($action === 'create' && isset($result['ItemID'])) {
                 $this->save_listing_id($product_id, $result['ItemID']);
+                error_log('GunBroker: Saved new listing ID: ' . $result['ItemID']);
             }
 
             $this->log_sync_result($product_id, $action, 'success', 'Product synced successfully');
+            error_log('GunBroker: Sync completed successfully for product: ' . $product_id);
             return true;
 
         } catch (Exception $e) {
-            $this->log_sync_result($product_id, 'sync', 'error', $e->getMessage());
-            return new WP_Error('sync_failed', $e->getMessage());
+            $error_msg = $e->getMessage();
+            error_log('GunBroker: Exception during sync: ' . $error_msg);
+            $this->log_sync_result($product_id, 'sync', 'error', $error_msg);
+            return new WP_Error('sync_failed', $error_msg);
         }
     }
 
@@ -97,6 +136,7 @@ class GunBroker_Sync {
     public function on_product_updated($product_id) {
         $enabled = get_post_meta($product_id, '_gunbroker_enabled', true);
         if ($enabled === 'yes') {
+            error_log('GunBroker: Product updated, queuing sync: ' . $product_id);
             $this->queue_product_sync($product_id);
         }
     }
@@ -108,12 +148,17 @@ class GunBroker_Sync {
         $enabled = get_post_meta($product->get_id(), '_gunbroker_enabled', true);
         if ($enabled === 'yes') {
             $auto_end = get_option('gunbroker_auto_end_zero_stock', true);
+            $stock_qty = $product->get_stock_quantity();
+
+            error_log('GunBroker: Stock changed for product ' . $product->get_id() . ' to: ' . $stock_qty);
 
             // If stock is 0 and auto-end is enabled, end the listing
-            if ($product->get_stock_quantity() <= 0 && $auto_end) {
+            if ($stock_qty <= 0 && $auto_end) {
+                error_log('GunBroker: Stock is 0, ending listing for product: ' . $product->get_id());
                 $this->end_listing_if_out_of_stock($product->get_id());
             } else {
                 // Update inventory on GunBroker
+                error_log('GunBroker: Updating inventory for product: ' . $product->get_id());
                 $this->queue_product_sync($product->get_id());
             }
         }
@@ -123,6 +168,8 @@ class GunBroker_Sync {
      * Sync all inventory
      */
     public function sync_all_inventory() {
+        error_log('GunBroker: Starting bulk inventory sync');
+
         // Get all products with GunBroker sync enabled
         $products = get_posts(array(
             'post_type' => 'product',
@@ -132,9 +179,25 @@ class GunBroker_Sync {
             'post_status' => 'publish'
         ));
 
+        error_log('GunBroker: Found ' . count($products) . ' products to sync');
+
+        $success_count = 0;
+        $error_count = 0;
+
         foreach ($products as $product_post) {
-            $this->queue_product_sync($product_post->ID);
+            $result = $this->queue_product_sync($product_post->ID);
+            if (is_wp_error($result)) {
+                $error_count++;
+                error_log('GunBroker: Bulk sync error for product ' . $product_post->ID . ': ' . $result->get_error_message());
+            } else {
+                $success_count++;
+            }
+
+            // Add small delay to prevent rate limiting
+            sleep(1);
         }
+
+        error_log("GunBroker: Bulk sync completed. Success: {$success_count}, Errors: {$error_count}");
     }
 
     /**
@@ -143,8 +206,11 @@ class GunBroker_Sync {
     public function end_listing_if_out_of_stock($product_id) {
         $listing_id = $this->get_listing_id($product_id);
         if (!$listing_id) {
+            error_log('GunBroker: No listing ID found to end for product: ' . $product_id);
             return;
         }
+
+        error_log('GunBroker: Ending listing ' . $listing_id . ' for out of stock product: ' . $product_id);
 
         $api = new GunBroker_API();
         $result = $api->end_listing($listing_id);
@@ -152,6 +218,10 @@ class GunBroker_Sync {
         if (!is_wp_error($result)) {
             $this->update_listing_status($product_id, 'inactive');
             $this->log_sync_result($product_id, 'end', 'success', 'Listing ended due to no stock');
+            error_log('GunBroker: Successfully ended listing: ' . $listing_id);
+        } else {
+            $this->log_sync_result($product_id, 'end', 'error', $result->get_error_message());
+            error_log('GunBroker: Failed to end listing ' . $listing_id . ': ' . $result->get_error_message());
         }
     }
 
@@ -227,5 +297,45 @@ class GunBroker_Sync {
         if ($listing_id) {
             $this->update_listing_status($product_id, $status === 'success' ? 'active' : 'error');
         }
+    }
+
+    /**
+     * Get sync status for a product
+     */
+    public function get_product_sync_status($product_id) {
+        global $wpdb;
+
+        $listing = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}gunbroker_listings WHERE product_id = %d",
+            $product_id
+        ));
+
+        if (!$listing) {
+            return array(
+                'status' => 'not_synced',
+                'listing_id' => null,
+                'last_sync' => null
+            );
+        }
+
+        return array(
+            'status' => $listing->status,
+            'listing_id' => $listing->gunbroker_id,
+            'last_sync' => $listing->last_sync
+        );
+    }
+
+    /**
+     * Get recent sync logs
+     */
+    public function get_recent_sync_logs($limit = 50) {
+        global $wpdb;
+
+        return $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}gunbroker_sync_log 
+             ORDER BY timestamp DESC 
+             LIMIT %d",
+            $limit
+        ));
     }
 }
