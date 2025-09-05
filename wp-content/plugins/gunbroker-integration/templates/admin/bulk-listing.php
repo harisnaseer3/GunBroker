@@ -115,7 +115,10 @@
                     <!-- Product Image -->
                     <div class="product-image">
                         <?php if ($image_url): ?>
-                            <img src="<?php echo esc_url($image_url); ?>" alt="<?php echo esc_attr($product->get_name()); ?>">
+                            <img src="<?php echo esc_url($image_url); ?>"
+                                 alt="<?php echo esc_attr($product->get_name()); ?>"
+                                 loading="lazy"
+                                 style="width: 100%; height: 100%; object-fit: cover;">
                         <?php else: ?>
                             <div style="color: #999; font-size: 14px; text-align: center;">
                                 <span class="dashicons dashicons-camera" style="font-size: 40px; display: block; margin-bottom: 10px;"></span>

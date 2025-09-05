@@ -42,6 +42,20 @@ class GunBroker_Sync {
 
         $api = new GunBroker_API();
 
+        // Ensure we're authenticated before making API calls
+        $username = get_option('gunbroker_username');
+        $password = get_option('gunbroker_password');
+
+        if (empty($username) || empty($password)) {
+            return new WP_Error('no_credentials', 'GunBroker credentials not configured');
+        }
+
+        // Authenticate fresh for each product sync
+        $auth_result = $api->authenticate($username, $password);
+        if (is_wp_error($auth_result)) {
+            return $auth_result;
+        }
+
         // Check if we already have a listing for this product
         $listing_id = $this->get_listing_id($product_id);
 

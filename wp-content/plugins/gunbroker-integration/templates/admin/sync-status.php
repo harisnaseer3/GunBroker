@@ -49,6 +49,97 @@
         <div id="bulk-action-result" style="margin-top: 15px;"></div>
     </div>
 
+    <!-- Debug Information -->
+    <?php if (defined('WP_DEBUG') && WP_DEBUG): ?>
+        <div style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; margin: 20px 0;">
+            <h2>Debug Information</h2>
+
+            <?php
+            $api = new GunBroker_API();
+            $settings = new GunBroker_Settings();
+            ?>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h3>API Configuration</h3>
+                    <ul style="font-family: monospace; font-size: 12px;">
+                        <li><strong>Base URL:</strong> <?php echo esc_html($api->get_base_url()); ?></li>
+                        <li><strong>Dev Key:</strong> <?php echo esc_html(substr(get_option('gunbroker_dev_key'), 0, 8) . '...'); ?></li>
+                        <li><strong>Has Access Token:</strong> <?php echo get_option('gunbroker_access_token') ? 'Yes' : 'No'; ?></li>
+                        <li><strong>Sandbox Mode:</strong> <?php echo get_option('gunbroker_sandbox_mode') ? 'Yes' : 'No'; ?></li>
+                        <li><strong>SSL Verify:</strong> Disabled (Local Dev)</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3>Recent Debug Logs</h3>
+                    <div style="max-height: 200px; overflow-y: auto; background: #f9f9f9; padding: 10px; border: 1px solid #ddd; font-family: monospace; font-size: 11px;">
+                        <?php
+                        $debug_log = ABSPATH . 'wp-content/debug.log';
+                        if (file_exists($debug_log)) {
+                            $log_content = file_get_contents($debug_log);
+                            if ($log_content) {
+                                $log_lines = explode("\n", $log_content);
+                                $gunbroker_lines = array_filter($log_lines, function($line) {
+                                    return strpos($line, 'GunBroker') !== false;
+                                });
+                                $recent_lines = array_slice(array_reverse($gunbroker_lines), 0, 15);
+
+                                if (!empty($recent_lines)) {
+                                    foreach ($recent_lines as $line) {
+                                        $line = trim($line);
+                                        if (!empty($line)) {
+                                            echo '<div style="margin-bottom: 2px; word-break: break-all;">' . esc_html($line) . '</div>';
+                                        }
+                                    }
+                                } else {
+                                    echo '<div style="color: #666;">No GunBroker debug logs found</div>';
+                                }
+                            } else {
+                                echo '<div style="color: #666;">Debug log is empty</div>';
+                            }
+                        } else {
+                            echo '<div style="color: #666;">Debug log file not found at: ' . esc_html($debug_log) . '</div>';
+                        }
+                        ?>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button type="button" class="button" onclick="location.reload()">Refresh Debug Info</button>
+                <button type="button" class="button" id="test-listing">Test Connection from Here</button>
+            </div>
+
+            <script>
+                jQuery('#test-listing').click(function() {
+                    var button = $(this);
+                    button.prop('disabled', true).text('Testing...');
+
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'gunbroker_test_connection',
+                            nonce: '<?php echo wp_create_nonce("gunbroker_ajax_nonce"); ?>'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                alert('✓ Connection successful: ' + response.data);
+                            } else {
+                                alert('✗ Connection failed: ' + response.data);
+                            }
+                            location.reload();
+                        },
+                        complete: function() {
+                            button.prop('disabled', false).text('Test Connection from Here');
+                        }
+                    });
+                });
+            </script>
+        </div>
+    <?php endif; ?>
+
     <!-- Recent Activity Log -->
     <div style="background: #fff; padding: 20px; border: 1px solid #ccd0d4;">
         <h2>Recent Activity</h2>

@@ -58,8 +58,12 @@ class GunBroker_API {
      * Make API request to GunBroker
      */
     public function make_request($endpoint, $method = 'GET', $data = array()) {
-        if (empty($this->dev_key) || empty($this->access_token)) {
-            return new WP_Error('not_authenticated', 'Not authenticated with GunBroker API');
+        if (empty($this->dev_key)) {
+            return new WP_Error('not_authenticated', 'Developer Key not configured');
+        }
+
+        if (empty($this->access_token)) {
+            return new WP_Error('not_authenticated', 'Not authenticated with GunBroker API - call authenticate() first');
         }
 
         $url = $this->base_url . $endpoint;
@@ -68,13 +72,20 @@ class GunBroker_API {
             'headers' => array(
                 'X-DevKey' => $this->dev_key,
                 'X-AccessToken' => $this->access_token,
-                'Content-Type' => 'application/json'
+                'Content-Type' => 'application/json',
+                'User-Agent' => 'WordPress-GunBroker-Plugin/1.0'
             ),
-            'timeout' => 30
+            'timeout' => 30,
+            'sslverify' => false  // Disable SSL verification for local development
         );
 
         if (!empty($data) && in_array($method, array('POST', 'PUT'))) {
             $args['body'] = json_encode($data);
+        }
+
+        error_log("GunBroker API Request: {$method} {$url}");
+        if (!empty($data)) {
+            error_log("GunBroker API Data: " . json_encode($data));
         }
 
         $response = wp_remote_request($url, $args);
@@ -89,17 +100,36 @@ class GunBroker_API {
         $decoded_body = json_decode($body, true);
 
         // Log the response for debugging
-        $this->log_api_call($endpoint, $method, $response_code, $decoded_body);
+        error_log("GunBroker API Response: {$response_code} - " . $body);
 
         if ($response_code >= 200 && $response_code < 300) {
             return $decoded_body;
         }
 
+        // Handle authentication errors
+        if ($response_code === 401) {
+            return new WP_Error('auth_failed', 'Authentication failed - access token may be expired');
+        }
+
+        $error_message = 'GunBroker API Error (HTTP ' . $response_code . ')';
+        if (isset($decoded_body['message'])) {
+            $error_message .= ': ' . $decoded_body['message'];
+        } elseif (isset($decoded_body['error'])) {
+            $error_message .= ': ' . $decoded_body['error'];
+        }
+
         return new WP_Error(
             'api_error',
-            'GunBroker API Error: ' . ($decoded_body['message'] ?? 'Unknown error'),
+            $error_message,
             array('status' => $response_code, 'body' => $decoded_body)
         );
+    }
+
+    /**
+     * Get the base URL (for debugging)
+     */
+    public function get_base_url() {
+        return $this->base_url;
     }
 
     /**
@@ -142,12 +172,25 @@ class GunBroker_API {
      * Check if API credentials are valid
      */
     public function test_connection() {
-        if (empty($this->dev_key) || empty($this->access_token)) {
-            return false;
+        $username = get_option('gunbroker_username');
+        $password = get_option('gunbroker_password');
+
+        if (empty($this->dev_key)) {
+            return new WP_Error('no_dev_key', 'Developer Key is missing');
         }
 
-        $response = $this->make_request('Users/Profile');
-        return !is_wp_error($response);
+        if (empty($username) || empty($password)) {
+            return new WP_Error('no_credentials', 'Username or password is missing');
+        }
+
+        // Try to authenticate
+        $auth_result = $this->authenticate($username, $password);
+
+        if (is_wp_error($auth_result)) {
+            return $auth_result;
+        }
+
+        return true;
     }
 
     /**
@@ -188,10 +231,10 @@ class GunBroker_API {
 
         $listing_data = array(
             'Title' => $title,
-            'Description' => $product->get_description() ?: $product->get_short_description(),
+            'Description' => $product->get_description() ?: $product->get_short_description() ?: 'No description available',
             'CategoryID' => get_post_meta($product->get_id(), '_gunbroker_category', true) ?: 3022, // Default firearms category
             'BuyNowPrice' => number_format($gunbroker_price, 2, '.', ''),
-            'Quantity' => $product->get_stock_quantity() ?: 1,
+            'Quantity' => max(1, $product->get_stock_quantity() ?: 1),
             'ListingDuration' => get_option('gunbroker_listing_duration', 7), // 7 days default
             'PaymentMethods' => array('Check', 'MoneyOrder', 'CreditCard'),
             'ShippingMethods' => array('StandardShipping'),
@@ -202,6 +245,14 @@ class GunBroker_API {
 
         // Add images if available
         $image_ids = $product->get_gallery_image_ids();
+        if (empty($image_ids)) {
+            // Try featured image if no gallery images
+            $featured_image_id = $product->get_image_id();
+            if ($featured_image_id) {
+                $image_ids = array($featured_image_id);
+            }
+        }
+
         if (!empty($image_ids)) {
             $listing_data['Pictures'] = array();
             foreach ($image_ids as $image_id) {
@@ -211,6 +262,9 @@ class GunBroker_API {
                 }
             }
         }
+
+        // Log the prepared data for debugging
+        error_log('GunBroker Listing Data Prepared: ' . json_encode($listing_data));
 
         return apply_filters('gunbroker_listing_data', $listing_data, $product);
     }
