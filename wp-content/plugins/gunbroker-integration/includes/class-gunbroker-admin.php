@@ -14,11 +14,22 @@ class GunBroker_Admin {
         add_action('wp_ajax_gunbroker_bulk_list_products', array($this, 'bulk_list_products_ajax'));
         add_action('wp_ajax_gunbroker_load_orders', array($this, 'load_orders_ajax'));
         add_action('wp_ajax_gunbroker_ship_order', array($this, 'ship_order_ajax'));
+        add_action('wp_ajax_gunbroker_debug_test', array($this, 'debug_test_ajax'));
+        add_action('wp_ajax_gunbroker_fetch_listings', array($this, 'fetch_gunbroker_listings_ajax'));
+        add_action('wp_ajax_gunbroker_debug_credentials', array($this, 'debug_credentials_ajax'));
+        add_action('wp_ajax_gunbroker_test_raw_auth', array($this, 'test_raw_auth_ajax'));
+        add_action('wp_ajax_gunbroker_test_endpoints', array($this, 'test_endpoints_ajax'));
+        add_action('wp_ajax_gunbroker_debug_listing_data', array($this, 'debug_listing_data_ajax'));
+        add_action('wp_ajax_gunbroker_show_logs', array($this, 'show_logs_ajax'));
+        add_action('wp_ajax_gunbroker_test_product_endpoints', array($this, 'test_product_endpoints_ajax'));
+        add_action('wp_ajax_gunbroker_discover_endpoints', array($this, 'discover_endpoints_ajax'));
+        add_action('wp_ajax_gunbroker_test_all_endpoints', array($this, 'test_all_endpoints_ajax'));
 
         // Add product list column
         add_filter('manage_product_posts_columns', array($this, 'add_product_columns'));
         add_action('manage_product_posts_custom_column', array($this, 'populate_product_columns'), 10, 2);
     }
+
 
     /**
      * Add admin menu
@@ -36,11 +47,11 @@ class GunBroker_Admin {
 
         add_submenu_page(
             'gunbroker-integration',
-            'List Products',
-            'List Products',
+            'Browse GunBroker',
+            'Browse GunBroker',
             'manage_options',
-            'gunbroker-integration',
-            array($this, 'bulk_listing_page')
+            'gunbroker-listings',
+            array($this, 'gunbroker_listings_page')
         );
 
         add_submenu_page(
@@ -103,6 +114,30 @@ class GunBroker_Admin {
         }
 
         include_once GUNBROKER_PLUGIN_PATH . 'templates/admin/settings.php';
+    }
+
+    /**
+     * FIXED: Debug API credentials with correct URLs
+     */
+    public function debug_credentials_ajax() {
+        check_ajax_referer('gunbroker_ajax_nonce', 'nonce');
+
+        $dev_key = get_option('gunbroker_dev_key');
+        $username = get_option('gunbroker_username');
+        $password = get_option('gunbroker_password');
+        $sandbox = get_option('gunbroker_sandbox_mode');
+
+        $debug_info = array(
+            'dev_key_length' => strlen($dev_key),
+            'dev_key_start' => substr($dev_key, 0, 8) . '...',
+            'username' => $username,
+            'password_length' => strlen($password),
+            'sandbox_mode' => $sandbox ? 'Yes' : 'No',
+            // FIXED: Use correct URLs
+            'base_url' => $sandbox ? 'https://api.sandbox.gunbroker.com/v1/' : 'https://api.gunbroker.com/v1/'
+        );
+
+        wp_send_json_success($debug_info);
     }
 
     /**
@@ -410,8 +445,6 @@ class GunBroker_Admin {
         }
 
         $product_id = intval($_POST['product_id']);
-        $settings = $_POST['settings'];
-
         if (!$product_id) {
             wp_send_json_error('Invalid product ID');
         }
@@ -423,11 +456,8 @@ class GunBroker_Admin {
 
         // Apply bulk settings to product
         update_post_meta($product_id, '_gunbroker_enabled', 'yes');
-        update_post_meta($product_id, '_gunbroker_markup', $settings['markup']);
-        update_post_meta($product_id, '_gunbroker_duration', $settings['duration']);
-        update_post_meta($product_id, '_gunbroker_category', $settings['category']);
 
-        // HERE'S THE FIX - Force fresh authentication before sync
+        // Force fresh authentication before sync
         $api = new GunBroker_API();
         $username = get_option('gunbroker_username');
         $password = get_option('gunbroker_password');
@@ -447,6 +477,7 @@ class GunBroker_Admin {
             wp_send_json_success('Product listed successfully');
         }
     }
+
     /**
      * Load orders from GunBroker via AJAX
      */
@@ -459,8 +490,8 @@ class GunBroker_Admin {
 
         $api = new GunBroker_API();
 
-        // Get orders from GunBroker API
-        $orders_response = $api->make_request('Orders/Sold');
+        // Use the correct working endpoint from your permissions
+        $orders_response = $api->get_sold_orders();
 
         if (is_wp_error($orders_response)) {
             wp_send_json_error('Failed to load orders: ' . $orders_response->get_error_message());
@@ -468,19 +499,19 @@ class GunBroker_Admin {
 
         // Transform the orders data for display
         $orders = array();
-        if (isset($orders_response['Orders']) && is_array($orders_response['Orders'])) {
-            foreach ($orders_response['Orders'] as $order) {
+        if (isset($orders_response['results']) && is_array($orders_response['results'])) {
+            foreach ($orders_response['results'] as $order) {
                 $orders[] = array(
-                    'id' => $order['OrderID'],
-                    'date' => $order['OrderDate'],
-                    'product_name' => $order['ItemTitle'],
-                    'buyer_name' => $order['BuyerName'],
-                    'buyer_location' => $order['BuyerLocation'],
-                    'amount' => $order['TotalAmount'],
-                    'status' => $this->map_order_status($order['OrderStatus']),
-                    'tracking_number' => $order['TrackingNumber'] ?? '',
-                    'carrier' => $order['ShippingCarrier'] ?? '',
-                    'url' => 'https://www.gunbroker.com/order/' . $order['OrderID']
+                    'id' => $order['orderID'] ?? $order['OrderID'] ?? 'N/A',
+                    'date' => $order['orderDate'] ?? $order['OrderDate'] ?? '',
+                    'product_name' => $order['itemTitle'] ?? $order['ItemTitle'] ?? 'Unknown Item',
+                    'buyer_name' => $order['buyerName'] ?? $order['BuyerName'] ?? 'Unknown Buyer',
+                    'buyer_location' => $order['buyerLocation'] ?? $order['BuyerLocation'] ?? '',
+                    'amount' => $order['totalAmount'] ?? $order['TotalAmount'] ?? 0,
+                    'status' => $this->map_order_status($order['orderStatus'] ?? $order['OrderStatus'] ?? 'Unknown'),
+                    'tracking_number' => $order['trackingNumber'] ?? $order['TrackingNumber'] ?? '',
+                    'carrier' => $order['shippingCarrier'] ?? $order['ShippingCarrier'] ?? '',
+                    'url' => 'https://www.sandbox.gunbroker.com/order/' . ($order['orderID'] ?? $order['OrderID'] ?? '')
                 );
             }
         }
@@ -603,6 +634,397 @@ class GunBroker_Admin {
         return $wpdb->get_var($wpdb->prepare(
             "SELECT status FROM {$wpdb->prefix}gunbroker_listings WHERE product_id = %d",
             $product_id
+        ));
+    }
+
+    /**
+     * Test individual components
+     */
+    public function debug_test_ajax() {
+        check_ajax_referer('gunbroker_ajax_nonce', 'nonce');
+
+        $api = new GunBroker_API();
+
+        // Test 1: Check credentials
+        $username = get_option('gunbroker_username');
+        $password = get_option('gunbroker_password');
+        $dev_key = get_option('gunbroker_dev_key');
+
+        error_log('DEBUG TEST: Username: ' . $username);
+        error_log('DEBUG TEST: Dev Key: ' . substr($dev_key, 0, 8) . '...');
+
+        // Test 2: Try authentication
+        $auth_result = $api->authenticate($username, $password);
+        error_log('DEBUG TEST: Auth result: ' . (is_wp_error($auth_result) ? $auth_result->get_error_message() : 'SUCCESS'));
+
+        // Test 3: Try simple API call
+        $test_call = $api->make_request('Users/AccountInfo');
+        error_log('DEBUG TEST: API call result: ' . (is_wp_error($test_call) ? $test_call->get_error_message() : 'SUCCESS'));
+
+        wp_send_json_success('Debug test complete - check logs');
+    }
+
+    /**
+     * GunBroker listings browser page
+     */
+    public function gunbroker_listings_page() {
+        include_once GUNBROKER_PLUGIN_PATH . 'templates/admin/gunbroker-listings.php';
+    }
+
+    /**
+     * Fetch GunBroker listings via AJAX
+     */
+    public function fetch_gunbroker_listings_ajax() {
+        check_ajax_referer('gunbroker_ajax_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+
+        $api = new GunBroker_API();
+
+        // Get listings type from request
+        $listing_type = sanitize_text_field($_POST['listing_type'] ?? 'user');
+
+        if ($listing_type === 'user') {
+            // Get user's own listings using working endpoint
+            $result = $api->get_user_listings();
+        } else {
+            // Search public listings using working endpoint
+            $search_term = sanitize_text_field($_POST['search_term'] ?? '');
+            $category = intval($_POST['category'] ?? 0);
+
+            $search_params = array(
+                'PageSize' => 20,
+                'PageIndex' => 1
+            );
+
+            if (!empty($search_term)) {
+                $search_params['Keywords'] = $search_term;
+            }
+            if (!empty($category)) {
+                $search_params['CategoryID'] = $category;
+            }
+
+            $result = $api->search_gunbroker_items($search_params);
+        }
+
+        if (is_wp_error($result)) {
+            wp_send_json_error($result->get_error_message());
+        }
+
+        // Process the results - handle different response formats
+        $listings = array();
+        $items_key = isset($result['results']) ? 'results' : (isset($result['Items']) ? 'Items' : null);
+
+        $is_sandbox = get_option('gunbroker_sandbox_mode', true);
+        $website_url = $is_sandbox ? 'https://www.sandbox.gunbroker.com/' : 'https://www.gunbroker.com/';
+
+        if ($items_key && is_array($result[$items_key])) {
+            foreach ($result[$items_key] as $item) {
+                $listings[] = array(
+                    'id' => $item['itemID'] ?? $item['ItemID'] ?? 'N/A',
+                    'title' => $item['title'] ?? $item['Title'] ?? 'No Title',
+                    'price' => $item['buyNowPrice'] ?? $item['BuyNowPrice'] ?? $item['currentPrice'] ?? $item['CurrentPrice'] ?? 0,
+                    'end_date' => $item['endDate'] ?? $item['EndDate'] ?? '',
+                    'category' => $item['categoryName'] ?? $item['CategoryName'] ?? 'Unknown',
+                    'condition' => $item['condition'] ?? $item['Condition'] ?? 'Unknown',
+                    'image_url' => isset($item['pictureURLs']) ? $item['pictureURLs'][0] ?? '' : ($item['PictureURLs'][0] ?? ''),
+//                    'url' => 'https://www.sandbox.gunbroker.com/item/' . ($item['itemID'] ?? $item['ItemID'] ?? '')
+
+                    'url' => $website_url . 'item/' . ($item['itemID'] ?? $item['ItemID'] ?? '')
+                );
+            }
+        }
+
+        wp_send_json_success(array(
+            'listings' => $listings,
+            'total' => $result['count'] ?? $result['Count'] ?? count($listings),
+            'debug_response' => $result // Include full response for debugging
+        ));
+    }
+
+    /**
+     * FIXED: Test raw authentication with correct sandbox URL
+     */
+    public function test_raw_auth_ajax() {
+        check_ajax_referer('gunbroker_ajax_nonce', 'nonce');
+
+        $dev_key = get_option('gunbroker_dev_key');
+        $username = get_option('gunbroker_username');
+        $password = get_option('gunbroker_password');
+        $sandbox = get_option('gunbroker_sandbox_mode');
+
+        // FIXED: Use correct URL based on sandbox mode
+        $base_url = $sandbox
+            ? 'https://api.sandbox.gunbroker.com/v1/'
+            : 'https://api.gunbroker.com/v1/';
+
+        // Make direct auth request
+        $response = wp_remote_post($base_url . 'Users/AccessToken', array(
+            'headers' => array(
+                'X-DevKey' => $dev_key,
+                'Content-Type' => 'application/json'
+            ),
+            'body' => json_encode(array(
+                'Username' => $username,
+                'Password' => $password
+            )),
+            'timeout' => 30,
+            'sslverify' => true
+        ));
+
+        $response_code = wp_remote_retrieve_response_code($response);
+        $body = wp_remote_retrieve_body($response);
+
+        wp_send_json_success(array(
+            'url' => $base_url . 'Users/AccessToken',
+            'response_code' => $response_code,
+            'response_body' => $body,
+            'sandbox_mode' => $sandbox ? 'Yes' : 'No',
+            'headers_sent' => array(
+                'X-DevKey' => substr($dev_key, 0, 8) . '...',
+                'Content-Type' => 'application/json'
+            ),
+            'body_sent' => json_encode(array(
+                'Username' => $username,
+                'Password' => '***'
+            ))
+        ));
+    }
+
+    /**
+     * Test API endpoints
+     */
+    public function test_endpoints_ajax() {
+        check_ajax_referer('gunbroker_ajax_nonce', 'nonce');
+
+        $api = new GunBroker_API();
+
+        // Test authentication first
+        $username = get_option('gunbroker_username');
+        $password = get_option('gunbroker_password');
+        $auth_result = $api->authenticate($username, $password);
+
+        if (is_wp_error($auth_result)) {
+            wp_send_json_error('Auth failed: ' . $auth_result->get_error_message());
+        }
+
+        // Test the working endpoints from your permissions
+        $endpoints = array(
+            // Working endpoints
+            'Categories',
+            'Items?PageSize=5',
+            'ItemsSelling',
+            'OrdersSold',
+            'Users/AccountInfo',
+
+            // Test some others
+            'Items/Selling',
+            'ItemsEnded',
+            'ItemsSold'
+        );
+
+        $results = array();
+        foreach ($endpoints as $endpoint) {
+            $result = $api->make_request($endpoint);
+            $results[$endpoint] = array(
+                'success' => !is_wp_error($result),
+                'error' => is_wp_error($result) ? $result->get_error_message() : null,
+                'data_preview' => is_wp_error($result) ? null : substr(json_encode($result), 0, 200) . '...'
+            );
+
+            // Small delay to avoid rate limiting
+            usleep(500000); // 0.5 second delay
+        }
+
+        wp_send_json_success($results);
+    }
+
+    /**
+     * Debug product listing data
+     */
+    public function debug_listing_data_ajax() {
+        check_ajax_referer('gunbroker_ajax_nonce', 'nonce');
+
+        $product_id = intval($_POST['product_id']);
+        $product = wc_get_product($product_id);
+
+        if (!$product) {
+            wp_send_json_error('Product not found');
+        }
+
+        $api = new GunBroker_API();
+        $listing_data = $api->prepare_listing_data($product);
+
+        wp_send_json_success(array(
+            'product_name' => $product->get_name(),
+            'product_price' => $product->get_price(),
+            'listing_data' => $listing_data
+        ));
+    }
+
+    public function show_logs_ajax() {
+        check_ajax_referer('gunbroker_ajax_nonce', 'nonce');
+
+        $debug_log = ABSPATH . 'wp-content/debug.log';
+
+        if (!file_exists($debug_log)) {
+            wp_send_json_success('No debug log file found. Make sure WP_DEBUG_LOG is enabled.');
+            return;
+        }
+
+        $log_content = file_get_contents($debug_log);
+        $lines = explode("\n", $log_content);
+
+        // Get last 50 lines that contain "GunBroker"
+        $gunbroker_lines = array_filter($lines, function($line) {
+            return strpos($line, 'GunBroker') !== false;
+        });
+
+        $recent_lines = array_slice(array_reverse($gunbroker_lines), 0, 50);
+
+        wp_send_json_success(implode("\n", array_reverse($recent_lines)));
+    }
+
+    /**
+     * Test product fetching endpoints
+     */
+    public function test_product_endpoints_ajax() {
+        check_ajax_referer('gunbroker_ajax_nonce', 'nonce');
+
+        $api = new GunBroker_API();
+
+        // Authenticate first
+        $username = get_option('gunbroker_username');
+        $password = get_option('gunbroker_password');
+        $auth_result = $api->authenticate($username, $password);
+
+        if (is_wp_error($auth_result)) {
+            wp_send_json_error('Auth failed: ' . $auth_result->get_error_message());
+        }
+
+        // Test the working endpoints for products
+        $endpoints = array(
+            'Items?PageSize=5',
+            'Items?CategoryID=851&PageSize=5',
+            'ItemsSelling',
+            'ItemsEnded',
+            'ItemsSold'
+        );
+
+        $results = array();
+        foreach ($endpoints as $endpoint) {
+            $result = $api->make_request($endpoint);
+            $results[$endpoint] = array(
+                'success' => !is_wp_error($result),
+                'error' => is_wp_error($result) ? $result->get_error_message() : null,
+                'has_items' => !is_wp_error($result) && (isset($result['results']) || isset($result['items']) || isset($result['data'])),
+                'data_preview' => is_wp_error($result) ? null : substr(json_encode($result), 0, 300) . '...'
+            );
+
+            usleep(750000); // 0.75 second delay to avoid rate limiting
+        }
+
+        wp_send_json_success($results);
+    }
+
+    /**
+     * Comprehensive endpoint discovery
+     */
+    public function discover_endpoints_ajax() {
+        check_ajax_referer('gunbroker_ajax_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+
+        $api = new GunBroker_API();
+        $dev_key = get_option('gunbroker_dev_key');
+        $username = get_option('gunbroker_username');
+        $password = get_option('gunbroker_password');
+
+        if (empty($dev_key) || empty($username) || empty($password)) {
+            wp_send_json_error('API credentials not configured');
+        }
+
+        // Get fresh token
+        $auth_result = $api->authenticate($username, $password);
+        $token = null;
+
+        if (!is_wp_error($auth_result) && isset($auth_result['accessToken'])) {
+            $token = $auth_result['accessToken'];
+        } elseif (!is_wp_error($auth_result) && $api->get_access_token()) {
+            $token = $api->get_access_token();
+        }
+
+        // Run discovery
+        $discovery = new GunBroker_Endpoint_Discovery($dev_key, $token);
+        $results = $discovery->discover_working_endpoints();
+
+        // Find working endpoints
+        $working_endpoints = array();
+        foreach ($results as $endpoint => $result) {
+            if ($result['no_auth']['success'] || $result['with_auth']['success']) {
+                $working_endpoints[] = array(
+                    'endpoint' => $endpoint,
+                    'works_no_auth' => $result['no_auth']['success'],
+                    'works_with_auth' => $result['with_auth']['success'],
+                    'data_preview' => $result['no_auth']['success'] ?
+                        $result['no_auth']['data_preview'] :
+                        $result['with_auth']['data_preview']
+                );
+            }
+        }
+
+        wp_send_json_success(array(
+            'all_results' => $results,
+            'working_endpoints' => $working_endpoints,
+            'summary' => count($working_endpoints) . ' working endpoints found out of ' . count($results) . ' tested'
+        ));
+    }
+
+    public function test_all_endpoints_ajax() {
+        check_ajax_referer('gunbroker_ajax_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+
+        $api = new GunBroker_API();
+
+        // Test authentication first
+        $username = get_option('gunbroker_username');
+        $password = get_option('gunbroker_password');
+        $auth_result = $api->authenticate($username, $password);
+
+        if (is_wp_error($auth_result)) {
+            wp_send_json_error('Authentication failed: ' . $auth_result->get_error_message());
+        }
+
+        // Test all product endpoints
+        $results = $api->test_all_product_endpoints();
+
+        // Add summary
+        $working_count = 0;
+        $total_count = count($results);
+
+        foreach ($results as $result) {
+            if ($result['success']) {
+                $working_count++;
+            }
+        }
+
+        $summary = array(
+            'total_tested' => $total_count,
+            'working' => $working_count,
+            'failed' => $total_count - $working_count,
+            'success_rate' => round(($working_count / $total_count) * 100, 1) . '%'
+        );
+
+        wp_send_json_success(array(
+            'summary' => $summary,
+            'results' => $results
         ));
     }
 }

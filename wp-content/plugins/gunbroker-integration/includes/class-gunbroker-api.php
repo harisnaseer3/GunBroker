@@ -12,10 +12,16 @@ class GunBroker_API {
         $this->access_token = get_option('gunbroker_access_token');
         $this->is_sandbox = get_option('gunbroker_sandbox_mode', true);
 
-        // Use sandbox for testing, production for live
+        // FIXED: Use correct URLs for sandbox vs production
         $this->base_url = $this->is_sandbox
-            ? 'https://api.gunbroker.com/v1/'
+            ? 'https://api.sandbox.gunbroker.com/v1/'
             : 'https://api.gunbroker.com/v1/';
+    }
+
+    public function get_website_url() {
+        return $this->is_sandbox
+            ? 'https://www.sandbox.gunbroker.com/'
+            : 'https://www.gunbroker.com/';
     }
 
     /**
@@ -56,7 +62,7 @@ class GunBroker_API {
             $this->access_token = $body['accessToken'];
             update_option('gunbroker_access_token', $this->access_token);
             error_log('GunBroker: Authentication successful, token: ' . substr($this->access_token, 0, 10) . '...');
-            return true;
+            return $body; // Return full response instead of just true
         }
 
         $error_message = isset($body['message']) ? $body['message'] : 'Unknown authentication error';
@@ -102,7 +108,7 @@ class GunBroker_API {
                 'X-DevKey' => $this->dev_key,
                 'X-AccessToken' => $this->access_token,
                 'Content-Type' => 'application/json',
-                'User-Agent' => 'WordPress-GunBroker-Plugin/1.0'
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             ),
             'timeout' => 30,
             'sslverify' => true
@@ -180,7 +186,6 @@ class GunBroker_API {
     /**
      * Create a new listing on GunBroker
      */
-    // Add this to your class-gunbroker-api.php file
     public function create_listing($listing_data) {
         // Force fresh authentication before creating listings
         $username = get_option('gunbroker_username');
@@ -217,7 +222,7 @@ class GunBroker_API {
      * End a listing
      */
     public function end_listing($gunbroker_id) {
-        return $this->make_request("Items/{$gunbroker_id}", 'DELETE');
+        return $this->make_request("Items", 'DELETE', array('ItemID' => $gunbroker_id));
     }
 
     /**
@@ -257,8 +262,8 @@ class GunBroker_API {
             return $auth_result;
         }
 
-        // Test with a simple API call to verify permissions
-        $test_result = $this->make_request('Users/GetUserInfo');
+        // Test with a simple API call - use working endpoint
+        $test_result = $this->make_request('Users/AccountInfo');
         if (is_wp_error($test_result)) {
             return $test_result;
         }
@@ -352,5 +357,382 @@ class GunBroker_API {
      */
     public function get_access_token() {
         return $this->access_token;
+    }
+
+    /**
+     * FIXED: Get user's listings from GunBroker using working endpoint
+     */
+    public function get_user_listings($params = array()) {
+        // Force fresh authentication
+        $username = get_option('gunbroker_username');
+        $password = get_option('gunbroker_password');
+
+        $auth_result = $this->authenticate($username, $password);
+        if (is_wp_error($auth_result)) {
+            return $auth_result;
+        }
+
+        // Build query parameters for ItemsSelling
+        $default_params = array(
+            'PageSize' => 25,
+            'PageIndex' => 1
+        );
+        $params = array_merge($default_params, $params);
+        $query_string = http_build_query($params);
+
+        $endpoint = 'ItemsSelling' . ($query_string ? '?' . $query_string : '');
+
+        error_log('GunBroker: Getting user listings via: ' . $endpoint);
+        $result = $this->make_request($endpoint);
+
+        if (!is_wp_error($result)) {
+            error_log('GunBroker: Successfully got user listings');
+            return $result;
+        }
+
+        error_log('GunBroker: ItemsSelling failed: ' . $result->get_error_message());
+        return $result;
+    }
+
+    /**
+     * FIXED: Search GunBroker items using working endpoint
+     */
+    // 2. Updated search_gunbroker_items method - uses Items endpoint with filters
+    public function search_gunbroker_items($search_params = array()) {
+        // Force fresh authentication
+        $username = get_option('gunbroker_username');
+        $password = get_option('gunbroker_password');
+
+        $auth_result = $this->authenticate($username, $password);
+        if (is_wp_error($auth_result)) {
+            return $auth_result;
+        }
+
+        // Build query parameters based on API documentation
+        $default_params = array(
+            'PageSize' => 25,
+            'PageIndex' => 1,
+            'Sort' => 1, // Sort by ending soonest
+            'View' => 1  // Standard view
+        );
+
+        $params = array_merge($default_params, $search_params);
+
+        // Map common search parameters to API format
+        if (isset($search_params['Keywords'])) {
+            $params['Keywords'] = $search_params['Keywords'];
+        }
+        if (isset($search_params['CategoryID'])) {
+            $params['CategoryID'] = $search_params['CategoryID'];
+        }
+        if (isset($search_params['Condition'])) {
+            $params['Condition'] = $search_params['Condition'];
+        }
+        if (isset($search_params['BuyNowOnly'])) {
+            $params['BuyNowOnly'] = $search_params['BuyNowOnly'];
+        }
+
+        $query_string = http_build_query($params);
+        $endpoint = 'Items?' . $query_string;
+
+        error_log('GunBroker: Searching items via: ' . $endpoint);
+        $result = $this->make_request($endpoint);
+
+        if (!is_wp_error($result)) {
+            error_log('GunBroker: Successfully searched items');
+            return $result;
+        }
+
+        error_log('GunBroker: Items search failed: ' . $result->get_error_message());
+        return $result;
+    }
+
+
+    /**
+     * NEW: Get sold orders using working endpoint
+     */
+    public function get_sold_orders($params = array()) {
+        // Force fresh authentication
+        $username = get_option('gunbroker_username');
+        $password = get_option('gunbroker_password');
+
+        $auth_result = $this->authenticate($username, $password);
+        if (is_wp_error($auth_result)) {
+            return $auth_result;
+        }
+
+        // Build query parameters
+        $default_params = array(
+            'PageSize' => 50,
+            'PageIndex' => 1
+        );
+        $params = array_merge($default_params, $params);
+        $query_string = http_build_query($params);
+
+        // Use OrdersSold endpoint for actual order data (not ItemsSold)
+        $endpoint = 'OrdersSold' . ($query_string ? '?' . $query_string : '');
+
+        error_log('GunBroker: Getting sold orders via: ' . $endpoint);
+        $result = $this->make_request($endpoint);
+
+        if (!is_wp_error($result)) {
+            error_log('GunBroker: Successfully got sold orders');
+            return $result;
+        }
+
+        error_log('GunBroker: OrdersSold failed: ' . $result->get_error_message());
+        return $result;
+    }
+
+    /**
+     * NEW: Get categories with caching
+     */
+    public function get_categories_cached() {
+        $cached = get_transient('gunbroker_categories');
+
+        if ($cached !== false) {
+            return $cached;
+        }
+
+        $result = $this->make_request('Categories');
+
+        if (!is_wp_error($result)) {
+            set_transient('gunbroker_categories', $result, HOUR_IN_SECONDS * 24); // Cache for 24 hours
+        }
+
+        return $result;
+    }
+
+    /**
+     * NEW: Get specific item details
+     */
+    public function get_item_details($item_id) {
+        $auth_result = $this->ensure_authenticated();
+        if (is_wp_error($auth_result)) {
+            return $auth_result;
+        }
+
+        $endpoint = "Items/{$item_id}";
+
+        error_log('GunBroker: Getting item details for ID: ' . $item_id);
+        $result = $this->make_request($endpoint);
+
+        if (!is_wp_error($result)) {
+            error_log('GunBroker: Successfully got item details');
+            return $result;
+        }
+
+        error_log('GunBroker: Get item details failed: ' . $result->get_error_message());
+        return $result;
+    }
+}
+
+// FIXED: Endpoint Discovery Class with correct sandbox URL
+class GunBroker_Endpoint_Discovery {
+
+    private $api_url;
+    private $dev_key;
+    private $token;
+
+    public function __construct($dev_key, $token) {
+        $this->dev_key = $dev_key;
+        $this->token = $token;
+
+        // Use correct URL based on sandbox mode
+        $is_sandbox = get_option('gunbroker_sandbox_mode', true);
+        $this->api_url = $is_sandbox
+            ? 'https://api.sandbox.gunbroker.com/v1/'
+            : 'https://api.gunbroker.com/v1/';
+    }
+
+    /**
+     * Test different endpoint patterns based on GunBroker API documentation
+     */
+    public function discover_working_endpoints() {
+        $endpoints_to_test = array(
+            // Public listing endpoints (no auth needed)
+            'Items/Featured' => 'GET',
+            'Items/Browse' => 'GET',
+            'Items/Search' => 'GET',
+            'Items/Search?Keywords=glock&PageSize=5' => 'GET',
+            'Items/Browse?CategoryID=851&PageSize=5' => 'GET',
+
+            // Try without authentication first
+            'Items?PageSize=5' => 'GET',
+            'Items/Active?PageSize=5' => 'GET',
+            'Items/Recent?PageSize=5' => 'GET',
+
+            // Different category approaches
+            'Categories/851/Items?PageSize=5' => 'GET',
+            'Categories/Browse?CategoryID=851&PageSize=5' => 'GET',
+
+            // User-specific endpoints (with auth)
+            'Users/Self' => 'GET',
+            'Users/Me' => 'GET',
+            'User/Profile' => 'GET',
+            'User/Items' => 'GET',
+            'User/Selling' => 'GET',
+
+            // Alternative formats
+            'ItemsSearch?Keywords=rifle&PageSize=5' => 'GET',
+            'Browse?CategoryID=851&PageSize=5' => 'GET',
+            'Search?Keywords=pistol&PageSize=5' => 'GET',
+        );
+
+        $results = array();
+
+        foreach ($endpoints_to_test as $endpoint => $method) {
+            // Test without authentication first
+            $result_no_auth = $this->test_endpoint($endpoint, $method, false);
+
+            // Test with authentication
+            $result_with_auth = $this->test_endpoint($endpoint, $method, true);
+
+            $results[$endpoint] = array(
+                'no_auth' => $result_no_auth,
+                'with_auth' => $result_with_auth
+            );
+
+            // Add delay to avoid rate limiting
+            sleep(1);
+        }
+
+        return $results;
+    }
+
+    /**
+     * Test individual endpoint
+     */
+    public function test_endpoint($endpoint, $method = 'GET', $use_auth = true) {
+        $url = $this->api_url . $endpoint;
+
+        $headers = array(
+            'X-DevKey: ' . $this->dev_key,
+            'Content-Type: application/json'
+        );
+
+        if ($use_auth && $this->token) {
+            $headers[] = 'X-AccessToken: ' . $this->token;
+        }
+
+        $ch = curl_init();
+        curl_setopt_array($ch, array(
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_CUSTOMREQUEST => $method
+        ));
+
+        $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        return array(
+            'success' => ($http_code >= 200 && $http_code < 300),
+            'http_code' => $http_code,
+            'error' => $error,
+            'data_preview' => $response ? substr($response, 0, 500) . '...' : null
+        );
+    }
+
+    // 6. Test all product endpoints
+    public function test_all_product_endpoints() {
+        $endpoints_to_test = array(
+            'Items?PageSize=5' => 'Search items with limit',
+            'ItemsSelling?PageSize=5' => 'User active listings',
+            'ItemsSold?PageSize=5' => 'User sold items',
+            'ItemsEnded?PageSize=5' => 'User ended listings',
+            'Categories' => 'Categories list'
+        );
+
+        $results = array();
+
+        foreach ($endpoints_to_test as $endpoint => $description) {
+            error_log('GunBroker: Testing endpoint: ' . $endpoint);
+
+            $result = $this->make_request($endpoint);
+
+            $results[$endpoint] = array(
+                'description' => $description,
+                'success' => !is_wp_error($result),
+                'error' => is_wp_error($result) ? $result->get_error_message() : null,
+                'has_results' => !is_wp_error($result) && isset($result['results']) && is_array($result['results']),
+                'result_count' => !is_wp_error($result) && isset($result['results']) ? count($result['results']) : 0,
+                'data_preview' => is_wp_error($result) ? null : substr(json_encode($result), 0, 200) . '...'
+            );
+
+            // Small delay to avoid rate limiting
+            sleep(1);
+        }
+
+        return $results;
+    }
+
+    // 3. Get sold items (for order management)
+    public function get_sold_items($params = array()) {
+        // Force fresh authentication
+        $username = get_option('gunbroker_username');
+        $password = get_option('gunbroker_password');
+
+        $auth_result = $this->authenticate($username, $password);
+        if (is_wp_error($auth_result)) {
+            return $auth_result;
+        }
+
+        // Build query parameters
+        $default_params = array(
+            'PageSize' => 50,
+            'PageIndex' => 1
+        );
+        $params = array_merge($default_params, $params);
+        $query_string = http_build_query($params);
+
+        $endpoint = 'ItemsSold' . ($query_string ? '?' . $query_string : '');
+
+        error_log('GunBroker: Getting sold items via: ' . $endpoint);
+        $result = $this->make_request($endpoint);
+
+        if (!is_wp_error($result)) {
+            error_log('GunBroker: Successfully got sold items');
+            return $result;
+        }
+
+        error_log('GunBroker: ItemsSold failed: ' . $result->get_error_message());
+        return $result;
+    }
+
+    // 4. Get ended listings
+    public function get_ended_listings($params = array()) {
+        // Force fresh authentication
+        $username = get_option('gunbroker_username');
+        $password = get_option('gunbroker_password');
+
+        $auth_result = $this->authenticate($username, $password);
+        if (is_wp_error($auth_result)) {
+            return $auth_result;
+        }
+
+        // Build query parameters
+        $default_params = array(
+            'PageSize' => 25,
+            'PageIndex' => 1
+        );
+        $params = array_merge($default_params, $params);
+        $query_string = http_build_query($params);
+
+        $endpoint = 'ItemsEnded' . ($query_string ? '?' . $query_string : '');
+
+        error_log('GunBroker: Getting ended listings via: ' . $endpoint);
+        $result = $this->make_request($endpoint);
+
+        if (!is_wp_error($result)) {
+            error_log('GunBroker: Successfully got ended listings');
+            return $result;
+        }
+
+        error_log('GunBroker: ItemsEnded failed: ' . $result->get_error_message());
+        return $result;
     }
 }

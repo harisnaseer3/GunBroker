@@ -1,0 +1,77 @@
+.gunbroker-admin-container {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.gunbroker-main-content {
+    flex: 2;
+}
+
+.gunbroker-sidebar {
+    flex: 1;
+    max-width: 300px;
+}
+
+.gunbroker-status-card, .gunbroker-quick-stats {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.gunbroker-status-card h3, .gunbroker-quick-stats h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.status-success { 
+    color: #46b450; 
+    font-weight: bold; 
+}
+
+.status-error { 
+    color: #dc3232; 
+    font-weight: bold; 
+}
+
+.status-pending { 
+    color: #ffb900; 
+    font-weight: bold; 
+}
+
+.gunbroker-help-content {
+    max-width: 800px;
+}
+
+.gunbroker-help-content h2 {
+    border-bottom: 1px solid #ccd0d4;
+    padding-bottom: 10px;
+    margin-top: 30px;
+}
+
+.gunbroker-help-content ul, .gunbroker-help-content ol {
+    margin-left: 20px;
+}
+
+.notice.inline {
+    margin: 5px 0;
+    padding: 5px 12px;
+}
+
+.sync-product {
+    margin-right: 5px;
+}
+
+@media (max-width: 768px) {
+    .gunbroker-admin-container {
+        flex-direction: column;
+    }
+    
+    .gunbroker-sidebar {
+        max-width: 100%;
+    }
+}

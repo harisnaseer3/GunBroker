@@ -453,6 +453,22 @@
 </style>
 
 <script>
+    // Add this function to your bulk-listing.php
+    function debugProductData(productId) {
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'gunbroker_debug_listing_data',
+                product_id: productId,
+                nonce: '<?php echo wp_create_nonce("gunbroker_ajax_nonce"); ?>'
+            },
+            success: function(response) {
+                console.log('Product listing data:', response.data);
+                alert('Check browser console for listing data');
+            }
+        });
+    }
     jQuery(document).ready(function($) {
         let selectedProducts = [];
 

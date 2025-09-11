@@ -51,6 +51,12 @@ class GunBroker_Sync {
     /**
      * Sync a single product with GunBroker
      */
+    /**
+     * Sync a single product with GunBroker
+     */
+    /**
+     * Sync a single product with GunBroker
+     */
     public function sync_single_product($product_id) {
         error_log('GunBroker: Starting sync for product ID: ' . $product_id);
 
@@ -74,7 +80,18 @@ class GunBroker_Sync {
             return new WP_Error('not_configured', 'GunBroker plugin is not configured');
         }
 
+        // CRITICAL FIX: Force fresh authentication for every sync
         $api = new GunBroker_API();
+        $username = get_option('gunbroker_username');
+        $password = get_option('gunbroker_password');
+
+        error_log('GunBroker: Forcing fresh authentication for sync');
+        $auth_result = $api->authenticate($username, $password);
+        if (is_wp_error($auth_result)) {
+            error_log('GunBroker: Authentication failed in sync: ' . $auth_result->get_error_message());
+            $this->log_sync_result($product_id, 'auth', 'error', $auth_result->get_error_message());
+            return $auth_result;
+        }
 
         // Check if we already have a listing for this product
         $listing_id = $this->get_listing_id($product_id);
