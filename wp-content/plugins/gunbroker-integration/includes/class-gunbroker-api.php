@@ -825,8 +825,10 @@ class GunBroker_API {
 
     /**
      * Get complete category hierarchy with sub-categories and sub-sub-categories
+     * This method uses recursive API calls to fetch the complete hierarchy
      */
     public function get_complete_category_hierarchy() {
+        // First get the basic categories
         $categories = $this->get_categories_cached();
         
         if (is_wp_error($categories)) {
@@ -837,15 +839,36 @@ class GunBroker_API {
             return new WP_Error('no_categories', 'No categories found in API response');
         }
         
+        $all_categories = $categories['results'];
+        error_log("GunBroker: Initial categories fetched: " . count($all_categories));
+        
+        // Now recursively fetch sub-categories for each parent category
+        $this->fetch_subcategories_recursively($all_categories);
+        
+        // Remove duplicates based on category ID
+        $unique_categories = array();
+        $seen_ids = array();
+        
+        foreach ($all_categories as $category) {
+            $cat_id = $category['categoryID'] ?? $category['id'] ?? '';
+            if ($cat_id && !in_array($cat_id, $seen_ids)) {
+                $unique_categories[] = $category;
+                $seen_ids[] = $cat_id;
+            }
+        }
+        
+        $all_categories = $unique_categories;
+        error_log("GunBroker: Total unique categories after recursive fetching: " . count($all_categories));
+        
         // Build a complete category map
         $category_map = array();
         $parent_categories = array();
-        $all_categories = array();
         
-        foreach ($categories['results'] as $category) {
+        foreach ($all_categories as $category) {
             $cat_id = $category['categoryID'] ?? $category['id'] ?? '';
             $cat_name = $category['categoryName'] ?? $category['name'] ?? 'Unknown';
             $parent_id = $category['parentCategoryID'] ?? $category['parentId'] ?? '';
+            $can_contain_items = $category['canContainItems'] ?? $category['can_contain_items'] ?? false;
             
             if (!$cat_id) continue;
             
@@ -853,17 +876,20 @@ class GunBroker_API {
                 'id' => $cat_id,
                 'name' => $cat_name,
                 'parent_id' => $parent_id,
+                'can_contain_items' => $can_contain_items,
                 'children' => array(),
                 'level' => 0
             );
             
             $category_map[$cat_id] = $cat_data;
-            $all_categories[] = $cat_data;
             
-            if ($parent_id == '' || $parent_id == 0) {
+            if ($parent_id == '' || $parent_id == 0 || $parent_id == '0') {
                 $parent_categories[] = $cat_data;
             }
         }
+        
+        error_log("GunBroker: Parent categories: " . count($parent_categories));
+        error_log("GunBroker: Total categories in map: " . count($category_map));
         
         // Build hierarchy by linking children to parents
         foreach ($category_map as $cat_id => $category) {
@@ -881,10 +907,14 @@ class GunBroker_API {
             
             $category_map[$cat_id]['level'] = $level;
             
-            if (empty($category_map[$cat_id]['children'])) {
-                // This is a terminal category
+            // Check if this category can contain items (terminal category)
+            $can_contain_items = $category_map[$cat_id]['can_contain_items'] ?? false;
+            $has_children = !empty($category_map[$cat_id]['children']);
+            
+            if ($can_contain_items && !$has_children) {
+                // This is a terminal category that can contain items
                 $GLOBALS['terminal_categories'][] = $category_map[$cat_id];
-            } else {
+            } else if ($has_children) {
                 // This is a parent category, calculate levels for children
                 foreach ($category_map[$cat_id]['children'] as $child_id) {
                     calculate_levels($category_map, $child_id, $level + 1);
@@ -902,7 +932,7 @@ class GunBroker_API {
             $tree = array();
             
             foreach ($category_map as $cat_id => $category) {
-                if (($parent_id === null && ($category['parent_id'] == '' || $category['parent_id'] == 0)) ||
+                if (($parent_id === null && ($category['parent_id'] == '' || $category['parent_id'] == 0 || $category['parent_id'] == '0')) ||
                     ($parent_id !== null && $category['parent_id'] == $parent_id)) {
                     
                     $category['level'] = $level;
@@ -916,13 +946,122 @@ class GunBroker_API {
         
         $hierarchical_tree = build_tree($category_map);
         
+        error_log("GunBroker: Terminal categories found: " . count($GLOBALS['terminal_categories'] ?? array()));
+        
         return array(
             'category_map' => $category_map,
             'parent_categories' => $parent_categories,
             'terminal_categories' => $GLOBALS['terminal_categories'] ?? array(),
             'hierarchical_tree' => $hierarchical_tree,
-            'all_categories' => $all_categories
+            'all_categories' => array_values($category_map)
         );
+    }
+
+    /**
+     * Recursively fetch sub-categories for each parent category
+     * Uses the official GunBroker API endpoints as per documentation
+     */
+    private function fetch_subcategories_recursively(&$all_categories) {
+        $parent_categories = array();
+        
+        // First, identify parent categories (those without parentCategoryID or with parentCategoryID = 0)
+        foreach ($all_categories as $category) {
+            $parent_id = $category['parentCategoryID'] ?? $category['parentId'] ?? '';
+            if ($parent_id == '' || $parent_id == 0 || $parent_id == '0') {
+                $parent_categories[] = $category;
+            }
+        }
+        
+        error_log("GunBroker: Found " . count($parent_categories) . " parent categories to fetch sub-categories for");
+        
+        // For each parent category, fetch its sub-categories using the official API
+        foreach ($parent_categories as $parent) {
+            $parent_id = $parent['categoryID'] ?? $parent['id'] ?? '';
+            $parent_name = $parent['categoryName'] ?? $parent['name'] ?? 'Unknown';
+            
+            if (!$parent_id) continue;
+            
+            // Method 1: Use /Categories?ParentCategoryID={parent_id} (official way)
+            $result = $this->make_request("Categories?ParentCategoryID={$parent_id}");
+            if (!is_wp_error($result) && isset($result['results']) && is_array($result['results'])) {
+                $subcategories = $result['results'];
+                error_log("GunBroker: Found " . count($subcategories) . " sub-categories for {$parent_name} (ID: {$parent_id}) using ParentCategoryID parameter");
+                
+                // Add sub-categories to our list
+                foreach ($subcategories as $subcategory) {
+                    $sub_id = $subcategory['categoryID'] ?? $subcategory['id'] ?? '';
+                    if ($sub_id) {
+                        // Set the parent ID for this sub-category
+                        $subcategory['parentCategoryID'] = $parent_id;
+                        $all_categories[] = $subcategory;
+                    }
+                }
+            } else {
+                // Method 2: Fallback to /Categories/{categoryID} to get SubCategories array
+                $result = $this->make_request("Categories/{$parent_id}");
+                if (!is_wp_error($result) && isset($result['subCategories']) && is_array($result['subCategories'])) {
+                    $subcategories = $result['subCategories'];
+                    error_log("GunBroker: Found " . count($subcategories) . " sub-categories for {$parent_name} (ID: {$parent_id}) using Categories/{categoryID} endpoint");
+                    
+                    // Add sub-categories to our list
+                    foreach ($subcategories as $subcategory) {
+                        $sub_id = $subcategory['categoryID'] ?? $subcategory['id'] ?? '';
+                        if ($sub_id) {
+                            // Set the parent ID for this sub-category
+                            $subcategory['parentCategoryID'] = $parent_id;
+                            $all_categories[] = $subcategory;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Now recursively fetch sub-sub-categories for the sub-categories we just found
+        $new_categories = array_slice($all_categories, count($all_categories) - 50); // Get the last 50 categories (likely the new sub-categories)
+        foreach ($new_categories as $category) {
+            $parent_id = $category['parentCategoryID'] ?? $category['parentId'] ?? '';
+            if ($parent_id && $parent_id != '0') {
+                // This is a sub-category, try to fetch its sub-categories
+                $cat_id = $category['categoryID'] ?? $category['id'] ?? '';
+                $cat_name = $category['categoryName'] ?? $category['name'] ?? 'Unknown';
+                
+                if (!$cat_id) continue;
+                
+                // Method 1: Use /Categories?ParentCategoryID={cat_id} (official way)
+                $result = $this->make_request("Categories?ParentCategoryID={$cat_id}");
+                if (!is_wp_error($result) && isset($result['results']) && is_array($result['results'])) {
+                    $sub_subcategories = $result['results'];
+                    error_log("GunBroker: Found " . count($sub_subcategories) . " sub-sub-categories for {$cat_name} (ID: {$cat_id}) using ParentCategoryID parameter");
+                    
+                    // Add sub-sub-categories to our list
+                    foreach ($sub_subcategories as $sub_subcategory) {
+                        $sub_sub_id = $sub_subcategory['categoryID'] ?? $sub_subcategory['id'] ?? '';
+                        if ($sub_sub_id) {
+                            // Set the parent ID for this sub-sub-category
+                            $sub_subcategory['parentCategoryID'] = $cat_id;
+                            $all_categories[] = $sub_subcategory;
+                        }
+                    }
+                } else {
+                    // Method 2: Fallback to /Categories/{categoryID} to get SubCategories array
+                    $result = $this->make_request("Categories/{$cat_id}");
+                    if (!is_wp_error($result) && isset($result['subCategories']) && is_array($result['subCategories'])) {
+                        $sub_subcategories = $result['subCategories'];
+                        error_log("GunBroker: Found " . count($sub_subcategories) . " sub-sub-categories for {$cat_name} (ID: {$cat_id}) using Categories/{categoryID} endpoint");
+                        
+                        // Add sub-sub-categories to our list
+                        foreach ($sub_subcategories as $sub_subcategory) {
+                            $sub_sub_id = $sub_subcategory['categoryID'] ?? $sub_subcategory['id'] ?? '';
+                            if ($sub_sub_id) {
+                                // Set the parent ID for this sub-sub-category
+                                $sub_subcategory['parentCategoryID'] = $cat_id;
+                                $all_categories[] = $sub_subcategory;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
