@@ -96,6 +96,8 @@ class GunBroker_Integration {
         add_option('gunbroker_listing_duration', 7);
         add_option('gunbroker_sandbox_mode', true);
         add_option('gunbroker_auto_end_zero_stock', true);
+        add_option('gunbroker_default_country', 'US');
+        add_option('gunbroker_enable_buy_now', true);
 
         // Flush rewrite rules
         flush_rewrite_rules();

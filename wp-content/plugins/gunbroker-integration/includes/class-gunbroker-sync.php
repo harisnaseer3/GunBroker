@@ -99,10 +99,27 @@ class GunBroker_Sync {
 
         try {
             $listing_data = $api->prepare_listing_data($product);
+            
+            // Check if prepare_listing_data returned an error
+            if (is_wp_error($listing_data)) {
+                $error_msg = $listing_data->get_error_message();
+                error_log('GunBroker: prepare_listing_data failed: ' . $error_msg);
+                $this->log_sync_result($product_id, 'prepare', 'error', $error_msg);
+                return $listing_data;
+            }
 
             // Validate required fields
-            if (empty($listing_data['Title']) || empty($listing_data['BuyNowPrice'])) {
-                $error_msg = 'Missing required fields: Title or BuyNowPrice';
+            $required_fields = array('Title', 'Description', 'CategoryID', 'StartingBid', 'Condition', 'CountryCode');
+            $missing_fields = array();
+            
+            foreach ($required_fields as $field) {
+                if (empty($listing_data[$field])) {
+                    $missing_fields[] = $field;
+                }
+            }
+            
+            if (!empty($missing_fields)) {
+                $error_msg = 'Missing required fields: ' . implode(', ', $missing_fields);
                 error_log('GunBroker: ' . $error_msg);
                 $this->log_sync_result($product_id, 'validate', 'error', $error_msg);
                 return new WP_Error('invalid_data', $error_msg);

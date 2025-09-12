@@ -87,11 +87,38 @@
                 data: data,
                 success: function(response) {
                     $('#listings-loading').hide();
+                    
+                    // Debug: Log the response
+                    console.log('GunBroker API Response:', response);
 
-                    if (response.success && response.data.listings.length > 0) {
+                    if (response.success && response.data.listings && response.data.listings.length > 0) {
                         displayListings(response.data.listings);
                     } else if (response.success) {
-                        $('#no-listings').html('<h3>No listings found</h3><p>Try different search terms or check your connection.</p>').show();
+                        // Check if this is a user listings request with no results
+                        let debugInfo = '';
+                        
+                        if (response.data.debug_response && response.data.debug_response.count === 0) {
+                            debugInfo = '<div style="text-align: center; padding: 40px;">';
+                            debugInfo += '<span class="dashicons dashicons-store" style="font-size: 48px; color: #ddd; display: block; margin-bottom: 20px;"></span>';
+                            debugInfo += '<h3>No listings found</h3>';
+                            debugInfo += '<p>You haven\'t created any listings yet.</p>';
+                            debugInfo += '<p><a href="' + ajaxurl.replace('admin-ajax.php', 'admin.php?page=gunbroker-integration') + '" class="button button-primary">Create Your First Listing</a></p>';
+                            debugInfo += '</div>';
+                        } else {
+                            debugInfo = '<h3>No listings found</h3>';
+                            debugInfo += '<p>Try different search terms or check your connection.</p>';
+                        }
+                        
+                        // Add debug information if available
+                        if (response.data.debug_response) {
+                            debugInfo += '<details style="margin-top: 20px;">';
+                            debugInfo += '<summary>Debug Information (Click to expand)</summary>';
+                            debugInfo += '<pre style="background: #f5f5f5; padding: 10px; font-size: 12px; max-height: 200px; overflow-y: auto;">';
+                            debugInfo += JSON.stringify(response.data.debug_response, null, 2);
+                            debugInfo += '</pre></details>';
+                        }
+                        
+                        $('#no-listings').html(debugInfo).show();
                     } else {
                         $('#no-listings').html('<h3>Error loading listings</h3><p>' + response.data + '</p>').show();
                     }

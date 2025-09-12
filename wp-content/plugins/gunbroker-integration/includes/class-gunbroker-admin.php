@@ -715,26 +715,42 @@ class GunBroker_Admin {
 
         // Process the results - handle different response formats
         $listings = array();
-        $items_key = isset($result['results']) ? 'results' : (isset($result['Items']) ? 'Items' : null);
+        
+        // Debug: Log the raw response
+        error_log('GunBroker: Raw API response: ' . json_encode($result, JSON_PRETTY_PRINT));
+        
+        // Try multiple possible keys for listings data
+        $possible_keys = array('results', 'Items', 'data', 'listings', 'items', 'Results');
+        $items_key = null;
+        $items_data = null;
+        
+        foreach ($possible_keys as $key) {
+            if (isset($result[$key]) && is_array($result[$key])) {
+                $items_key = $key;
+                $items_data = $result[$key];
+                error_log("GunBroker: Found listings in key: $key with " . count($items_data) . " items");
+                break;
+            }
+        }
 
         $is_sandbox = get_option('gunbroker_sandbox_mode', true);
         $website_url = $is_sandbox ? 'https://www.sandbox.gunbroker.com/' : 'https://www.gunbroker.com/';
 
-        if ($items_key && is_array($result[$items_key])) {
-            foreach ($result[$items_key] as $item) {
+        if ($items_data && is_array($items_data)) {
+            foreach ($items_data as $item) {
                 $listings[] = array(
-                    'id' => $item['itemID'] ?? $item['ItemID'] ?? 'N/A',
-                    'title' => $item['title'] ?? $item['Title'] ?? 'No Title',
-                    'price' => $item['buyNowPrice'] ?? $item['BuyNowPrice'] ?? $item['currentPrice'] ?? $item['CurrentPrice'] ?? 0,
-                    'end_date' => $item['endDate'] ?? $item['EndDate'] ?? '',
-                    'category' => $item['categoryName'] ?? $item['CategoryName'] ?? 'Unknown',
+                    'id' => $item['itemID'] ?? $item['ItemID'] ?? $item['id'] ?? 'N/A',
+                    'title' => $item['title'] ?? $item['Title'] ?? $item['name'] ?? 'No Title',
+                    'price' => $item['buyNowPrice'] ?? $item['BuyNowPrice'] ?? $item['currentPrice'] ?? $item['CurrentPrice'] ?? $item['price'] ?? 0,
+                    'end_date' => $item['endDate'] ?? $item['EndDate'] ?? $item['endTime'] ?? '',
+                    'category' => $item['categoryName'] ?? $item['CategoryName'] ?? $item['category'] ?? 'Unknown',
                     'condition' => $item['condition'] ?? $item['Condition'] ?? 'Unknown',
-                    'image_url' => isset($item['pictureURLs']) ? $item['pictureURLs'][0] ?? '' : ($item['PictureURLs'][0] ?? ''),
-//                    'url' => 'https://www.sandbox.gunbroker.com/item/' . ($item['itemID'] ?? $item['ItemID'] ?? '')
-
-                    'url' => $website_url . 'item/' . ($item['itemID'] ?? $item['ItemID'] ?? '')
+                    'image_url' => isset($item['pictureURLs']) ? $item['pictureURLs'][0] ?? '' : (isset($item['PictureURLs']) ? $item['PictureURLs'][0] ?? '' : ($item['image'] ?? '')),
+                    'url' => $website_url . 'item/' . ($item['itemID'] ?? $item['ItemID'] ?? $item['id'] ?? '')
                 );
             }
+        } else {
+            error_log('GunBroker: No listings data found in response. Available keys: ' . implode(', ', array_keys($result)));
         }
 
         wp_send_json_success(array(

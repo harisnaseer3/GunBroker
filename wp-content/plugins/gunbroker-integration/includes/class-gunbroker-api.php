@@ -25,6 +25,26 @@ class GunBroker_API {
     }
 
     /**
+     * Test network connectivity to GunBroker API
+     */
+    private function test_connectivity() {
+        $test_url = $this->base_url . 'GunBrokerTime';
+        
+        $response = wp_remote_get($test_url, array(
+            'timeout' => 10,
+            'sslverify' => true
+        ));
+        
+        if (is_wp_error($response)) {
+            error_log('GunBroker: Connectivity test failed: ' . $response->get_error_message());
+            return false;
+        }
+        
+        $response_code = wp_remote_retrieve_response_code($response);
+        return $response_code >= 200 && $response_code < 300;
+    }
+
+    /**
      * Authenticate with GunBroker API
      */
     public function authenticate($username, $password) {
@@ -34,22 +54,48 @@ class GunBroker_API {
 
         error_log('GunBroker: Starting authentication for user: ' . $username);
 
-        $response = wp_remote_post($this->base_url . 'Users/AccessToken', array(
-            'headers' => array(
-                'X-DevKey' => $this->dev_key,
-                'Content-Type' => 'application/json'
-            ),
-            'body' => json_encode(array(
-                'Username' => $username,
-                'Password' => $password
-            )),
-            'timeout' => 30,
-            'sslverify' => true
-        ));
+        // Try authentication with retry logic
+        $max_retries = 3;
+        $retry_delay = 2; // seconds
+        
+        for ($attempt = 1; $attempt <= $max_retries; $attempt++) {
+            error_log("GunBroker: Authentication attempt $attempt of $max_retries");
+            
+            $response = wp_remote_post($this->base_url . 'Users/AccessToken', array(
+                'headers' => array(
+                    'X-DevKey' => $this->dev_key,
+                    'Content-Type' => 'application/json',
+                    'User-Agent' => 'WordPress-GunBroker-Integration/1.0.1'
+                ),
+                'body' => json_encode(array(
+                    'Username' => $username,
+                    'Password' => $password
+                )),
+                'timeout' => 60, // Increased from 30 to 60 seconds
+                'sslverify' => true,
+                'redirection' => 5,
+                'httpversion' => '1.1',
+                'blocking' => true,
+                'cookies' => array()
+            ));
 
-        if (is_wp_error($response)) {
-            error_log('GunBroker: Authentication request failed: ' . $response->get_error_message());
-            return $response;
+            if (is_wp_error($response)) {
+                $error_message = $response->get_error_message();
+                error_log("GunBroker: Authentication attempt $attempt failed: $error_message");
+                
+                // If it's a timeout error and we have retries left, wait and try again
+                if (strpos($error_message, 'timeout') !== false && $attempt < $max_retries) {
+                    error_log("GunBroker: Timeout error, waiting $retry_delay seconds before retry...");
+                    sleep($retry_delay);
+                    $retry_delay *= 2; // Exponential backoff
+                    continue;
+                }
+                
+                return $response;
+            } else {
+                // Success, break out of retry loop
+                break;
+            }
         }
 
         $response_code = wp_remote_retrieve_response_code($response);
@@ -73,7 +119,7 @@ class GunBroker_API {
     /**
      * Ensure we have a valid access token
      */
-    private function ensure_authenticated() {
+    public function ensure_authenticated() {
         if (empty($this->access_token)) {
             $username = get_option('gunbroker_username');
             $password = get_option('gunbroker_password');
@@ -84,6 +130,10 @@ class GunBroker_API {
 
             return $this->authenticate($username, $password);
         }
+        
+        // Skip token validation for now to avoid connectivity issues
+        // Just return true if we have a token
+        
         return true;
     }
 
@@ -102,30 +152,96 @@ class GunBroker_API {
         }
 
         $url = $this->base_url . $endpoint;
-        $args = array(
-            'method' => $method,
-            'headers' => array(
+        
+        // Prepare headers - use multipart/form-data for Items POST, json for others
+        $is_items_post = ($endpoint === 'Items' && $method === 'POST');
+        
+        if ($is_items_post) {
+            // For Items POST, we'll use multipart/form-data
+            $headers = array(
+                'X-DevKey' => $this->dev_key,
+                'X-AccessToken' => $this->access_token,
+                'User-Agent' => 'WordPress-GunBroker-Integration/1.0.1'
+                // Don't set Content-Type - let WordPress handle multipart boundary
+            );
+        } else {
+            // For other requests, use JSON
+            $headers = array(
                 'X-DevKey' => $this->dev_key,
                 'X-AccessToken' => $this->access_token,
                 'Content-Type' => 'application/json',
-                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            ),
-            'timeout' => 30,
-            'sslverify' => true
-        );
-
-        if (!empty($data) && in_array($method, array('POST', 'PUT'))) {
-            $args['body'] = json_encode($data);
+                'User-Agent' => 'WordPress-GunBroker-Integration/1.0.1'
+            );
         }
+        
+        // Prepare body for POST/PUT requests
+        $body = '';
+        if (!empty($data) && in_array($method, array('POST', 'PUT'))) {
+            if ($is_items_post) {
+                // For Items POST, use multipart/form-data format
+                $json_data = json_encode($data);
+                if ($json_data === false) {
+                    error_log('GunBroker: ERROR - JSON encoding failed: ' . json_last_error_msg());
+                    return new WP_Error('json_encode_failed', 'Failed to encode data as JSON: ' . json_last_error_msg());
+                }
+                
+                // Create multipart form data
+                $boundary = wp_generate_password(16, false);
+                $body = $this->create_multipart_body($data, $boundary);
+                $headers['Content-Type'] = 'multipart/form-data; boundary=' . $boundary;
+                
+                error_log("GunBroker: Multipart data length: " . strlen($body) . " characters");
+            } else {
+                // For other requests, use JSON
+                $json_data = json_encode($data);
+                if ($json_data === false) {
+                    error_log('GunBroker: ERROR - JSON encoding failed: ' . json_last_error_msg());
+                    return new WP_Error('json_encode_failed', 'Failed to encode data as JSON: ' . json_last_error_msg());
+                }
+                $body = $json_data;
+                error_log("GunBroker: JSON data length: " . strlen($json_data) . " characters");
+            }
+        }
+        
+        // Use consistent argument structure for all methods
+        $args = array(
+            'method' => $method,
+            'headers' => $headers,
+            'body' => $body,
+            'timeout' => 60,
+            'sslverify' => true,
+            'redirection' => 5,
+            'httpversion' => '1.1',
+            'blocking' => true,
+            'cookies' => array()
+        );
 
         error_log("GunBroker API Request: {$method} {$url}");
         if (!empty($data)) {
             error_log("GunBroker API Data: " . json_encode($data, JSON_PRETTY_PRINT));
         }
 
+        // Log the complete request details
+        error_log("GunBroker: Complete request args: " . json_encode($args, JSON_PRETTY_PRINT));
+        error_log("GunBroker: Request URL: " . $url);
+        error_log("GunBroker: Request method: " . $method);
+        error_log("GunBroker: Request body: " . $body);
+        error_log("GunBroker: Request body length: " . strlen($body));
+        error_log("GunBroker: Request body is empty: " . (empty($body) ? 'YES' : 'NO'));
+        error_log("GunBroker: Dev Key: " . substr($this->dev_key, 0, 10) . "...");
+        error_log("GunBroker: Access Token: " . substr($this->access_token, 0, 10) . "...");
+        
+        // Additional validation for POST requests
+        if ($method === 'POST' && empty($body)) {
+            error_log("GunBroker: ERROR - POST request with empty body!");
+            return new WP_Error('empty_post_body', 'POST request cannot have empty body');
+        }
+        
+        // Use wp_remote_request for all methods with consistent arguments
         $response = wp_remote_request($url, $args);
 
         if (is_wp_error($response)) {
+            error_log('GunBroker: wp_remote_request failed: ' . $response->get_error_message());
             $this->log_error('API Request Failed', $response->get_error_message());
             return $response;
         }
@@ -140,6 +256,32 @@ class GunBroker_API {
 
         if ($response_code >= 200 && $response_code < 300) {
             return $decoded_body;
+        }
+
+        // Handle 400 Bad Request errors with detailed logging
+        if ($response_code === 400) {
+            error_log('GunBroker API 400 Error Details:');
+            error_log('Request URL: ' . $url);
+            error_log('Request Method: ' . $method);
+            error_log('Request Headers: ' . json_encode($args['headers'], JSON_PRETTY_PRINT));
+            if (isset($args['body'])) {
+                error_log('Request Body: ' . $args['body']);
+            }
+            error_log('Response Code: ' . $response_code);
+            error_log('Response Body: ' . $body);
+            
+            $error_message = 'GunBroker API Error (HTTP 400 - Bad Request)';
+            if (isset($decoded_body['message'])) {
+                $error_message .= ': ' . $decoded_body['message'];
+            } elseif (isset($decoded_body['error'])) {
+                $error_message .= ': ' . $decoded_body['error'];
+            } elseif (isset($decoded_body['errorMessage'])) {
+                $error_message .= ': ' . $decoded_body['errorMessage'];
+            } else {
+                $error_message .= ': ' . $body;
+            }
+            
+            return new WP_Error('api_400_error', $error_message, array('status' => 400, 'body' => $decoded_body));
         }
 
         // Handle authentication errors - try to re-authenticate once
@@ -199,6 +341,27 @@ class GunBroker_API {
         }
 
         error_log('GunBroker: About to create listing with data: ' . json_encode($listing_data, JSON_PRETTY_PRINT));
+        
+        // Validate that we have data to send
+        if (empty($listing_data)) {
+            error_log('GunBroker: ERROR - Empty listing data provided to create_listing');
+            return new WP_Error('empty_data', 'No listing data provided');
+        }
+        
+        // Check for required fields
+        $required_fields = array('Title', 'Description', 'CategoryID', 'StartingBid', 'Condition', 'CountryCode');
+        $missing_fields = array();
+        foreach ($required_fields as $field) {
+            if (!isset($listing_data[$field]) || empty($listing_data[$field])) {
+                $missing_fields[] = $field;
+            }
+        }
+        
+        if (!empty($missing_fields)) {
+            error_log('GunBroker: ERROR - Missing required fields: ' . implode(', ', $missing_fields));
+            return new WP_Error('missing_fields', 'Missing required fields: ' . implode(', ', $missing_fields));
+        }
+        
         return $this->make_request('Items', 'POST', $listing_data);
     }
 
@@ -272,6 +435,36 @@ class GunBroker_API {
     }
 
     /**
+     * Create multipart form data body for GunBroker Items POST
+     */
+    public function create_multipart_body($data, $boundary) {
+        $body = '';
+        
+        // Add the JSON data as a form field named 'data' (exactly as GunBroker expects)
+        $json_data = json_encode($data);
+        $body .= "--{$boundary}\r\n";
+        $body .= "Content-Disposition: form-data; name=\"data\"\r\n\r\n";
+        $body .= $json_data . "\r\n";
+        
+        // Add any images if they exist in the data
+        if (isset($data['Pictures']) && is_array($data['Pictures'])) {
+            foreach ($data['Pictures'] as $index => $image_url) {
+                if (filter_var($image_url, FILTER_VALIDATE_URL)) {
+                    // For now, we'll just add the URL as a text field
+                    // In a full implementation, you'd download and include the actual image data
+                    $body .= "--{$boundary}\r\n";
+                    $body .= "Content-Disposition: form-data; name=\"picture\"\r\n\r\n";
+                    $body .= $image_url . "\r\n";
+                }
+            }
+        }
+        
+        $body .= "--{$boundary}--\r\n";
+        
+        return $body;
+    }
+
+    /**
      * Log errors
      */
     private function log_error($title, $message) {
@@ -281,23 +474,42 @@ class GunBroker_API {
     /**
      * Prepare listing data from WooCommerce product
      */
-    public function prepare_listing_data($product) {
+    public function prepare_listing_data($product, $category_id = null) {
+        error_log('GunBroker: prepare_listing_data called for product ID: ' . $product->get_id());
+        
         // Get markup percentage - check for product-specific override first
         $product_markup = get_post_meta($product->get_id(), '_gunbroker_custom_markup', true);
         $markup_percentage = !empty($product_markup) ? floatval($product_markup) : get_option('gunbroker_markup_percentage', 10);
+        
+        error_log('GunBroker: Markup percentage: ' . $markup_percentage);
 
         $base_price = floatval($product->get_regular_price());
+        error_log('GunBroker: Regular price: ' . $base_price);
+        
         if ($base_price <= 0) {
             $base_price = floatval($product->get_price());
+            error_log('GunBroker: Using sale price: ' . $base_price);
         }
 
         $gunbroker_price = $base_price * (1 + $markup_percentage / 100);
+        error_log('GunBroker: Calculated GunBroker price: ' . $gunbroker_price);
+        
+        // Validate that we have a valid price
+        if (empty($base_price) || $base_price <= 0) {
+            error_log('GunBroker: ERROR - Product has no price or invalid price: ' . $base_price);
+            return new WP_Error('invalid_price', 'Product must have a valid price to list on GunBroker');
+        }
+        
+        if (empty($gunbroker_price) || $gunbroker_price <= 0) {
+            error_log('GunBroker: ERROR - Calculated GunBroker price is invalid: ' . $gunbroker_price);
+            return new WP_Error('invalid_gunbroker_price', 'Unable to calculate valid GunBroker price');
+        }
 
         // Get custom GunBroker title or use product title
         $custom_title = get_post_meta($product->get_id(), '_gunbroker_custom_title', true);
         $title = !empty($custom_title) ? $custom_title : $product->get_name();
 
-        // Prepare description
+        // Prepare description - strip HTML tags for GunBroker
         $description = $product->get_description();
         if (empty($description)) {
             $description = $product->get_short_description();
@@ -305,27 +517,135 @@ class GunBroker_API {
         if (empty($description)) {
             $description = 'No description available';
         }
-
-        // Get category - use product-specific or default
-        $category_id = get_post_meta($product->get_id(), '_gunbroker_category', true);
-        if (empty($category_id)) {
-            $category_id = get_option('gunbroker_default_category', 3022); // Default firearms category
+        
+        // Strip HTML tags and clean up description for GunBroker
+        $description = wp_strip_all_tags($description);
+        $description = trim($description);
+        if (empty($description)) {
+            $description = 'No description available';
         }
 
-        // Prepare minimal listing data
+        // Get category - use parameter, product-specific, or default
+        if ($category_id === null) {
+            $category_id = get_post_meta($product->get_id(), '_gunbroker_category', true);
+            if (empty($category_id)) {
+                $category_id = get_option('gunbroker_default_category', 3022); // Default firearms category
+            }
+        }
+
+        // Get condition - use product-specific or default
+        $condition = get_post_meta($product->get_id(), '_gunbroker_condition', true);
+        if (empty($condition)) {
+            $condition = 1; // Default to Factory New (1=Factory New, 2=New Old Stock, 3=Used)
+        }
+
+        // Get country code - use product-specific or default
+        $country_code = get_post_meta($product->get_id(), '_gunbroker_country', true);
+        if (empty($country_code)) {
+            $country_code = get_option('gunbroker_default_country', 'US'); // Default to US
+        }
+
+        // FIXED: Prepare listing data with all required fields based on official API documentation
         $listing_data = array(
-            'Title' => substr($title, 0, 75), // GunBroker title limit
-            'Description' => $description,
-            'CategoryID' => intval($category_id),
-            'BuyNowPrice' => number_format($gunbroker_price, 2, '.', ''),
-            'Quantity' => max(1, intval($product->get_stock_quantity()) ?: 1),
-            'ListingDuration' => intval(get_option('gunbroker_listing_duration', 7)),
-            'PaymentMethods' => array('Check', 'MoneyOrder', 'CreditCard'),
-            'ShippingMethods' => array('StandardShipping'),
-            'InspectionPeriod' => 'ThreeDays',
-            'ReturnsAccepted' => true,
-            'Condition' => 'New'
+            'Title' => substr($title, 0, 75), // Required: 1-75 chars
+            'Description' => substr($description, 0, 8000), // Required: 1-8000 chars
+            'CategoryID' => intval($category_id), // Required: integer 1-999999
+            'StartingBid' => floatval($gunbroker_price), // Required: decimal 0.01-999999.99 (use float, not string)
+            'Quantity' => max(1, intval($product->get_stock_quantity()) ?: 1), // Required: integer 1-999999
+            'ListingDuration' => intval(get_option('gunbroker_listing_duration', 7)), // Required: integer 1-99
+            'PaymentMethods' => array('Check' => true, 'MoneyOrder' => true, 'CreditCard' => true), // Required: object with boolean values
+            'ShippingMethods' => array('StandardShipping' => true, 'UPSGround' => true), // Required: object with boolean values
+            // 'InspectionPeriod' => '3', // Optional: removed to avoid enum issues
+            'ReturnsAccepted' => true, // Required: boolean
+            'Condition' => intval($condition), // Required: integer 1-10
+            'CountryCode' => strtoupper(substr($country_code, 0, 2)), // Required: string 2 chars
+            'State' => 'TX', // Required: string 1-50 chars
+            'City' => 'Austin', // Required: string 1-50 chars
+            'PostalCode' => '78701', // Required: string 1-10 chars
+            'MfgPartNumber' => $product->get_sku() ?: 'N/A', // Required when using IsFFLRequired
+            'MinBidIncrement' => 0.50, // Optional: decimal
+            'ShippingCost' => 0.00, // Optional: decimal
+            'ShippingInsurance' => 0.00, // Optional: decimal
+            'ShippingTerms' => 'Buyer pays shipping', // Optional: string
+            'SellerContactEmail' => get_option('admin_email'), // Optional: string
+            'SellerContactPhone' => '555-123-4567', // Optional: string - provide default phone
+            'IsFixedPrice' => false, // Optional: boolean
+            'IsFeatured' => false, // Optional: boolean
+            'IsBold' => false, // Optional: boolean
+            'IsHighlight' => false, // Optional: boolean
+            'IsReservePrice' => false, // Optional: boolean
+            'AutoRelist' => 1, // Required when using IsFFLRequired: 1 = Do Not Relist
+            // 'IsFFLRequired' => false, // Conditional: Only for certain categories
+            'WhoPaysForShipping' => 2, // Required: integer - 2 = Seller pays for shipping
+            'WillShipInternational' => false, // Required: boolean - Will ship internationally
+            'ShippingClassesSupported' => array(
+                'Ground' => true,
+                'TwoDay' => true,
+        
+            ) // Required: object - Supported shipping classes
         );
+        
+        // Add IsFFLRequired field conditionally based on category type
+        // Based on testing, certain categories reject IsFFLRequired field
+        $categories_that_reject_ffl = array(851, 2338, 3022, 3023, 3024, 3025); // Categories that reject IsFFLRequired
+        
+        if (!in_array($category_id, $categories_that_reject_ffl)) {
+            $listing_data['IsFFLRequired'] = false; // Only include for categories that support it
+        }
+        // Note: IsFFLRequired is excluded for categories that reject it
+        
+        // Additional validation based on API documentation
+        if (strlen($listing_data['Title']) < 1 || strlen($listing_data['Title']) > 75) {
+            error_log('GunBroker: ERROR - Title length invalid: ' . strlen($listing_data['Title']));
+            return new WP_Error('invalid_title', 'Title must be 1-75 characters');
+        }
+        
+        if (strlen($listing_data['Description']) < 1 || strlen($listing_data['Description']) > 8000) {
+            error_log('GunBroker: ERROR - Description length invalid: ' . strlen($listing_data['Description']));
+            return new WP_Error('invalid_description', 'Description must be 1-8000 characters');
+        }
+        
+        if ($listing_data['CategoryID'] < 1 || $listing_data['CategoryID'] > 999999) {
+            error_log('GunBroker: ERROR - CategoryID invalid: ' . $listing_data['CategoryID']);
+            return new WP_Error('invalid_category', 'CategoryID must be 1-999999');
+        }
+        
+        if ($listing_data['StartingBid'] < 0.01 || $listing_data['StartingBid'] > 999999.99) {
+            error_log('GunBroker: ERROR - StartingBid invalid: ' . $listing_data['StartingBid']);
+            return new WP_Error('invalid_starting_bid', 'StartingBid must be 0.01-999999.99');
+        }
+        
+        if ($listing_data['Condition'] < 1 || $listing_data['Condition'] > 10) {
+            error_log('GunBroker: ERROR - Condition invalid: ' . $listing_data['Condition']);
+            return new WP_Error('invalid_condition', 'Condition must be 1-10');
+        }
+        
+        // Validate required objects are not empty
+        if (empty($listing_data['PaymentMethods']) || !is_array($listing_data['PaymentMethods'])) {
+            error_log('GunBroker: ERROR - PaymentMethods is empty or not an object');
+            return new WP_Error('invalid_payment_methods', 'PaymentMethods must be a non-empty object');
+        }
+        
+        if (empty($listing_data['ShippingMethods']) || !is_array($listing_data['ShippingMethods'])) {
+            error_log('GunBroker: ERROR - ShippingMethods is empty or not an object');
+            return new WP_Error('invalid_shipping_methods', 'ShippingMethods must be a non-empty object');
+        }
+
+        // Debug logging for listing data preparation
+        error_log('GunBroker: Prepared listing data: ' . json_encode($listing_data, JSON_PRETTY_PRINT));
+        error_log('GunBroker: Product ID: ' . $product->get_id());
+        error_log('GunBroker: Product Name: ' . $product->get_name());
+        error_log('GunBroker: Product Price: ' . $product->get_price());
+        error_log('GunBroker: Calculated GunBroker Price: ' . $gunbroker_price);
+        error_log('GunBroker: Category ID: ' . $category_id);
+        error_log('GunBroker: Condition: ' . $condition);
+        error_log('GunBroker: Country Code: ' . $country_code);
+
+        // Add BuyNowPrice as optional if you want both auction and buy-now
+        $buy_now_enabled = get_option('gunbroker_enable_buy_now', true);
+        if ($buy_now_enabled) {
+            $listing_data['BuyNowPrice'] = floatval($gunbroker_price * 1.1); // 10% higher than starting bid
+        }
 
         // Add images if available (optional - remove if causing issues)
         $image_ids = $product->get_gallery_image_ids();
@@ -501,6 +821,128 @@ class GunBroker_API {
         }
 
         return $result;
+    }
+
+    /**
+     * Get complete category hierarchy with sub-categories and sub-sub-categories
+     */
+    public function get_complete_category_hierarchy() {
+        $categories = $this->get_categories_cached();
+        
+        if (is_wp_error($categories)) {
+            return $categories;
+        }
+        
+        if (!isset($categories['results']) || !is_array($categories['results'])) {
+            return new WP_Error('no_categories', 'No categories found in API response');
+        }
+        
+        // Build a complete category map
+        $category_map = array();
+        $parent_categories = array();
+        $all_categories = array();
+        
+        foreach ($categories['results'] as $category) {
+            $cat_id = $category['categoryID'] ?? $category['id'] ?? '';
+            $cat_name = $category['categoryName'] ?? $category['name'] ?? 'Unknown';
+            $parent_id = $category['parentCategoryID'] ?? $category['parentId'] ?? '';
+            
+            if (!$cat_id) continue;
+            
+            $cat_data = array(
+                'id' => $cat_id,
+                'name' => $cat_name,
+                'parent_id' => $parent_id,
+                'children' => array(),
+                'level' => 0
+            );
+            
+            $category_map[$cat_id] = $cat_data;
+            $all_categories[] = $cat_data;
+            
+            if ($parent_id == '' || $parent_id == 0) {
+                $parent_categories[] = $cat_data;
+            }
+        }
+        
+        // Build hierarchy by linking children to parents
+        foreach ($category_map as $cat_id => $category) {
+            $parent_id = $category['parent_id'];
+            if ($parent_id && isset($category_map[$parent_id])) {
+                $category_map[$parent_id]['children'][] = $cat_id;
+            }
+        }
+        
+        // Calculate levels and find terminal categories
+        $terminal_categories = array();
+        
+        function calculate_levels($category_map, $cat_id, $level = 0) {
+            if (!isset($category_map[$cat_id])) return;
+            
+            $category_map[$cat_id]['level'] = $level;
+            
+            if (empty($category_map[$cat_id]['children'])) {
+                // This is a terminal category
+                $GLOBALS['terminal_categories'][] = $category_map[$cat_id];
+            } else {
+                // This is a parent category, calculate levels for children
+                foreach ($category_map[$cat_id]['children'] as $child_id) {
+                    calculate_levels($category_map, $child_id, $level + 1);
+                }
+            }
+        }
+        
+        // Start with root categories
+        foreach ($parent_categories as $parent) {
+            calculate_levels($category_map, $parent['id'], 0);
+        }
+        
+        // Build hierarchical tree structure
+        function build_tree($category_map, $parent_id = null, $level = 0) {
+            $tree = array();
+            
+            foreach ($category_map as $cat_id => $category) {
+                if (($parent_id === null && ($category['parent_id'] == '' || $category['parent_id'] == 0)) ||
+                    ($parent_id !== null && $category['parent_id'] == $parent_id)) {
+                    
+                    $category['level'] = $level;
+                    $category['children'] = build_tree($category_map, $cat_id, $level + 1);
+                    $tree[] = $category;
+                }
+            }
+            
+            return $tree;
+        }
+        
+        $hierarchical_tree = build_tree($category_map);
+        
+        return array(
+            'category_map' => $category_map,
+            'parent_categories' => $parent_categories,
+            'terminal_categories' => $GLOBALS['terminal_categories'] ?? array(),
+            'hierarchical_tree' => $hierarchical_tree,
+            'all_categories' => $all_categories
+        );
+    }
+
+    /**
+     * Get organized categories for dropdown (terminal categories only)
+     */
+    public function get_organized_categories() {
+        $hierarchy = $this->get_complete_category_hierarchy();
+        
+        if (is_wp_error($hierarchy)) {
+            return $hierarchy;
+        }
+        
+        return array(
+            'parent_categories' => $hierarchy['parent_categories'],
+            'child_categories' => array_filter($hierarchy['all_categories'], function($cat) {
+                return $cat['parent_id'] != '' && $cat['parent_id'] != 0;
+            }),
+            'terminal_categories' => $hierarchy['terminal_categories'],
+            'all_categories' => $hierarchy['all_categories']
+        );
     }
 
     /**

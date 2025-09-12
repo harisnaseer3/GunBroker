@@ -27,11 +27,59 @@
         </th>
         <td>
             <select id="gunbroker_category" name="gunbroker_category">
-                <option value="3022" <?php selected($category, '3022'); ?>>Firearms</option>
-                <option value="3023" <?php selected($category, '3023'); ?>>Handguns</option>
-                <option value="3024" <?php selected($category, '3024'); ?>>Rifles</option>
-                <option value="3025" <?php selected($category, '3025'); ?>>Shotguns</option>
-                <option value="3026" <?php selected($category, '3026'); ?>>Accessories</option>
+                <?php
+                // Fetch complete category hierarchy from GunBroker API
+                $api = new GunBroker_API();
+                $hierarchy = $api->get_complete_category_hierarchy();
+                
+                if (is_wp_error($hierarchy)) {
+                    // Fallback to hardcoded categories if API fails
+                    echo '<option value="3022" ' . selected($category, '3022', false) . '>Firearms</option>';
+                    echo '<option value="3023" ' . selected($category, '3023', false) . '>Handguns</option>';
+                    echo '<option value="3024" ' . selected($category, '3024', false) . '>Rifles</option>';
+                    echo '<option value="3025" ' . selected($category, '3025', false) . '>Shotguns</option>';
+                    echo '<option value="3026" ' . selected($category, '3026', false) . '>Accessories</option>';
+                } else {
+                    // Use hierarchical categories from API
+                    if (isset($hierarchy['hierarchical_tree']) && is_array($hierarchy['hierarchical_tree'])) {
+                        // Function to display hierarchical options
+                        function display_hierarchical_options($categories, $selected_value, $level = 0) {
+                            $indent = str_repeat("— ", $level);
+                            
+                            foreach ($categories as $cat) {
+                                $cat_id = $cat['id'];
+                                $cat_name = $cat['name'];
+                                $is_terminal = empty($cat['children']);
+                                
+                                // Only show terminal categories (can be used for listings)
+                                if ($is_terminal) {
+                                    $display_name = $indent . $cat_name;
+                                    echo '<option value="' . esc_attr($cat_id) . '" ' . selected($selected_value, $cat_id, false) . '>' . esc_html($display_name) . '</option>';
+                                }
+                                
+                                // Recursively display children
+                                if (!empty($cat['children'])) {
+                                    display_hierarchical_options($cat['children'], $selected_value, $level + 1);
+                                }
+                            }
+                        }
+                        
+                        // Sort categories by name for better UX
+                        usort($hierarchy['hierarchical_tree'], function($a, $b) {
+                            return strcmp($a['name'], $b['name']);
+                        });
+                        
+                        display_hierarchical_options($hierarchy['hierarchical_tree'], $category);
+                    } else {
+                        // Fallback if no hierarchical tree found
+                        echo '<option value="3022" ' . selected($category, '3022', false) . '>Firearms</option>';
+                        echo '<option value="3023" ' . selected($category, '3023', false) . '>Handguns</option>';
+                        echo '<option value="3024" ' . selected($category, '3024', false) . '>Rifles</option>';
+                        echo '<option value="3025" ' . selected($category, '3025', false) . '>Shotguns</option>';
+                        echo '<option value="3026" ' . selected($category, '3026', false) . '>Accessories</option>';
+                    }
+                }
+                ?>
             </select>
             <p class="description">Select the appropriate GunBroker category</p>
         </td>

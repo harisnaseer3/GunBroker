@@ -48,12 +48,61 @@
             <div>
                 <label for="bulk-category" style="display: block; font-weight: 600; margin-bottom: 8px; color: #23282d;">GunBroker Category</label>
                 <select id="bulk-category" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                    <option value="3022">Firearms - General</option>
-                    <option value="3023">Handguns</option>
-                    <option value="3024">Rifles</option>
-                    <option value="3025">Shotguns</option>
-                    <option value="3026">Accessories</option>
-                    <option value="3027">Ammunition</option>
+                    <?php
+                    // Fetch complete category hierarchy from GunBroker API
+                    $api = new GunBroker_API();
+                    $hierarchy = $api->get_complete_category_hierarchy();
+                    
+                    if (is_wp_error($hierarchy)) {
+                        // Fallback to hardcoded categories if API fails
+                        echo '<option value="3022">Firearms - General</option>';
+                        echo '<option value="3023">Handguns</option>';
+                        echo '<option value="3024">Rifles</option>';
+                        echo '<option value="3025">Shotguns</option>';
+                        echo '<option value="3026">Accessories</option>';
+                        echo '<option value="3027">Ammunition</option>';
+                    } else {
+                        // Use hierarchical categories from API
+                        if (isset($hierarchy['hierarchical_tree']) && is_array($hierarchy['hierarchical_tree'])) {
+                            // Function to display hierarchical options
+                            function display_hierarchical_options_bulk($categories, $level = 0) {
+                                $indent = str_repeat("— ", $level);
+                                
+                                foreach ($categories as $cat) {
+                                    $cat_id = $cat['id'];
+                                    $cat_name = $cat['name'];
+                                    $is_terminal = empty($cat['children']);
+                                    
+                                    // Only show terminal categories (can be used for listings)
+                                    if ($is_terminal) {
+                                        $display_name = $indent . $cat_name;
+                                        echo '<option value="' . esc_attr($cat_id) . '">' . esc_html($display_name) . '</option>';
+                                    }
+                                    
+                                    // Recursively display children
+                                    if (!empty($cat['children'])) {
+                                        display_hierarchical_options_bulk($cat['children'], $level + 1);
+                                    }
+                                }
+                            }
+                            
+                            // Sort categories by name for better UX
+                            usort($hierarchy['hierarchical_tree'], function($a, $b) {
+                                return strcmp($a['name'], $b['name']);
+                            });
+                            
+                            display_hierarchical_options_bulk($hierarchy['hierarchical_tree']);
+                        } else {
+                            // Fallback if no hierarchical tree found
+                            echo '<option value="3022">Firearms - General</option>';
+                            echo '<option value="3023">Handguns</option>';
+                            echo '<option value="3024">Rifles</option>';
+                            echo '<option value="3025">Shotguns</option>';
+                            echo '<option value="3026">Accessories</option>';
+                            echo '<option value="3027">Ammunition</option>';
+                        }
+                    }
+                    ?>
                 </select>
                 <small style="display: block; color: #646970; margin-top: 4px;">Select appropriate category</small>
             </div>
