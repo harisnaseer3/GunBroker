@@ -52,14 +52,14 @@ class GunBroker_API {
             return new WP_Error('missing_dev_key', 'GunBroker Developer Key is required');
         }
 
-        error_log('GunBroker: Starting authentication for user: ' . $username);
+        // Starting authentication
 
         // Try authentication with retry logic
         $max_retries = 3;
         $retry_delay = 2; // seconds
         
         for ($attempt = 1; $attempt <= $max_retries; $attempt++) {
-            error_log("GunBroker: Authentication attempt $attempt of $max_retries");
+            // Authentication attempt $attempt of $max_retries
             
             $response = wp_remote_post($this->base_url . 'Users/AccessToken', array(
                 'headers' => array(
@@ -81,11 +81,11 @@ class GunBroker_API {
 
             if (is_wp_error($response)) {
                 $error_message = $response->get_error_message();
-                error_log("GunBroker: Authentication attempt $attempt failed: $error_message");
+                // Authentication attempt $attempt failed: $error_message
                 
                 // If it's a timeout error and we have retries left, wait and try again
                 if (strpos($error_message, 'timeout') !== false && $attempt < $max_retries) {
-                    error_log("GunBroker: Timeout error, waiting $retry_delay seconds before retry...");
+                    // Timeout error, waiting $retry_delay seconds before retry...
                     sleep($retry_delay);
                     $retry_delay *= 2; // Exponential backoff
                     continue;
@@ -101,18 +101,17 @@ class GunBroker_API {
         $response_code = wp_remote_retrieve_response_code($response);
         $body = json_decode(wp_remote_retrieve_body($response), true);
 
-        error_log('GunBroker: Auth response code: ' . $response_code);
-        error_log('GunBroker: Auth response body: ' . wp_remote_retrieve_body($response));
+        // Auth response code: $response_code
 
         if ($response_code === 200 && isset($body['accessToken'])) {
             $this->access_token = $body['accessToken'];
             update_option('gunbroker_access_token', $this->access_token);
-            error_log('GunBroker: Authentication successful, token: ' . substr($this->access_token, 0, 10) . '...');
+            // Authentication successful
             return $body; // Return full response instead of just true
         }
 
         $error_message = isset($body['message']) ? $body['message'] : 'Unknown authentication error';
-        error_log('GunBroker: Authentication failed: ' . $error_message);
+        // Authentication failed: $error_message
         return new WP_Error('auth_failed', 'Authentication failed: ' . $error_message);
     }
 
@@ -190,7 +189,6 @@ class GunBroker_API {
                 $body = $this->create_multipart_body($data, $boundary);
                 $headers['Content-Type'] = 'multipart/form-data; boundary=' . $boundary;
                 
-                error_log("GunBroker: Multipart data length: " . strlen($body) . " characters");
             } else {
                 // For other requests, use JSON
                 $json_data = json_encode($data);
@@ -199,7 +197,6 @@ class GunBroker_API {
                     return new WP_Error('json_encode_failed', 'Failed to encode data as JSON: ' . json_last_error_msg());
                 }
                 $body = $json_data;
-                error_log("GunBroker: JSON data length: " . strlen($json_data) . " characters");
             }
         }
         
@@ -216,24 +213,13 @@ class GunBroker_API {
             'cookies' => array()
         );
 
-        error_log("GunBroker API Request: {$method} {$url}");
-        if (!empty($data)) {
-            error_log("GunBroker API Data: " . json_encode($data, JSON_PRETTY_PRINT));
+        // Log only essential request details
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log("GunBroker API: {$method} {$endpoint}");
         }
-
-        // Log the complete request details
-        error_log("GunBroker: Complete request args: " . json_encode($args, JSON_PRETTY_PRINT));
-        error_log("GunBroker: Request URL: " . $url);
-        error_log("GunBroker: Request method: " . $method);
-        error_log("GunBroker: Request body: " . $body);
-        error_log("GunBroker: Request body length: " . strlen($body));
-        error_log("GunBroker: Request body is empty: " . (empty($body) ? 'YES' : 'NO'));
-        error_log("GunBroker: Dev Key: " . substr($this->dev_key, 0, 10) . "...");
-        error_log("GunBroker: Access Token: " . substr($this->access_token, 0, 10) . "...");
         
         // Additional validation for POST requests
         if ($method === 'POST' && empty($body)) {
-            error_log("GunBroker: ERROR - POST request with empty body!");
             return new WP_Error('empty_post_body', 'POST request cannot have empty body');
         }
         
@@ -251,8 +237,7 @@ class GunBroker_API {
         $decoded_body = json_decode($body, true);
 
         // Log the response for debugging
-        error_log("GunBroker API Response: {$response_code}");
-        error_log("GunBroker API Response Body: " . $body);
+        // API Response: {$response_code}
 
         if ($response_code >= 200 && $response_code < 300) {
             return $decoded_body;
@@ -333,14 +318,14 @@ class GunBroker_API {
         $username = get_option('gunbroker_username');
         $password = get_option('gunbroker_password');
 
-        error_log('GunBroker: Creating listing - forcing fresh authentication');
+        // Creating listing - forcing fresh authentication
         $auth_result = $this->authenticate($username, $password);
         if (is_wp_error($auth_result)) {
             error_log('GunBroker: Fresh auth failed for listing creation: ' . $auth_result->get_error_message());
             return $auth_result;
         }
 
-        error_log('GunBroker: About to create listing with data: ' . json_encode($listing_data, JSON_PRETTY_PRINT));
+        // About to create listing with data
         
         // Validate that we have data to send
         if (empty($listing_data)) {
@@ -475,24 +460,24 @@ class GunBroker_API {
      * Prepare listing data from WooCommerce product
      */
     public function prepare_listing_data($product, $category_id = null) {
-        error_log('GunBroker: prepare_listing_data called for product ID: ' . $product->get_id());
+        // prepare_listing_data called for product ID: {$product->get_id()}
         
         // Get markup percentage - check for product-specific override first
         $product_markup = get_post_meta($product->get_id(), '_gunbroker_custom_markup', true);
         $markup_percentage = !empty($product_markup) ? floatval($product_markup) : get_option('gunbroker_markup_percentage', 10);
         
-        error_log('GunBroker: Markup percentage: ' . $markup_percentage);
+        // Markup percentage: {$markup_percentage}
 
         $base_price = floatval($product->get_regular_price());
-        error_log('GunBroker: Regular price: ' . $base_price);
+        // Regular price: {$base_price}
         
         if ($base_price <= 0) {
             $base_price = floatval($product->get_price());
-            error_log('GunBroker: Using sale price: ' . $base_price);
+            // Using sale price: {$base_price}
         }
 
         $gunbroker_price = $base_price * (1 + $markup_percentage / 100);
-        error_log('GunBroker: Calculated GunBroker price: ' . $gunbroker_price);
+        // Calculated GunBroker price: {$gunbroker_price}
         
         // Validate that we have a valid price
         if (empty($base_price) || $base_price <= 0) {
@@ -632,14 +617,7 @@ class GunBroker_API {
         }
 
         // Debug logging for listing data preparation
-        error_log('GunBroker: Prepared listing data: ' . json_encode($listing_data, JSON_PRETTY_PRINT));
-        error_log('GunBroker: Product ID: ' . $product->get_id());
-        error_log('GunBroker: Product Name: ' . $product->get_name());
-        error_log('GunBroker: Product Price: ' . $product->get_price());
-        error_log('GunBroker: Calculated GunBroker Price: ' . $gunbroker_price);
-        error_log('GunBroker: Category ID: ' . $category_id);
-        error_log('GunBroker: Condition: ' . $condition);
-        error_log('GunBroker: Country Code: ' . $country_code);
+        // Prepared listing data for product: {$product->get_name()}
 
         // Add BuyNowPrice as optional if you want both auction and buy-now
         $buy_now_enabled = get_option('gunbroker_enable_buy_now', true);
@@ -667,7 +645,7 @@ class GunBroker_API {
         }
 
         // Log the prepared data for debugging
-        error_log('GunBroker Listing Data Prepared: ' . json_encode($listing_data, JSON_PRETTY_PRINT));
+        // Listing data prepared successfully
 
         return apply_filters('gunbroker_listing_data', $listing_data, $product);
     }
@@ -702,15 +680,11 @@ class GunBroker_API {
 
         $endpoint = 'ItemsSelling' . ($query_string ? '?' . $query_string : '');
 
-        error_log('GunBroker: Getting user listings via: ' . $endpoint);
         $result = $this->make_request($endpoint);
 
         if (!is_wp_error($result)) {
-            error_log('GunBroker: Successfully got user listings');
             return $result;
         }
-
-        error_log('GunBroker: ItemsSelling failed: ' . $result->get_error_message());
         return $result;
     }
 
@@ -828,6 +802,12 @@ class GunBroker_API {
      * This method uses recursive API calls to fetch the complete hierarchy
      */
     public function get_complete_category_hierarchy() {
+        // Check if we have cached hierarchy
+        $cached_hierarchy = get_transient('gunbroker_complete_hierarchy');
+        if ($cached_hierarchy !== false) {
+            return $cached_hierarchy;
+        }
+        
         // First get the basic categories
         $categories = $this->get_categories_cached();
         
@@ -840,8 +820,6 @@ class GunBroker_API {
         }
         
         $all_categories = $categories['results'];
-        error_log("GunBroker: Initial categories fetched: " . count($all_categories));
-        
         // Now recursively fetch sub-categories for each parent category
         $this->fetch_subcategories_recursively($all_categories);
         
@@ -858,7 +836,6 @@ class GunBroker_API {
         }
         
         $all_categories = $unique_categories;
-        error_log("GunBroker: Total unique categories after recursive fetching: " . count($all_categories));
         
         // Build a complete category map
         $category_map = array();
@@ -888,8 +865,6 @@ class GunBroker_API {
             }
         }
         
-        error_log("GunBroker: Parent categories: " . count($parent_categories));
-        error_log("GunBroker: Total categories in map: " . count($category_map));
         
         // Build hierarchy by linking children to parents
         foreach ($category_map as $cat_id => $category) {
@@ -946,15 +921,18 @@ class GunBroker_API {
         
         $hierarchical_tree = build_tree($category_map);
         
-        error_log("GunBroker: Terminal categories found: " . count($GLOBALS['terminal_categories'] ?? array()));
-        
-        return array(
+        $hierarchy_data = array(
             'category_map' => $category_map,
             'parent_categories' => $parent_categories,
             'terminal_categories' => $GLOBALS['terminal_categories'] ?? array(),
             'hierarchical_tree' => $hierarchical_tree,
             'all_categories' => array_values($category_map)
         );
+        
+        // Cache the complete hierarchy for 6 hours
+        set_transient('gunbroker_complete_hierarchy', $hierarchy_data, 6 * HOUR_IN_SECONDS);
+        
+        return $hierarchy_data;
     }
 
     /**
@@ -972,7 +950,8 @@ class GunBroker_API {
             }
         }
         
-        error_log("GunBroker: Found " . count($parent_categories) . " parent categories to fetch sub-categories for");
+        // Only fetch sub-categories for major categories to reduce API calls
+        $major_categories = array('Guns & Firearms', 'Ammo', 'Gun Parts', 'Scopes & Optics', 'Holsters', 'Tactical Gear');
         
         // For each parent category, fetch its sub-categories using the official API
         foreach ($parent_categories as $parent) {
@@ -981,11 +960,15 @@ class GunBroker_API {
             
             if (!$parent_id) continue;
             
+            // Only fetch sub-categories for major categories
+            if (!in_array($parent_name, $major_categories)) {
+                continue;
+            }
+            
             // Method 1: Use /Categories?ParentCategoryID={parent_id} (official way)
             $result = $this->make_request("Categories?ParentCategoryID={$parent_id}");
             if (!is_wp_error($result) && isset($result['results']) && is_array($result['results'])) {
                 $subcategories = $result['results'];
-                error_log("GunBroker: Found " . count($subcategories) . " sub-categories for {$parent_name} (ID: {$parent_id}) using ParentCategoryID parameter");
                 
                 // Add sub-categories to our list
                 foreach ($subcategories as $subcategory) {
@@ -1001,7 +984,6 @@ class GunBroker_API {
                 $result = $this->make_request("Categories/{$parent_id}");
                 if (!is_wp_error($result) && isset($result['subCategories']) && is_array($result['subCategories'])) {
                     $subcategories = $result['subCategories'];
-                    error_log("GunBroker: Found " . count($subcategories) . " sub-categories for {$parent_name} (ID: {$parent_id}) using Categories/{categoryID} endpoint");
                     
                     // Add sub-categories to our list
                     foreach ($subcategories as $subcategory) {
@@ -1016,7 +998,7 @@ class GunBroker_API {
             }
         }
         
-        // Now recursively fetch sub-sub-categories for the sub-categories we just found
+        // Now fetch sub-sub-categories for the sub-categories we just found
         $new_categories = array_slice($all_categories, count($all_categories) - 50); // Get the last 50 categories (likely the new sub-categories)
         foreach ($new_categories as $category) {
             $parent_id = $category['parentCategoryID'] ?? $category['parentId'] ?? '';
@@ -1031,7 +1013,6 @@ class GunBroker_API {
                 $result = $this->make_request("Categories?ParentCategoryID={$cat_id}");
                 if (!is_wp_error($result) && isset($result['results']) && is_array($result['results'])) {
                     $sub_subcategories = $result['results'];
-                    error_log("GunBroker: Found " . count($sub_subcategories) . " sub-sub-categories for {$cat_name} (ID: {$cat_id}) using ParentCategoryID parameter");
                     
                     // Add sub-sub-categories to our list
                     foreach ($sub_subcategories as $sub_subcategory) {
@@ -1047,7 +1028,6 @@ class GunBroker_API {
                     $result = $this->make_request("Categories/{$cat_id}");
                     if (!is_wp_error($result) && isset($result['subCategories']) && is_array($result['subCategories'])) {
                         $sub_subcategories = $result['subCategories'];
-                        error_log("GunBroker: Found " . count($sub_subcategories) . " sub-sub-categories for {$cat_name} (ID: {$cat_id}) using Categories/{categoryID} endpoint");
                         
                         // Add sub-sub-categories to our list
                         foreach ($sub_subcategories as $sub_subcategory) {
@@ -1062,6 +1042,14 @@ class GunBroker_API {
                 }
             }
         }
+    }
+
+    /**
+     * Clear category cache (useful for debugging or when categories change)
+     */
+    public function clear_category_cache() {
+        delete_transient('gunbroker_categories');
+        delete_transient('gunbroker_complete_hierarchy');
     }
 
     /**
@@ -1106,214 +1094,5 @@ class GunBroker_API {
         error_log('GunBroker: Get item details failed: ' . $result->get_error_message());
         return $result;
     }
-}
 
-// FIXED: Endpoint Discovery Class with correct sandbox URL
-class GunBroker_Endpoint_Discovery {
-
-    private $api_url;
-    private $dev_key;
-    private $token;
-
-    public function __construct($dev_key, $token) {
-        $this->dev_key = $dev_key;
-        $this->token = $token;
-
-        // Use correct URL based on sandbox mode
-        $is_sandbox = get_option('gunbroker_sandbox_mode', true);
-        $this->api_url = $is_sandbox
-            ? 'https://api.sandbox.gunbroker.com/v1/'
-            : 'https://api.gunbroker.com/v1/';
-    }
-
-    /**
-     * Test different endpoint patterns based on GunBroker API documentation
-     */
-    public function discover_working_endpoints() {
-        $endpoints_to_test = array(
-            // Public listing endpoints (no auth needed)
-            'Items/Featured' => 'GET',
-            'Items/Browse' => 'GET',
-            'Items/Search' => 'GET',
-            'Items/Search?Keywords=glock&PageSize=5' => 'GET',
-            'Items/Browse?CategoryID=851&PageSize=5' => 'GET',
-
-            // Try without authentication first
-            'Items?PageSize=5' => 'GET',
-            'Items/Active?PageSize=5' => 'GET',
-            'Items/Recent?PageSize=5' => 'GET',
-
-            // Different category approaches
-            'Categories/851/Items?PageSize=5' => 'GET',
-            'Categories/Browse?CategoryID=851&PageSize=5' => 'GET',
-
-            // User-specific endpoints (with auth)
-            'Users/Self' => 'GET',
-            'Users/Me' => 'GET',
-            'User/Profile' => 'GET',
-            'User/Items' => 'GET',
-            'User/Selling' => 'GET',
-
-            // Alternative formats
-            'ItemsSearch?Keywords=rifle&PageSize=5' => 'GET',
-            'Browse?CategoryID=851&PageSize=5' => 'GET',
-            'Search?Keywords=pistol&PageSize=5' => 'GET',
-        );
-
-        $results = array();
-
-        foreach ($endpoints_to_test as $endpoint => $method) {
-            // Test without authentication first
-            $result_no_auth = $this->test_endpoint($endpoint, $method, false);
-
-            // Test with authentication
-            $result_with_auth = $this->test_endpoint($endpoint, $method, true);
-
-            $results[$endpoint] = array(
-                'no_auth' => $result_no_auth,
-                'with_auth' => $result_with_auth
-            );
-
-            // Add delay to avoid rate limiting
-            sleep(1);
-        }
-
-        return $results;
-    }
-
-    /**
-     * Test individual endpoint
-     */
-    public function test_endpoint($endpoint, $method = 'GET', $use_auth = true) {
-        $url = $this->api_url . $endpoint;
-
-        $headers = array(
-            'X-DevKey: ' . $this->dev_key,
-            'Content-Type: application/json'
-        );
-
-        if ($use_auth && $this->token) {
-            $headers[] = 'X-AccessToken: ' . $this->token;
-        }
-
-        $ch = curl_init();
-        curl_setopt_array($ch, array(
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => $headers,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_CUSTOMREQUEST => $method
-        ));
-
-        $response = curl_exec($ch);
-        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-        curl_close($ch);
-
-        return array(
-            'success' => ($http_code >= 200 && $http_code < 300),
-            'http_code' => $http_code,
-            'error' => $error,
-            'data_preview' => $response ? substr($response, 0, 500) . '...' : null
-        );
-    }
-
-    // 6. Test all product endpoints
-    public function test_all_product_endpoints() {
-        $endpoints_to_test = array(
-            'Items?PageSize=5' => 'Search items with limit',
-            'ItemsSelling?PageSize=5' => 'User active listings',
-            'ItemsSold?PageSize=5' => 'User sold items',
-            'ItemsEnded?PageSize=5' => 'User ended listings',
-            'Categories' => 'Categories list'
-        );
-
-        $results = array();
-
-        foreach ($endpoints_to_test as $endpoint => $description) {
-            error_log('GunBroker: Testing endpoint: ' . $endpoint);
-
-            $result = $this->make_request($endpoint);
-
-            $results[$endpoint] = array(
-                'description' => $description,
-                'success' => !is_wp_error($result),
-                'error' => is_wp_error($result) ? $result->get_error_message() : null,
-                'has_results' => !is_wp_error($result) && isset($result['results']) && is_array($result['results']),
-                'result_count' => !is_wp_error($result) && isset($result['results']) ? count($result['results']) : 0,
-                'data_preview' => is_wp_error($result) ? null : substr(json_encode($result), 0, 200) . '...'
-            );
-
-            // Small delay to avoid rate limiting
-            sleep(1);
-        }
-
-        return $results;
-    }
-
-    // 3. Get sold items (for order management)
-    public function get_sold_items($params = array()) {
-        // Force fresh authentication
-        $username = get_option('gunbroker_username');
-        $password = get_option('gunbroker_password');
-
-        $auth_result = $this->authenticate($username, $password);
-        if (is_wp_error($auth_result)) {
-            return $auth_result;
-        }
-
-        // Build query parameters
-        $default_params = array(
-            'PageSize' => 50,
-            'PageIndex' => 1
-        );
-        $params = array_merge($default_params, $params);
-        $query_string = http_build_query($params);
-
-        $endpoint = 'ItemsSold' . ($query_string ? '?' . $query_string : '');
-
-        error_log('GunBroker: Getting sold items via: ' . $endpoint);
-        $result = $this->make_request($endpoint);
-
-        if (!is_wp_error($result)) {
-            error_log('GunBroker: Successfully got sold items');
-            return $result;
-        }
-
-        error_log('GunBroker: ItemsSold failed: ' . $result->get_error_message());
-        return $result;
-    }
-
-    // 4. Get ended listings
-    public function get_ended_listings($params = array()) {
-        // Force fresh authentication
-        $username = get_option('gunbroker_username');
-        $password = get_option('gunbroker_password');
-
-        $auth_result = $this->authenticate($username, $password);
-        if (is_wp_error($auth_result)) {
-            return $auth_result;
-        }
-
-        // Build query parameters
-        $default_params = array(
-            'PageSize' => 25,
-            'PageIndex' => 1
-        );
-        $params = array_merge($default_params, $params);
-        $query_string = http_build_query($params);
-
-        $endpoint = 'ItemsEnded' . ($query_string ? '?' . $query_string : '');
-
-        error_log('GunBroker: Getting ended listings via: ' . $endpoint);
-        $result = $this->make_request($endpoint);
-
-        if (!is_wp_error($result)) {
-            error_log('GunBroker: Successfully got ended listings');
-            return $result;
-        }
-
-        error_log('GunBroker: ItemsEnded failed: ' . $result->get_error_message());
-        return $result;
-    }
 }

@@ -58,7 +58,7 @@ class GunBroker_Sync {
      * Sync a single product with GunBroker
      */
     public function sync_single_product($product_id) {
-        error_log('GunBroker: Starting sync for product ID: ' . $product_id);
+        // Starting sync for product ID: {$product_id}
 
         $product = wc_get_product($product_id);
         if (!$product) {
@@ -85,7 +85,7 @@ class GunBroker_Sync {
         $username = get_option('gunbroker_username');
         $password = get_option('gunbroker_password');
 
-        error_log('GunBroker: Forcing fresh authentication for sync');
+        // Forcing fresh authentication for sync
         $auth_result = $api->authenticate($username, $password);
         if (is_wp_error($auth_result)) {
             error_log('GunBroker: Authentication failed in sync: ' . $auth_result->get_error_message());
@@ -95,7 +95,7 @@ class GunBroker_Sync {
 
         // Check if we already have a listing for this product
         $listing_id = $this->get_listing_id($product_id);
-        error_log('GunBroker: Existing listing ID: ' . ($listing_id ?: 'none'));
+        // Existing listing ID: {$listing_id ?: 'none'}
 
         try {
             $listing_data = $api->prepare_listing_data($product);
@@ -127,12 +127,12 @@ class GunBroker_Sync {
 
             if ($listing_id) {
                 // Update existing listing
-                error_log('GunBroker: Updating existing listing: ' . $listing_id);
+                // Updating existing listing: {$listing_id}
                 $result = $api->update_listing($listing_id, $listing_data);
                 $action = 'update';
             } else {
                 // Create new listing
-                error_log('GunBroker: Creating new listing');
+                // Creating new listing
                 $result = $api->create_listing($listing_data);
                 $action = 'create';
             }
@@ -144,16 +144,16 @@ class GunBroker_Sync {
                 return $result;
             }
 
-            error_log('GunBroker: API call successful: ' . json_encode($result));
+            // API call successful
 
             // Save the listing ID if it's a new listing
             if ($action === 'create' && isset($result['ItemID'])) {
                 $this->save_listing_id($product_id, $result['ItemID']);
-                error_log('GunBroker: Saved new listing ID: ' . $result['ItemID']);
+                // Saved new listing ID: {$result['ItemID']}
             }
 
             $this->log_sync_result($product_id, $action, 'success', 'Product synced successfully');
-            error_log('GunBroker: Sync completed successfully for product: ' . $product_id);
+            // Sync completed successfully for product: {$product_id}
             return true;
 
         } catch (Exception $e) {

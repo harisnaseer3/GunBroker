@@ -521,6 +521,7 @@
     jQuery(document).ready(function($) {
         let selectedProducts = [];
 
+
         // View Toggle
         $('.view-toggle').click(function() {
             const view = $(this).data('view');
