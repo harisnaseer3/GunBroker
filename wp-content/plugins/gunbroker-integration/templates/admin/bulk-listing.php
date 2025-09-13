@@ -104,11 +104,18 @@
                 $product->gunbroker_id = $status['gunbroker_id'];
                 $product->gunbroker_last_sync = $status['last_sync'];
                 
-                // Check if product has a valid GunBroker ID (meaning it was successfully listed)
+                // Check if product has a valid GunBroker ID or is marked as active in database
                 $gunbroker_id = !empty($status['gunbroker_id']) ? $status['gunbroker_id'] : null;
                 $gunbroker_status = !empty($status['status']) ? $status['status'] : 'not_listed';
                 
-                if ($gunbroker_id && $gunbroker_status !== 'error') {
+                // CRITICAL FIX: If status is 'active' in database, treat as active regardless of GunBroker ID
+                // This handles cases where sync was successful but no GunBroker ID was returned
+                if ($gunbroker_status === 'active') {
+                    // Product is marked as active in database - treat as active
+                    $product->gunbroker_status = 'active';
+                    $product->gunbroker_id = $gunbroker_id;
+                    $active_products[] = $product;
+                } elseif ($gunbroker_id && $gunbroker_status !== 'error') {
                     // Product has a GunBroker ID and is not in error state - treat as active
                     $product->gunbroker_status = 'active';
                     $product->gunbroker_id = $gunbroker_id;

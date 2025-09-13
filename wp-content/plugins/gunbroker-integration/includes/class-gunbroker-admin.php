@@ -924,6 +924,9 @@ class GunBroker_Admin {
         if (!$table_exists) {
             error_log('GunBroker: Database tables missing, creating them now...');
             $this->create_tables();
+        } else {
+            // Check if we need to update the table structure
+            $this->update_table_structure();
         }
     }
 
@@ -940,7 +943,7 @@ class GunBroker_Admin {
         $sql = "CREATE TABLE $table_name (
             id bigint(20) NOT NULL AUTO_INCREMENT,
             product_id bigint(20) NOT NULL,
-            gunbroker_id varchar(100) DEFAULT NULL,
+            gunbroker_id varchar(100) NULL DEFAULT NULL,
             status enum('active','inactive','error','pending','not_listed') DEFAULT 'not_listed',
             last_sync datetime DEFAULT NULL,
             sync_data longtext,
@@ -1061,11 +1064,18 @@ class GunBroker_Admin {
             
             error_log("GunBroker Debug: Product '{$product->get_name()}' - Status: {$product->gunbroker_status}");
             
-            // Check if product has a valid GunBroker ID (meaning it was successfully listed)
+            // Check if product has a valid GunBroker ID or is marked as active in database
             $gunbroker_id = !empty($product_data->gunbroker_id) ? $product_data->gunbroker_id : null;
             $gunbroker_status = !empty($product_data->gunbroker_status) ? $product_data->gunbroker_status : 'not_listed';
             
-            if ($gunbroker_id && $gunbroker_status !== 'error') {
+            // CRITICAL FIX: If status is 'active' in database, treat as active regardless of GunBroker ID
+            // This handles cases where sync was successful but no GunBroker ID was returned
+            if ($gunbroker_status === 'active') {
+                // Product is marked as active in database - treat as active
+                $product->gunbroker_status = 'active';
+                $product->gunbroker_id = $gunbroker_id;
+                $active_products[] = $product;
+            } elseif ($gunbroker_id && $gunbroker_status !== 'error') {
                 // Product has a GunBroker ID and is not in error state - treat as active
                 $product->gunbroker_status = 'active';
                 $product->gunbroker_id = $gunbroker_id;
@@ -1123,6 +1133,23 @@ class GunBroker_Admin {
     }
 
     /**
+     * Update table structure to fix NULL constraint issues
+     */
+    private function update_table_structure() {
+        global $wpdb;
+        
+        // Fix gunbroker_id column to allow NULL values
+        $table_name = $wpdb->prefix . 'gunbroker_listings';
+        $result = $wpdb->query("ALTER TABLE $table_name MODIFY COLUMN gunbroker_id varchar(100) NULL DEFAULT NULL");
+        
+        if ($result !== false) {
+            error_log('GunBroker: Successfully updated gunbroker_id column to allow NULL values');
+        } else {
+            error_log('GunBroker: Failed to update gunbroker_id column: ' . $wpdb->last_error);
+        }
+    }
+
+    /**
      * Update product GunBroker status in database
      */
     public function update_product_gunbroker_status($product_id, $status, $gunbroker_id = null, $sync_data = null) {
@@ -1133,16 +1160,16 @@ class GunBroker_Admin {
         $data = array(
             'product_id' => $product_id,
             'status' => $status,
-            'last_sync' => current_time('mysql')
+            'last_sync' => current_time('mysql'),
+            'gunbroker_id' => $gunbroker_id ?: null
         );
-        
-        if ($gunbroker_id) {
-            $data['gunbroker_id'] = $gunbroker_id;
-        }
         
         if ($sync_data) {
             $data['sync_data'] = is_string($sync_data) ? $sync_data : json_encode($sync_data);
         }
+        
+        error_log("GunBroker Debug: Updating product {$product_id} status to '{$status}' with GunBroker ID: " . ($gunbroker_id ?: 'null'));
+        error_log("GunBroker Debug: Data array: " . print_r($data, true));
         
         $result = $wpdb->replace(
             $wpdb->prefix . 'gunbroker_listings',
@@ -1150,9 +1177,22 @@ class GunBroker_Admin {
             array('%d', '%s', '%s', '%s', '%s')
         );
         
+        error_log("GunBroker Debug: wpdb->replace result: " . ($result !== false ? 'SUCCESS' : 'FAILED'));
+        if ($result === false) {
+            error_log("GunBroker Debug: wpdb->replace error: " . $wpdb->last_error);
+        }
+        
         if ($result !== false) {
             // Log the status change
             $this->log_status_change($product_id, $status, $gunbroker_id);
+            
+            // Verify the update worked
+            $verify = $wpdb->get_row($wpdb->prepare(
+                "SELECT status, gunbroker_id FROM {$wpdb->prefix}gunbroker_listings WHERE product_id = %d",
+                $product_id
+            ));
+            error_log("GunBroker Debug: Verification after update - Status: '{$verify->status}', GunBroker ID: '{$verify->gunbroker_id}'");
+            
             return true;
         }
         
@@ -1186,14 +1226,13 @@ class GunBroker_Admin {
             $gunbroker_id = !empty($result->gunbroker_id) ? $result->gunbroker_id : null;
             $status = !empty($result->status) ? $result->status : 'not_listed';
             
-            // CRITICAL FIX: If no GunBroker ID, treat as not_listed regardless of status
-            // Also check for empty string status
-            if (!$gunbroker_id || $status === '' || $status === null) {
-                $status = 'not_listed';
-            }
-            
-            // Additional check: if status is 'active' but no GunBroker ID, it's not really active
-            if ($status === 'active' && !$gunbroker_id) {
+            // CRITICAL FIX: If status is 'active' in database, respect it regardless of GunBroker ID
+            // This handles cases where sync was successful but no GunBroker ID was returned
+            if ($status === 'active') {
+                // Keep as active - this means the sync was successful
+                $status = 'active';
+            } elseif (!$gunbroker_id || $status === '' || $status === null) {
+                // No GunBroker ID and not explicitly active - treat as not_listed
                 $status = 'not_listed';
             }
             

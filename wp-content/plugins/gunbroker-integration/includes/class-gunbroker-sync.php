@@ -292,15 +292,20 @@ class GunBroker_Sync {
     private function save_listing_id($product_id, $gunbroker_id) {
         global $wpdb;
 
+        $data = array(
+            'product_id' => $product_id,
+            'gunbroker_id' => $gunbroker_id,
+            'status' => 'active',
+            'last_sync' => current_time('mysql'),
+            'sync_data' => json_encode(array('last_action' => 'create'))
+        );
+        
+        error_log('GunBroker Debug: save_listing_id - Product: ' . $product_id . ', GunBroker ID: ' . $gunbroker_id);
+        error_log('GunBroker Debug: save_listing_id - Data: ' . print_r($data, true));
+        
         $result = $wpdb->replace(
             $wpdb->prefix . 'gunbroker_listings',
-            array(
-                'product_id' => $product_id,
-                'gunbroker_id' => $gunbroker_id,
-                'status' => 'active',
-                'last_sync' => current_time('mysql'),
-                'sync_data' => json_encode(array('last_action' => 'create'))
-            ),
+            $data,
             array('%d', '%s', '%s', '%s', '%s')
         );
         
@@ -308,6 +313,13 @@ class GunBroker_Sync {
             error_log('GunBroker: Failed to save listing ID to database: ' . $wpdb->last_error);
         } else {
             error_log('GunBroker: Successfully saved listing ID ' . $gunbroker_id . ' for product ' . $product_id . ' (Result: ' . $result . ')');
+            
+            // Verify the save worked
+            $verify = $wpdb->get_row($wpdb->prepare(
+                "SELECT status, gunbroker_id FROM {$wpdb->prefix}gunbroker_listings WHERE product_id = %d",
+                $product_id
+            ));
+            error_log('GunBroker Debug: save_listing_id verification - Status: ' . $verify->status . ', GunBroker ID: ' . $verify->gunbroker_id);
         }
     }
 
