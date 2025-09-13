@@ -20,6 +20,7 @@ class GunBroker_Admin {
         add_action('wp_ajax_gunbroker_test_raw_auth', array($this, 'test_raw_auth_ajax'));
         add_action('wp_ajax_gunbroker_get_subcategories', array($this, 'get_subcategories_ajax'));
         add_action('wp_ajax_gunbroker_get_top_categories', array($this, 'get_top_categories_ajax'));
+        add_action('wp_ajax_gunbroker_end_listing', array($this, 'end_listing_ajax'));
 
         // Add product list column
         add_filter('manage_product_posts_columns', array($this, 'add_product_columns'));
@@ -509,6 +510,51 @@ class GunBroker_Admin {
                 'listing_id' => $listing_id
             ));
         }
+    }
+
+    /**
+     * End listing via AJAX
+     */
+    public function end_listing_ajax() {
+        check_ajax_referer('gunbroker_ajax_nonce', 'nonce');
+
+        if (!current_user_can('edit_posts')) {
+            wp_die('Unauthorized');
+        }
+
+        $product_id = intval($_POST['product_id']);
+        if (!$product_id) {
+            wp_send_json_error('Invalid product ID');
+        }
+
+        // Get the GunBroker listing ID for this product
+        $gunbroker_id = $this->get_gunbroker_listing_id($product_id);
+        error_log('GunBroker Debug: End listing request for product ' . $product_id . ', GunBroker ID: ' . ($gunbroker_id ?: 'null'));
+        
+        // Check if we have a valid GunBroker ID (not null, empty, or 'unknown')
+        if (!$gunbroker_id || $gunbroker_id === 'unknown' || $gunbroker_id === '') {
+            // If no valid GunBroker ID, just update the status to inactive
+            error_log('GunBroker Debug: No valid GunBroker ID found, updating status to inactive only');
+            $this->update_product_gunbroker_status($product_id, 'inactive');
+            wp_send_json_success('Listing status updated to inactive (no GunBroker listing to end)');
+            return;
+        }
+
+        // Call the API to end the listing
+        $api = new GunBroker_API();
+        error_log('GunBroker Debug: Calling end_listing API for GunBroker ID: ' . $gunbroker_id);
+        $result = $api->end_listing($gunbroker_id);
+
+        if (is_wp_error($result)) {
+            error_log('GunBroker: Failed to end listing ' . $gunbroker_id . ': ' . $result->get_error_message());
+            wp_send_json_error('Failed to end listing: ' . $result->get_error_message());
+        }
+
+        // Update the status in our database
+        $this->update_product_gunbroker_status($product_id, 'inactive');
+        
+        error_log('GunBroker: Successfully ended listing ' . $gunbroker_id . ' for product ' . $product_id);
+        wp_send_json_success('Listing ended successfully');
     }
 
     /**
@@ -1146,6 +1192,12 @@ class GunBroker_Admin {
             error_log('GunBroker: Successfully updated gunbroker_id column to allow NULL values');
         } else {
             error_log('GunBroker: Failed to update gunbroker_id column: ' . $wpdb->last_error);
+        }
+        
+        // Fix any "unknown" values in the database
+        $fix_result = $wpdb->query("UPDATE $table_name SET gunbroker_id = NULL WHERE gunbroker_id = 'unknown' OR gunbroker_id = ''");
+        if ($fix_result !== false) {
+            error_log('GunBroker: Fixed ' . $fix_result . ' records with invalid gunbroker_id values');
         }
     }
 
