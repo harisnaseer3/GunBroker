@@ -184,7 +184,7 @@
                         <!-- Status Badge -->
                         <div style="position: absolute; top: 10px; right: 10px;">
                         <span class="status-badge status-<?php echo $gunbroker_status; ?>">
-                            <?php echo ucfirst($gunbroker_status); ?>
+                            <?php echo ucfirst(str_replace('_', ' ', $gunbroker_status)); ?>
                         </span>
                         </div>
                     </div>
@@ -304,7 +304,7 @@
                         <!-- Status Badge -->
                         <div style="position: absolute; top: 10px; right: 10px;">
                         <span class="status-badge status-<?php echo $gunbroker_status; ?>">
-                            <?php echo ucfirst($gunbroker_status); ?>
+                            <?php echo ucfirst(str_replace('_', ' ', $gunbroker_status)); ?>
                         </span>
                         </div>
                     </div>
@@ -420,7 +420,7 @@
                     <td><?php echo $stock ?: '∞'; ?></td>
                     <td>
                         <span class="status-badge status-<?php echo $gunbroker_status; ?>">
-                            <?php echo ucfirst($gunbroker_status); ?>
+                            <?php echo ucfirst(str_replace('_', ' ', $gunbroker_status)); ?>
                         </span>
                         <?php if ($gunbroker_id): ?>
                             <br><small>ID: <?php echo esc_html($gunbroker_id); ?></small>
@@ -843,14 +843,14 @@
             const $statusBadge = $productCard.find('.status-badge');
             if ($statusBadge.length > 0) {
                 $statusBadge.removeClass().addClass('status-badge status-' + status);
-                $statusBadge.text(status.charAt(0).toUpperCase() + status.slice(1));
+                $statusBadge.text(status.replace('_', ' ').charAt(0).toUpperCase() + status.replace('_', ' ').slice(1));
             }
             
             // Update status in table view
             const $tableStatus = $tableRow.find('.status-badge');
             if ($tableStatus.length > 0) {
                 $tableStatus.removeClass().addClass('status-badge status-' + status);
-                $tableStatus.text(status.charAt(0).toUpperCase() + status.slice(1));
+                $tableStatus.text(status.replace('_', ' ').charAt(0).toUpperCase() + status.replace('_', ' ').slice(1));
             }
             
             // Update action buttons in grid view
@@ -993,6 +993,8 @@
                     $('#progress-text').text('Completed! All products processed.');
                     setTimeout(() => {
                         $('#listing-progress-modal').hide();
+                        // Auto-reload the page to show updated status
+                        location.reload();
                     }, 2000);
                     return;
                 }
@@ -1107,7 +1109,10 @@
                 success: function(response) {
                     if (response.success) {
                         alert('Listing ended successfully!');
-                        location.reload();
+                        // Auto-reload the page to show updated status
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
                     } else {
                         alert('Failed to end listing: ' + response.data);
                     }
