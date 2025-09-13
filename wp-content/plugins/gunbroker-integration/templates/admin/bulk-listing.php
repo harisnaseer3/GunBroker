@@ -104,14 +104,19 @@
                 $product->gunbroker_id = $status['gunbroker_id'];
                 $product->gunbroker_last_sync = $status['last_sync'];
                 
-                // Check if product has a GunBroker ID (meaning it was successfully listed)
-                if ($status['gunbroker_id'] && $status['status'] !== 'error') {
+                // Check if product has a valid GunBroker ID (meaning it was successfully listed)
+                $gunbroker_id = !empty($status['gunbroker_id']) ? $status['gunbroker_id'] : null;
+                $gunbroker_status = !empty($status['status']) ? $status['status'] : 'not_listed';
+                
+                if ($gunbroker_id && $gunbroker_status !== 'error') {
                     // Product has a GunBroker ID and is not in error state - treat as active
                     $product->gunbroker_status = 'active';
+                    $product->gunbroker_id = $gunbroker_id;
                     $active_products[] = $product;
                 } else {
                     // Product has no GunBroker ID or is in error state - treat as not listed
                     $product->gunbroker_status = 'not_listed';
+                    $product->gunbroker_id = null;
                     $not_listed_products[] = $product;
                 }
             }
@@ -475,7 +480,7 @@
     .status-pending { background: #fff3cd; color: #856404; }
     .status-error { background: #f8d7da; color: #721c24; }
     .status-inactive { background: #f8f9fa; color: #6c757d; }
-    .status-not-listed { background: #e2e3e5; color: #383d41; }
+    .status-not_listed { background: #e2e3e5; color: #383d41; }
 
     .button-link {
         color: #0073aa !important;
@@ -916,7 +921,7 @@
             const unlistedProducts = selectedProducts.filter(productId => {
                 const $productCard = $('.product-card[data-product-id="' + productId + '"]');
                 const $statusBadge = $productCard.find('.status-badge');
-                return $statusBadge.length === 0 || $statusBadge.hasClass('status-not-listed');
+                return $statusBadge.length === 0 || $statusBadge.hasClass('status-not_listed');
             });
 
             if (unlistedProducts.length === 0) {
@@ -951,7 +956,7 @@
             const $productCard = $('.product-card[data-product-id="' + productId + '"]');
             const $statusBadge = $productCard.find('.status-badge');
             
-            if ($statusBadge.length > 0 && !$statusBadge.hasClass('status-not-listed')) {
+            if ($statusBadge.length > 0 && !$statusBadge.hasClass('status-not_listed')) {
                 alert('This product is already listed on GunBroker. Use the Update button to modify the listing.');
                 return;
             }

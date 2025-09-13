@@ -450,6 +450,20 @@ class GunBroker_Admin {
 
         // Check if product is already listed (Active status)
         $current_status = $this->get_product_gunbroker_status($product_id);
+        error_log("GunBroker Debug: Product {$product_id} status check - Status: '{$current_status['status']}', GunBroker ID: '{$current_status['gunbroker_id']}'");
+        
+        // Additional debug: Check raw database values
+        global $wpdb;
+        $raw_db_result = $wpdb->get_row($wpdb->prepare(
+            "SELECT status, gunbroker_id FROM {$wpdb->prefix}gunbroker_listings WHERE product_id = %d",
+            $product_id
+        ));
+        if ($raw_db_result) {
+            error_log("GunBroker Debug: Raw DB values - Status: '{$raw_db_result->status}', GunBroker ID: '{$raw_db_result->gunbroker_id}'");
+        } else {
+            error_log("GunBroker Debug: No database record found for product {$product_id}");
+        }
+        
         if ($current_status['status'] === 'active') {
             wp_send_json_error('This product is already listed on GunBroker and cannot be listed again. Use the Update button to modify the existing listing.');
         }
@@ -481,16 +495,14 @@ class GunBroker_Admin {
             $this->update_product_gunbroker_status($product_id, 'error');
             wp_send_json_error($result->get_error_message());
         } else {
-            // Get the listing ID for the product
-            $listing_id = $this->get_gunbroker_listing_id($product_id);
+            // Sync was successful - the sync process already saved the listing ID
+            // Just update the status to active to ensure persistence
+            $this->update_product_gunbroker_status($product_id, 'active');
+            error_log("GunBroker Debug: Updated product {$product_id} status to active after successful sync");
             
-            // Update the status in our database to ensure persistence
-            if ($listing_id) {
-                $this->update_product_gunbroker_status($product_id, 'active', $listing_id);
-            } else {
-                // If no listing ID but sync was successful, mark as active anyway
-                $this->update_product_gunbroker_status($product_id, 'active');
-            }
+            // Get the listing ID for the response (this should now work since sync saved it)
+            $listing_id = $this->get_gunbroker_listing_id($product_id);
+            error_log("GunBroker Debug: Retrieved listing ID {$listing_id} for product {$product_id}");
             
             wp_send_json_success(array(
                 'message' => 'Product listed successfully',
@@ -1049,14 +1061,19 @@ class GunBroker_Admin {
             
             error_log("GunBroker Debug: Product '{$product->get_name()}' - Status: {$product->gunbroker_status}");
             
-            // Check if product has a GunBroker ID (meaning it was successfully listed)
-            if ($product_data->gunbroker_id && $product_data->gunbroker_status !== 'error') {
+            // Check if product has a valid GunBroker ID (meaning it was successfully listed)
+            $gunbroker_id = !empty($product_data->gunbroker_id) ? $product_data->gunbroker_id : null;
+            $gunbroker_status = !empty($product_data->gunbroker_status) ? $product_data->gunbroker_status : 'not_listed';
+            
+            if ($gunbroker_id && $gunbroker_status !== 'error') {
                 // Product has a GunBroker ID and is not in error state - treat as active
                 $product->gunbroker_status = 'active';
+                $product->gunbroker_id = $gunbroker_id;
                 $active_products[] = $product;
             } else {
                 // Product has no GunBroker ID or is in error state - treat as not listed
                 $product->gunbroker_status = 'not_listed';
+                $product->gunbroker_id = null;
                 $not_listed_products[] = $product;
             }
         }
@@ -1164,7 +1181,30 @@ class GunBroker_Admin {
             $product_id
         ));
         
-        return $result ? (array) $result : array(
+        if ($result) {
+            // Check if the product has a valid GunBroker ID and is not in error state
+            $gunbroker_id = !empty($result->gunbroker_id) ? $result->gunbroker_id : null;
+            $status = !empty($result->status) ? $result->status : 'not_listed';
+            
+            // CRITICAL FIX: If no GunBroker ID, treat as not_listed regardless of status
+            // Also check for empty string status
+            if (!$gunbroker_id || $status === '' || $status === null) {
+                $status = 'not_listed';
+            }
+            
+            // Additional check: if status is 'active' but no GunBroker ID, it's not really active
+            if ($status === 'active' && !$gunbroker_id) {
+                $status = 'not_listed';
+            }
+            
+            return array(
+                'status' => $status,
+                'gunbroker_id' => $gunbroker_id,
+                'last_sync' => $result->last_sync
+            );
+        }
+        
+        return array(
             'status' => 'not_listed',
             'gunbroker_id' => null,
             'last_sync' => null
