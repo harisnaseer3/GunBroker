@@ -18,6 +18,8 @@ class GunBroker_Admin {
         add_action('wp_ajax_gunbroker_fetch_listings', array($this, 'fetch_gunbroker_listings_ajax'));
         add_action('wp_ajax_gunbroker_debug_credentials', array($this, 'debug_credentials_ajax'));
         add_action('wp_ajax_gunbroker_test_raw_auth', array($this, 'test_raw_auth_ajax'));
+        add_action('wp_ajax_gunbroker_get_subcategories', array($this, 'get_subcategories_ajax'));
+        add_action('wp_ajax_gunbroker_get_top_categories', array($this, 'get_top_categories_ajax'));
 
         // Add product list column
         add_filter('manage_product_posts_columns', array($this, 'add_product_columns'));
@@ -468,8 +470,51 @@ class GunBroker_Admin {
         if (is_wp_error($result)) {
             wp_send_json_error($result->get_error_message());
         } else {
-            wp_send_json_success('Product listed successfully');
+            // Get the listing ID for the product
+            $listing_id = $this->get_gunbroker_listing_id($product_id);
+            
+            wp_send_json_success(array(
+                'message' => 'Product listed successfully',
+                'listing_id' => $listing_id
+            ));
         }
+    }
+
+    /**
+     * Get top-level categories via AJAX
+     */
+    public function get_top_categories_ajax() {
+        check_ajax_referer('gunbroker_ajax_nonce', 'nonce');
+        
+        $api = new GunBroker_API();
+        $categories = $api->get_top_level_categories();
+        
+        if (is_wp_error($categories)) {
+            wp_send_json_error($categories->get_error_message());
+        }
+        
+        wp_send_json_success($categories);
+    }
+
+    /**
+     * Get subcategories via AJAX
+     */
+    public function get_subcategories_ajax() {
+        check_ajax_referer('gunbroker_ajax_nonce', 'nonce');
+        
+        $parent_category_id = intval($_POST['parent_category_id']);
+        if (!$parent_category_id) {
+            wp_send_json_error('Parent category ID is required');
+        }
+        
+        $api = new GunBroker_API();
+        $subcategories = $api->get_subcategories($parent_category_id);
+        
+        if (is_wp_error($subcategories)) {
+            wp_send_json_error($subcategories->get_error_message());
+        }
+        
+        wp_send_json_success($subcategories);
     }
 
     /**
@@ -837,3 +882,4 @@ class GunBroker_Admin {
 
 
 }
+ 

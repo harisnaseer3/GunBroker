@@ -47,63 +47,14 @@
             </div>
             <div>
                 <label for="bulk-category" style="display: block; font-weight: 600; margin-bottom: 8px; color: #23282d;">GunBroker Category</label>
-                <select id="bulk-category" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                    <?php
-                    // Fetch complete category hierarchy from GunBroker API
-                    $api = new GunBroker_API();
-                    $hierarchy = $api->get_complete_category_hierarchy();
-                    
-                    if (is_wp_error($hierarchy)) {
-                        // Fallback to hardcoded categories if API fails
-                        echo '<option value="3022">Firearms - General</option>';
-                        echo '<option value="3023">Handguns</option>';
-                        echo '<option value="3024">Rifles</option>';
-                        echo '<option value="3025">Shotguns</option>';
-                        echo '<option value="3026">Accessories</option>';
-                        echo '<option value="3027">Ammunition</option>';
-                    } else {
-                        // Use hierarchical categories from API
-                        if (isset($hierarchy['hierarchical_tree']) && is_array($hierarchy['hierarchical_tree'])) {
-                            // Function to display hierarchical options
-                            function display_hierarchical_options_bulk($categories, $level = 0) {
-                                $indent = str_repeat("— ", $level);
-                                
-                                foreach ($categories as $cat) {
-                                    $cat_id = $cat['id'];
-                                    $cat_name = $cat['name'];
-                                    $is_terminal = empty($cat['children']);
-                                    
-                                    // Only show terminal categories (can be used for listings)
-                                    if ($is_terminal) {
-                                        $display_name = $indent . $cat_name;
-                                        echo '<option value="' . esc_attr($cat_id) . '">' . esc_html($display_name) . '</option>';
-                                    }
-                                    
-                                    // Recursively display children
-                                    if (!empty($cat['children'])) {
-                                        display_hierarchical_options_bulk($cat['children'], $level + 1);
-                                    }
-                                }
-                            }
-                            
-                            // Sort categories by name for better UX
-                            usort($hierarchy['hierarchical_tree'], function($a, $b) {
-                                return strcmp($a['name'], $b['name']);
-                            });
-                            
-                            display_hierarchical_options_bulk($hierarchy['hierarchical_tree']);
-                        } else {
-                            // Fallback if no hierarchical tree found
-                            echo '<option value="3022">Firearms - General</option>';
-                            echo '<option value="3023">Handguns</option>';
-                            echo '<option value="3024">Rifles</option>';
-                            echo '<option value="3025">Shotguns</option>';
-                            echo '<option value="3026">Accessories</option>';
-                            echo '<option value="3027">Ammunition</option>';
-                        }
-                    }
-                    ?>
-                </select>
+                <div id="bulk-category-selection">
+                    <select id="bulk-category" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">Loading categories...</option>
+                    </select>
+                    <div id="bulk-category-loading" style="display: none; color: #666; font-size: 12px; margin-top: 5px;">
+                        Loading subcategories...
+                    </div>
+                </div>
                 <small style="display: block; color: #646970; margin-top: 4px;">Select appropriate category</small>
             </div>
             <div>
@@ -141,7 +92,24 @@
                 $price = $product->get_price();
                 $gb_price = $price * (1 + $markup / 100);
                 $stock = $product->get_stock_quantity();
+                // Get image URL - try featured image first, then gallery images
                 $image_url = wp_get_attachment_image_url($product->get_image_id(), 'medium');
+                
+                // If no featured image, try gallery images
+                if (!$image_url) {
+                    $gallery_ids = $product->get_gallery_image_ids();
+                    if (!empty($gallery_ids)) {
+                        $image_url = wp_get_attachment_image_url($gallery_ids[0], 'medium');
+                    }
+                }
+                
+                // Debug: Log image detection
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('GunBroker Bulk Listing - Product: ' . $product->get_name() . 
+                             ', Featured ID: ' . $product->get_image_id() . 
+                             ', Gallery IDs: ' . implode(',', $product->get_gallery_image_ids()) . 
+                             ', Image URL: ' . ($image_url ? $image_url : 'NONE'));
+                }
 
                 // Check if already listed
                 global $wpdb;
@@ -219,20 +187,33 @@
 
                         <!-- Actions -->
                         <div class="product-actions">
-                            <?php if ($listing && $status === 'active'): ?>
-                                <button type="button" class="button-secondary button-small update-listing" data-product-id="<?php echo $product_id; ?>">
-                                    Update
-                                </button>
-                                <button type="button" class="button-secondary button-small end-listing" data-product-id="<?php echo $product_id; ?>" style="color: #d63638;">
-                                    End
-                                </button>
+                            <?php if ($listing): ?>
+                                <!-- Item is already listed on GunBroker -->
+                                <?php if ($status === 'active'): ?>
+                                    <button type="button" class="button-secondary button-small update-listing" data-product-id="<?php echo $product_id; ?>">
+                                        Update
+                                    </button>
+                                    <button type="button" class="button-secondary button-small end-listing" data-product-id="<?php echo $product_id; ?>" style="color: #d63638;">
+                                        End
+                                    </button>
+                                <?php else: ?>
+                                    <span class="button-secondary button-small" style="background: #f0f0f1; color: #50575e; cursor: not-allowed;">
+                                        <?php echo ucfirst($status); ?>
+                                    </span>
+                                <?php endif; ?>
+                                
                                 <?php if ($listing_id): ?>
                                     <a href="https://www.gunbroker.com/item/<?php echo esc_attr($listing_id); ?>" target="_blank"
                                        class="button-secondary button-small" style="text-decoration: none;">
                                         View GB
                                     </a>
                                 <?php endif; ?>
+                                
+                                <a href="<?php echo get_edit_post_link($product_id); ?>" class="button-secondary button-small" style="text-decoration: none;">
+                                    Edit
+                                </a>
                             <?php else: ?>
+                                <!-- Item is not listed, show List Now button -->
                                 <button type="button" class="button-primary button-small list-single" data-product-id="<?php echo $product_id; ?>">
                                     List Now
                                 </button>
@@ -279,7 +260,16 @@
                 $price = $product->get_price();
                 $gb_price = $price * (1 + $markup / 100);
                 $stock = $product->get_stock_quantity();
-                $image = wp_get_attachment_image($product->get_image_id(), 'thumbnail', false, array('style' => 'width:50px;height:50px;object-fit:cover;'));
+                // Get image - try featured image first, then gallery images
+                $image_id = $product->get_image_id();
+                if (!$image_id) {
+                    $gallery_ids = $product->get_gallery_image_ids();
+                    if (!empty($gallery_ids)) {
+                        $image_id = $gallery_ids[0];
+                    }
+                }
+                
+                $image = $image_id ? wp_get_attachment_image($image_id, 'thumbnail', false, array('style' => 'width:50px;height:50px;object-fit:cover;')) : false;
 
                 $listing = $wpdb->get_row($wpdb->prepare(
                     "SELECT * FROM {$wpdb->prefix}gunbroker_listings WHERE product_id = %d",
@@ -315,14 +305,22 @@
                         <?php endif; ?>
                     </td>
                     <td>
-                        <?php if ($listing && $listing->status === 'active'): ?>
-                            <button type="button" class="button-link update-listing" data-product-id="<?php echo $product_id; ?>">
-                                Update
-                            </button>
-                            <button type="button" class="button-link end-listing" data-product-id="<?php echo $product_id; ?>" style="color: #d63638;">
-                                End
-                            </button>
+                        <?php if ($listing): ?>
+                            <!-- Item is already listed on GunBroker -->
+                            <?php if ($listing->status === 'active'): ?>
+                                <button type="button" class="button-link update-listing" data-product-id="<?php echo $product_id; ?>">
+                                    Update
+                                </button>
+                                <button type="button" class="button-link end-listing" data-product-id="<?php echo $product_id; ?>" style="color: #d63638;">
+                                    End
+                                </button>
+                            <?php else: ?>
+                                <span style="color: #50575e; font-style: italic;">
+                                    <?php echo ucfirst($listing->status); ?>
+                                </span>
+                            <?php endif; ?>
                         <?php else: ?>
+                            <!-- Item is not listed, show List Now button -->
                             <button type="button" class="button-link list-single" data-product-id="<?php echo $product_id; ?>">
                                 List Now
                             </button>
@@ -520,6 +518,107 @@
     }
     jQuery(document).ready(function($) {
         let selectedProducts = [];
+        
+        // Progressive category loading for bulk listing
+        let bulkCategoryStack = [];
+        let currentBulkCategoryId = null;
+        
+        // Load top-level categories on page load
+        loadBulkTopLevelCategories();
+        
+        function loadBulkTopLevelCategories() {
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'gunbroker_get_top_categories',
+                    nonce: '<?php echo wp_create_nonce("gunbroker_ajax_nonce"); ?>'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        populateBulkCategorySelect(response.data, '');
+                    } else {
+                        $('#bulk-category').html('<option value="">Error loading categories</option>');
+                    }
+                },
+                error: function() {
+                    $('#bulk-category').html('<option value="">Error loading categories</option>');
+                }
+            });
+        }
+        
+        function loadBulkSubcategories(parentId) {
+            $('#bulk-category-loading').show();
+            
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'gunbroker_get_subcategories',
+                    parent_category_id: parentId,
+                    nonce: '<?php echo wp_create_nonce("gunbroker_ajax_nonce"); ?>'
+                },
+                success: function(response) {
+                    $('#bulk-category-loading').hide();
+                    if (response.success && response.data.length > 0) {
+                        // Add subcategories to the stack
+                        bulkCategoryStack.push({
+                            parentId: parentId,
+                            categories: response.data
+                        });
+                        
+                        // Update the select with current level
+                        updateBulkCategorySelect();
+                    }
+                },
+                error: function() {
+                    $('#bulk-category-loading').hide();
+                }
+            });
+        }
+        
+        function updateBulkCategorySelect() {
+            const $select = $('#bulk-category');
+            const currentValue = $select.val();
+            
+            // Clear current options
+            $select.empty();
+            
+            // Add back option
+            $select.append('<option value="">Select a category...</option>');
+            
+            // Add all categories from stack
+            bulkCategoryStack.forEach(function(level) {
+                level.categories.forEach(function(category) {
+                    const indent = '— '.repeat(bulkCategoryStack.indexOf(level));
+                    $select.append('<option value="' + category.id + '">' + indent + category.name + '</option>');
+                });
+            });
+            
+            // Restore selection if it still exists
+            if (currentValue && $select.find('option[value="' + currentValue + '"]').length) {
+                $select.val(currentValue);
+            }
+        }
+        
+        function populateBulkCategorySelect(categories, prefix = '') {
+            const $select = $('#bulk-category');
+            $select.empty();
+            $select.append('<option value="">Select a category...</option>');
+            
+            categories.forEach(function(category) {
+                $select.append('<option value="' + category.id + '">' + prefix + category.name + '</option>');
+            });
+        }
+        
+        // Handle bulk category selection change
+        $('#bulk-category').on('change', function() {
+            const selectedId = $(this).val();
+            if (selectedId && selectedId !== currentBulkCategoryId) {
+                currentBulkCategoryId = selectedId;
+                loadBulkSubcategories(selectedId);
+            }
+        });
 
 
         // View Toggle
@@ -616,11 +715,113 @@
             $('#bulk-list-selected').prop('disabled', !hasSelected);
         }
 
+        // Function to update product status in the UI
+        function updateProductStatus(productId, status, listingId = '') {
+            const $productCard = $('.product-card[data-product-id="' + productId + '"]');
+            const $tableRow = $('tr[data-product-id="' + productId + '"]');
+            
+            // Update status badge in grid view
+            const $statusBadge = $productCard.find('.status-badge');
+            if ($statusBadge.length > 0) {
+                $statusBadge.removeClass().addClass('status-badge status-' + status);
+                $statusBadge.text(status.charAt(0).toUpperCase() + status.slice(1));
+            }
+            
+            // Update status in table view
+            const $tableStatus = $tableRow.find('.status-badge');
+            if ($tableStatus.length > 0) {
+                $tableStatus.removeClass().addClass('status-badge status-' + status);
+                $tableStatus.text(status.charAt(0).toUpperCase() + status.slice(1));
+            }
+            
+            // Update action buttons in grid view
+            const $actions = $productCard.find('.product-actions');
+            if ($actions.length > 0) {
+                if (status === 'active') {
+                    $actions.html(`
+                        <button type="button" class="button-secondary button-small update-listing" data-product-id="${productId}">
+                            Update
+                        </button>
+                        <button type="button" class="button-secondary button-small end-listing" data-product-id="${productId}" style="color: #d63638;">
+                            End
+                        </button>
+                        ${listingId ? `<a href="https://www.gunbroker.com/item/${listingId}" target="_blank" class="button-secondary button-small" style="text-decoration: none;">View GB</a>` : ''}
+                        <a href="${$('a[href*="post.php"][href*="action=edit"][href*="post=' + productId + '"]').attr('href') || '#'}" class="button-secondary button-small" style="text-decoration: none;">Edit</a>
+                    `);
+                } else {
+                    $actions.html(`
+                        <span class="button-secondary button-small" style="background: #f0f0f1; color: #50575e; cursor: not-allowed;">
+                            ${status.charAt(0).toUpperCase() + status.slice(1)}
+                        </span>
+                        ${listingId ? `<a href="https://www.gunbroker.com/item/${listingId}" target="_blank" class="button-secondary button-small" style="text-decoration: none;">View GB</a>` : ''}
+                        <a href="${$('a[href*="post.php"][href*="action=edit"][href*="post=' + productId + '"]').attr('href') || '#'}" class="button-secondary button-small" style="text-decoration: none;">Edit</a>
+                    `);
+                }
+            }
+            
+            // Update action buttons in table view
+            const $tableActions = $tableRow.find('td:last-child');
+            if ($tableActions.length > 0) {
+                if (status === 'active') {
+                    $tableActions.html(`
+                        <button type="button" class="button-link update-listing" data-product-id="${productId}">
+                            Update
+                        </button>
+                        <button type="button" class="button-link end-listing" data-product-id="${productId}" style="color: #d63638;">
+                            End
+                        </button>
+                    `);
+                } else {
+                    $tableActions.html(`
+                        <span style="color: #50575e; font-style: italic;">
+                            ${status.charAt(0).toUpperCase() + status.slice(1)}
+                        </span>
+                    `);
+                }
+            }
+            
+            // Add listing ID if provided
+            if (listingId) {
+                const $listingIdSpan = $productCard.find('.listing-id');
+                if ($listingIdSpan.length === 0) {
+                    $statusBadge.after(`<br><small class="listing-id">ID: ${listingId}</small>`);
+                } else {
+                    $listingIdSpan.text(`ID: ${listingId}`);
+                }
+                
+                const $tableListingId = $tableRow.find('.listing-id');
+                if ($tableListingId.length === 0) {
+                    $tableStatus.after(`<br><small class="listing-id">ID: ${listingId}</small>`);
+                } else {
+                    $tableListingId.text(`ID: ${listingId}`);
+                }
+            }
+        }
+
         // Bulk listing
         $('#bulk-list-selected').click(function() {
             if (selectedProducts.length === 0) {
                 alert('Please select at least one product');
                 return;
+            }
+
+            // Filter out already listed products
+            const unlistedProducts = selectedProducts.filter(productId => {
+                const $productCard = $('.product-card[data-product-id="' + productId + '"]');
+                const $statusBadge = $productCard.find('.status-badge');
+                return $statusBadge.length === 0 || $statusBadge.hasClass('status-not-listed');
+            });
+
+            if (unlistedProducts.length === 0) {
+                alert('All selected products are already listed on GunBroker. Please select unlisted products only.');
+                return;
+            }
+
+            if (unlistedProducts.length < selectedProducts.length) {
+                const skippedCount = selectedProducts.length - unlistedProducts.length;
+                if (!confirm(`${skippedCount} selected product(s) are already listed and will be skipped. Continue with ${unlistedProducts.length} unlisted product(s)?`)) {
+                    return;
+                }
             }
 
             const settings = {
@@ -631,12 +832,23 @@
                 useProductImages: $('#use-product-images').is(':checked')
             };
 
-            bulkListProducts(selectedProducts, settings);
+            bulkListProducts(unlistedProducts, settings);
         });
 
         // Single product actions
         $(document).on('click', '.list-single', function() {
             const productId = $(this).data('product-id');
+            const $button = $(this);
+            
+            // Check if this product is already listed
+            const $productCard = $('.product-card[data-product-id="' + productId + '"]');
+            const $statusBadge = $productCard.find('.status-badge');
+            
+            if ($statusBadge.length > 0 && !$statusBadge.hasClass('status-not-listed')) {
+                alert('This product is already listed on GunBroker. Use the Update button to modify the listing.');
+                return;
+            }
+            
             const settings = {
                 markup: parseFloat($('#bulk-markup').val()) || 0,
                 duration: parseInt($('#bulk-duration').val()) || 7,
@@ -659,10 +871,9 @@
 
             function processNext() {
                 if (completed >= total) {
-                    $('#progress-text').text('Completed! Refreshing page...');
+                    $('#progress-text').text('Completed! All products processed.');
                     setTimeout(() => {
                         $('#listing-progress-modal').hide();
-                        location.reload();
                     }, 2000);
                     return;
                 }
@@ -695,9 +906,16 @@
                     },
                     success: function(response) {
                         if (response.success) {
-                            $('#progress-details').append('<div style="color: green; margin: 2px 0;">✓ ' + productName + ': Listed successfully</div>');
+                            const message = response.data.message || response.data;
+                            const listingId = response.data.listing_id || '';
+                            
+                            $('#progress-details').append('<div style="color: green; margin: 2px 0;">✓ ' + productName + ': ' + message + '</div>');
+                            
+                            // Update the product UI to show it's now listed
+                            updateProductStatus(productId, 'active', listingId);
                         } else {
-                            $('#progress-details').append('<div style="color: red; margin: 2px 0;">✗ ' + productName + ': ' + response.data + '</div>');
+                            const errorMessage = response.data.message || response.data;
+                            $('#progress-details').append('<div style="color: red; margin: 2px 0;">✗ ' + productName + ': ' + errorMessage + '</div>');
                         }
 
                         completed++;

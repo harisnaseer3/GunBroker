@@ -145,11 +145,27 @@ class GunBroker_Sync {
             }
 
             // API call successful
+            error_log('GunBroker: API Response for product ' . $product_id . ': ' . print_r($result, true));
 
             // Save the listing ID if it's a new listing
-            if ($action === 'create' && isset($result['ItemID'])) {
-                $this->save_listing_id($product_id, $result['ItemID']);
-                // Saved new listing ID: {$result['ItemID']}
+            $listing_id = null;
+            if ($action === 'create') {
+                // Check multiple possible field names for the listing ID
+                $possible_fields = ['ItemID', 'itemId', 'id', 'listingId', 'listing_id', 'ItemId'];
+                foreach ($possible_fields as $field) {
+                    if (isset($result[$field]) && !empty($result[$field])) {
+                        $listing_id = $result[$field];
+                        break;
+                    }
+                }
+                
+                if ($listing_id) {
+                    $this->save_listing_id($product_id, $listing_id);
+                    error_log('GunBroker: Saved new listing ID: ' . $listing_id . ' for product: ' . $product_id);
+                } else {
+                    error_log('GunBroker: No listing ID found in response - Action: ' . $action);
+                    error_log('GunBroker: Available keys in result: ' . implode(', ', array_keys($result)));
+                }
             }
 
             $this->log_sync_result($product_id, $action, 'success', 'Product synced successfully');
@@ -276,7 +292,7 @@ class GunBroker_Sync {
     private function save_listing_id($product_id, $gunbroker_id) {
         global $wpdb;
 
-        $wpdb->replace(
+        $result = $wpdb->replace(
             $wpdb->prefix . 'gunbroker_listings',
             array(
                 'product_id' => $product_id,
@@ -287,6 +303,12 @@ class GunBroker_Sync {
             ),
             array('%d', '%s', '%s', '%s', '%s')
         );
+        
+        if ($result === false) {
+            error_log('GunBroker: Failed to save listing ID to database: ' . $wpdb->last_error);
+        } else {
+            error_log('GunBroker: Successfully saved listing ID ' . $gunbroker_id . ' for product ' . $product_id . ' (Result: ' . $result . ')');
+        }
     }
 
     /**

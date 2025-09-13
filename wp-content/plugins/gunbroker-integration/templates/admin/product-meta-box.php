@@ -26,61 +26,14 @@
             <label for="gunbroker_category">GunBroker Category</label>
         </th>
         <td>
-            <select id="gunbroker_category" name="gunbroker_category">
-                <?php
-                // Fetch complete category hierarchy from GunBroker API
-                $api = new GunBroker_API();
-                $hierarchy = $api->get_complete_category_hierarchy();
-                
-                if (is_wp_error($hierarchy)) {
-                    // Fallback to hardcoded categories if API fails
-                    echo '<option value="3022" ' . selected($category, '3022', false) . '>Firearms</option>';
-                    echo '<option value="3023" ' . selected($category, '3023', false) . '>Handguns</option>';
-                    echo '<option value="3024" ' . selected($category, '3024', false) . '>Rifles</option>';
-                    echo '<option value="3025" ' . selected($category, '3025', false) . '>Shotguns</option>';
-                    echo '<option value="3026" ' . selected($category, '3026', false) . '>Accessories</option>';
-                } else {
-                    // Use hierarchical categories from API
-                    if (isset($hierarchy['hierarchical_tree']) && is_array($hierarchy['hierarchical_tree'])) {
-                        // Function to display hierarchical options
-                        function display_hierarchical_options($categories, $selected_value, $level = 0) {
-                            $indent = str_repeat("— ", $level);
-                            
-                            foreach ($categories as $cat) {
-                                $cat_id = $cat['id'];
-                                $cat_name = $cat['name'];
-                                $is_terminal = empty($cat['children']);
-                                
-                                // Only show terminal categories (can be used for listings)
-                                if ($is_terminal) {
-                                    $display_name = $indent . $cat_name;
-                                    echo '<option value="' . esc_attr($cat_id) . '" ' . selected($selected_value, $cat_id, false) . '>' . esc_html($display_name) . '</option>';
-                                }
-                                
-                                // Recursively display children
-                                if (!empty($cat['children'])) {
-                                    display_hierarchical_options($cat['children'], $selected_value, $level + 1);
-                                }
-                            }
-                        }
-                        
-                        // Sort categories by name for better UX
-                        usort($hierarchy['hierarchical_tree'], function($a, $b) {
-                            return strcmp($a['name'], $b['name']);
-                        });
-                        
-                        display_hierarchical_options($hierarchy['hierarchical_tree'], $category);
-                    } else {
-                        // Fallback if no hierarchical tree found
-                        echo '<option value="3022" ' . selected($category, '3022', false) . '>Firearms</option>';
-                        echo '<option value="3023" ' . selected($category, '3023', false) . '>Handguns</option>';
-                        echo '<option value="3024" ' . selected($category, '3024', false) . '>Rifles</option>';
-                        echo '<option value="3025" ' . selected($category, '3025', false) . '>Shotguns</option>';
-                        echo '<option value="3026" ' . selected($category, '3026', false) . '>Accessories</option>';
-                    }
-                }
-                ?>
-            </select>
+            <div id="category-selection">
+                <select id="gunbroker_category" name="gunbroker_category">
+                    <option value="">Loading categories...</option>
+                </select>
+                <div id="category-loading" style="display: none; color: #666; font-size: 12px; margin-top: 5px;">
+                    Loading subcategories...
+                </div>
+            </div>
             <p class="description">Select the appropriate GunBroker category</p>
         </td>
     </tr>
@@ -138,6 +91,123 @@
                     button.prop('disabled', false).text('Sync Now');
                 }
             });
+        });
+        
+        // Progressive category loading
+        let categoryStack = [];
+        let currentCategoryId = null;
+        
+        // Load top-level categories on page load
+        loadTopLevelCategories();
+        
+        function loadTopLevelCategories() {
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'gunbroker_get_top_categories',
+                    nonce: '<?php echo wp_create_nonce("gunbroker_ajax_nonce"); ?>'
+                },
+                success: function(response) {
+                    console.log('Top categories response:', response);
+                    if (response.success) {
+                        console.log('Categories data:', response.data);
+                        populateCategorySelect(response.data, '');
+                        // Set selected value if exists
+                        const selectedValue = '<?php echo esc_js($category); ?>';
+                        if (selectedValue) {
+                            $('#gunbroker_category').val(selectedValue);
+                        }
+                    } else {
+                        $('#gunbroker_category').html('<option value="">Error loading categories</option>');
+                    }
+                },
+                error: function() {
+                    $('#gunbroker_category').html('<option value="">Error loading categories</option>');
+                }
+            });
+        }
+        
+        function loadSubcategories(parentId) {
+            $('#category-loading').show();
+            
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'gunbroker_get_subcategories',
+                    parent_category_id: parentId,
+                    nonce: '<?php echo wp_create_nonce("gunbroker_ajax_nonce"); ?>'
+                },
+                success: function(response) {
+                    $('#category-loading').hide();
+                    if (response.success && response.data.length > 0) {
+                        // Add subcategories to the stack
+                        categoryStack.push({
+                            parentId: parentId,
+                            categories: response.data
+                        });
+                        
+                        // Update the select with current level
+                        updateCategorySelect();
+                    }
+                },
+                error: function() {
+                    $('#category-loading').hide();
+                }
+            });
+        }
+        
+        function updateCategorySelect() {
+            const $select = $('#gunbroker_category');
+            const currentValue = $select.val();
+            
+            // Clear current options
+            $select.empty();
+            
+            // Add back option
+            $select.append('<option value="">Select a category...</option>');
+            
+            // Add all categories from stack
+            categoryStack.forEach(function(level) {
+                level.categories.forEach(function(category) {
+                    const indent = '— '.repeat(categoryStack.indexOf(level));
+                    $select.append('<option value="' + category.id + '">' + indent + category.name + '</option>');
+                });
+            });
+            
+            // Restore selection if it still exists
+            if (currentValue && $select.find('option[value="' + currentValue + '"]').length) {
+                $select.val(currentValue);
+            }
+        }
+        
+        function populateCategorySelect(categories, prefix = '') {
+            console.log('populateCategorySelect called with:', categories);
+            const $select = $('#gunbroker_category');
+            $select.empty();
+            $select.append('<option value="">Select a category...</option>');
+            
+            if (Array.isArray(categories)) {
+                categories.forEach(function(category, index) {
+                    console.log('Category ' + index + ':', category);
+                    const categoryId = category.id || category.ID || category.CategoryID;
+                    const categoryName = category.name || category.Name || category.CategoryName || 'Unknown';
+                    console.log('Processed - ID:', categoryId, 'Name:', categoryName);
+                    $select.append('<option value="' + categoryId + '">' + prefix + categoryName + '</option>');
+                });
+            } else {
+                console.error('Categories is not an array:', categories);
+            }
+        }
+        
+        // Handle category selection change
+        $('#gunbroker_category').on('change', function() {
+            const selectedId = $(this).val();
+            if (selectedId && selectedId !== currentCategoryId) {
+                currentCategoryId = selectedId;
+                loadSubcategories(selectedId);
+            }
         });
     });
 </script>
