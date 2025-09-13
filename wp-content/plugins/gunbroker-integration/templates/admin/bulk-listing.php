@@ -76,61 +76,85 @@
 
     <!-- Grid View -->
     <div id="products-grid-view" class="products-view" style="background: #fff; border: 1px solid #ccd0d4; padding: 20px;">
-        <div class="products-grid">
-            <?php
-            // Get all WooCommerce products for grid view
-            $products = wc_get_products(array(
+        <?php
+        // Get products organized by status using the new robust method
+        $products_data = $this->get_products_by_status(50);
+        $active_products = $products_data['active'];
+        $not_listed_products = $products_data['not_listed'];
+        $total_active = $products_data['total_active'];
+        $total_not_listed = $products_data['total_not_listed'];
+        
+        // Fallback: If no products found, try the old method
+        if (empty($active_products) && empty($not_listed_products)) {
+            error_log('GunBroker Debug: No products found with new method, trying fallback...');
+            $fallback_products = wc_get_products(array(
                 'limit' => 50,
                 'status' => 'publish',
                 'type' => 'simple'
             ));
-
-            $markup = get_option('gunbroker_markup_percentage', 10);
-
-            foreach ($products as $product):
+            
+            $active_products = array();
+            $not_listed_products = array();
+            
+            foreach ($fallback_products as $product) {
                 $product_id = $product->get_id();
-                $price = $product->get_price();
-                $gb_price = $price * (1 + $markup / 100);
-                $stock = $product->get_stock_quantity();
-                // Get image URL - try featured image first, then gallery images
-                $image_url = wp_get_attachment_image_url($product->get_image_id(), 'medium');
+                $status = $this->get_product_gunbroker_status($product_id);
                 
-                // If no featured image, try gallery images
-                if (!$image_url) {
-                    $gallery_ids = $product->get_gallery_image_ids();
-                    if (!empty($gallery_ids)) {
-                        $image_url = wp_get_attachment_image_url($gallery_ids[0], 'medium');
+                $product->gunbroker_status = $status['status'];
+                $product->gunbroker_id = $status['gunbroker_id'];
+                $product->gunbroker_last_sync = $status['last_sync'];
+                
+                // Check if product has a GunBroker ID (meaning it was successfully listed)
+                if ($status['gunbroker_id'] && $status['status'] !== 'error') {
+                    // Product has a GunBroker ID and is not in error state - treat as active
+                    $product->gunbroker_status = 'active';
+                    $active_products[] = $product;
+                } else {
+                    // Product has no GunBroker ID or is in error state - treat as not listed
+                    $product->gunbroker_status = 'not_listed';
+                    $not_listed_products[] = $product;
+                }
+            }
+            
+            $total_active = count($active_products);
+            $total_not_listed = count($not_listed_products);
+            
+            error_log('GunBroker Debug: Fallback - Active: ' . $total_active . ', Not listed: ' . $total_not_listed);
+        }
+        
+        $markup = get_option('gunbroker_markup_percentage', 10);
+        ?>
+        
+        <!-- Active Listings Section -->
+        <?php if (!empty($active_products)): ?>
+        <div class="product-section" style="margin-bottom: 40px;">
+            <h2 style="margin: 0 0 20px 0; padding: 15px 0; border-bottom: 2px solid #46b450; color: #46b450;">
+                <span class="dashicons dashicons-yes-alt" style="margin-right: 8px;"></span>
+                Active Listings (<?php echo $total_active; ?>)
+            </h2>
+            <div class="products-grid">
+                <?php foreach ($active_products as $product):
+                    $product_id = $product->get_id();
+                    $price = $product->get_price();
+                    $gb_price = $price * (1 + $markup / 100);
+                    $stock = $product->get_stock_quantity();
+                    
+                    // Get image URL
+                    $image_url = wp_get_attachment_image_url($product->get_image_id(), 'medium');
+                    if (!$image_url) {
+                        $gallery_ids = $product->get_gallery_image_ids();
+                        if (!empty($gallery_ids)) {
+                            $image_url = wp_get_attachment_image_url($gallery_ids[0], 'medium');
+                        }
                     }
-                }
-                
-                // Debug: Log image detection
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('GunBroker Bulk Listing - Product: ' . $product->get_name() . 
-                             ', Featured ID: ' . $product->get_image_id() . 
-                             ', Gallery IDs: ' . implode(',', $product->get_gallery_image_ids()) . 
-                             ', Image URL: ' . ($image_url ? $image_url : 'NONE'));
-                }
-
-                // Check if already listed
-                global $wpdb;
-                $listing = $wpdb->get_row($wpdb->prepare(
-                    "SELECT * FROM {$wpdb->prefix}gunbroker_listings WHERE product_id = %d",
-                    $product_id
-                ));
-
-                $status = 'not-listed';
-                $status_text = 'Not Listed';
-                $listing_id = '';
-
-                if ($listing) {
-                    $status = $listing->status;
-                    $status_text = ucfirst($listing->status);
-                    $listing_id = $listing->gunbroker_id;
-                }
+                    
+                    $gunbroker_status = $product->gunbroker_status ?: 'not_listed';
+                    $gunbroker_id = $product->gunbroker_id;
+                    $last_sync = $product->gunbroker_last_sync;
                 ?>
-                <div class="product-card" data-product-id="<?php echo $product_id; ?>">
+                <div class="product-card" data-product-id="<?php echo $product_id; ?>" style="border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fff; transition: all 0.3s ease; position: relative;">
                     <!-- Product Image -->
-                    <div class="product-image">
+                    <div class="product-image" style="position: relative; height: 200px; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
                         <?php if ($image_url): ?>
                             <img src="<?php echo esc_url($image_url); ?>"
                                  alt="<?php echo esc_attr($product->get_name()); ?>"
@@ -143,16 +167,12 @@
                             </div>
                         <?php endif; ?>
 
-                        <!-- Selection Checkbox -->
-                        <div style="position: absolute; top: 10px; left: 10px;">
-                            <input type="checkbox" class="product-checkbox" value="<?php echo $product_id; ?>"
-                                   style="width: 20px; height: 20px; cursor: pointer;">
-                        </div>
+                        <!-- Selection Checkbox - Removed for Active Listings -->
 
                         <!-- Status Badge -->
                         <div style="position: absolute; top: 10px; right: 10px;">
-                        <span class="status-badge status-<?php echo $status; ?>">
-                            <?php echo $status_text; ?>
+                        <span class="status-badge status-<?php echo $gunbroker_status; ?>">
+                            <?php echo ucfirst($gunbroker_status); ?>
                         </span>
                         </div>
                     </div>
@@ -187,47 +207,141 @@
 
                         <!-- Actions -->
                         <div class="product-actions">
-                            <?php if ($listing): ?>
-                                <!-- Item is already listed on GunBroker -->
-                                <?php if ($status === 'active'): ?>
-                                    <button type="button" class="button-secondary button-small update-listing" data-product-id="<?php echo $product_id; ?>">
-                                        Update
-                                    </button>
-                                    <button type="button" class="button-secondary button-small end-listing" data-product-id="<?php echo $product_id; ?>" style="color: #d63638;">
-                                        End
-                                    </button>
-                                <?php else: ?>
-                                    <span class="button-secondary button-small" style="background: #f0f0f1; color: #50575e; cursor: not-allowed;">
-                                        <?php echo ucfirst($status); ?>
-                                    </span>
-                                <?php endif; ?>
-                                
-                                <?php if ($listing_id): ?>
-                                    <a href="https://www.gunbroker.com/item/<?php echo esc_attr($listing_id); ?>" target="_blank"
-                                       class="button-secondary button-small" style="text-decoration: none;">
-                                        View GB
-                                    </a>
-                                <?php endif; ?>
-                                
-                                <a href="<?php echo get_edit_post_link($product_id); ?>" class="button-secondary button-small" style="text-decoration: none;">
-                                    Edit
-                                </a>
-                            <?php else: ?>
-                                <!-- Item is not listed, show List Now button -->
-                                <button type="button" class="button-primary button-small list-single" data-product-id="<?php echo $product_id; ?>">
-                                    List Now
-                                </button>
-                                <a href="<?php echo get_edit_post_link($product_id); ?>" class="button-secondary button-small" style="text-decoration: none;">
-                                    Edit
+                            <button type="button" class="button-secondary button-small update-listing" data-product-id="<?php echo $product_id; ?>">
+                                Update
+                            </button>
+                            <button type="button" class="button-secondary button-small end-listing" data-product-id="<?php echo $product_id; ?>" style="color: #d63638;">
+                                End
+                            </button>
+                            
+                            <?php if ($gunbroker_id): ?>
+                                <a href="https://www.gunbroker.com/item/<?php echo esc_attr($gunbroker_id); ?>" target="_blank"
+                                   class="button-secondary button-small" style="text-decoration: none;">
+                                    View GB
                                 </a>
                             <?php endif; ?>
+                            
+                            <a href="<?php echo get_edit_post_link($product_id); ?>" class="button-secondary button-small" style="text-decoration: none;">
+                                Edit
+                            </a>
+                        </div>
+                        
+                        <?php if ($gunbroker_id): ?>
+                            <div style="font-size: 11px; color: #666; margin-top: 8px;">
+                                <strong>GunBroker ID:</strong> <?php echo esc_html($gunbroker_id); ?>
+                                <?php if ($last_sync): ?>
+                                    <br><strong>Last Sync:</strong> <?php echo esc_html(date('M j, Y g:i A', strtotime($last_sync))); ?>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+        
+        <!-- Not Listed Section -->
+        <?php if (!empty($not_listed_products)): ?>
+        <div class="product-section" style="margin-top: 40px;">
+            <h2 style="margin: 0 0 20px 0; padding: 15px 0; border-bottom: 2px solid #ffb900; color: #ffb900;">
+                <span class="dashicons dashicons-plus-alt" style="margin-right: 8px;"></span>
+                Not Listed (<?php echo $total_not_listed; ?>)
+            </h2>
+            <div class="products-grid">
+                <?php foreach ($not_listed_products as $product):
+                    $product_id = $product->get_id();
+                    $price = $product->get_price();
+                    $gb_price = $price * (1 + $markup / 100);
+                    $stock = $product->get_stock_quantity();
+                    
+                    // Get image URL
+                    $image_url = wp_get_attachment_image_url($product->get_image_id(), 'medium');
+                    if (!$image_url) {
+                        $gallery_ids = $product->get_gallery_image_ids();
+                        if (!empty($gallery_ids)) {
+                            $image_url = wp_get_attachment_image_url($gallery_ids[0], 'medium');
+                        }
+                    }
+                    
+                    $gunbroker_status = $product->gunbroker_status ?: 'not_listed';
+                    $gunbroker_id = $product->gunbroker_id;
+                    $last_sync = $product->gunbroker_last_sync;
+                ?>
+                <div class="product-card" data-product-id="<?php echo $product_id; ?>" style="border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fff; transition: all 0.3s ease; position: relative;">
+                    <!-- Product Image -->
+                    <div class="product-image" style="position: relative; height: 200px; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+                        <?php if ($image_url): ?>
+                            <img src="<?php echo esc_url($image_url); ?>"
+                                 alt="<?php echo esc_attr($product->get_name()); ?>"
+                                 loading="lazy"
+                                 style="width: 100%; height: 100%; object-fit: cover;">
+                        <?php else: ?>
+                            <div style="color: #999; font-size: 14px; text-align: center;">
+                                <span class="dashicons dashicons-camera" style="font-size: 40px; display: block; margin-bottom: 10px;"></span>
+                                No Image
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Selection Checkbox -->
+                        <div style="position: absolute; top: 10px; left: 10px;">
+                            <input type="checkbox" class="product-checkbox" value="<?php echo $product_id; ?>"
+                                   style="width: 20px; height: 20px; cursor: pointer;">
+                        </div>
+
+                        <!-- Status Badge -->
+                        <div style="position: absolute; top: 10px; right: 10px;">
+                        <span class="status-badge status-<?php echo $gunbroker_status; ?>">
+                            <?php echo ucfirst($gunbroker_status); ?>
+                        </span>
+                        </div>
+                    </div>
+
+                    <!-- Product Info -->
+                    <div style="padding: 15px;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 14px; line-height: 1.3;">
+                            <?php echo esc_html($product->get_name()); ?>
+                        </h4>
+
+                        <div style="font-size: 12px; color: #666; margin-bottom: 10px;">
+                            SKU: <?php echo esc_html($product->get_sku() ?: 'N/A'); ?>
+                        </div>
+
+                        <!-- Pricing -->
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <div>
+                                <strong>WC:</strong> $<?php echo number_format($price, 2); ?>
+                            </div>
+                            <div>
+                                <strong>GB:</strong> <span class="gb-price">$<?php echo number_format($gb_price, 2); ?></span>
+                            </div>
+                        </div>
+
+                        <!-- Stock -->
+                        <div style="margin-bottom: 15px; font-size: 12px;">
+                            <strong>Stock:</strong>
+                            <span style="color: <?php echo $stock > 0 ? '#46b450' : '#d63638'; ?>">
+                            <?php echo $stock ?: '∞'; ?>
+                        </span>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="product-actions">
+                            <button type="button" class="button-primary button-small list-single" data-product-id="<?php echo $product_id; ?>">
+                                List Now
+                            </button>
+                            <a href="<?php echo get_edit_post_link($product_id); ?>" class="button-secondary button-small" style="text-decoration: none;">
+                                Edit
+                            </a>
                         </div>
                     </div>
                 </div>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            </div>
         </div>
+        <?php endif; ?>
 
-        <?php if (empty($products)): ?>
+        <?php if (empty($active_products) && empty($not_listed_products)): ?>
             <div style="padding: 60px; text-align: center; color: #666;">
                 <span class="dashicons dashicons-store" style="font-size: 48px; color: #ddd; display: block; margin-bottom: 20px;"></span>
                 <h3>No products found</h3>
@@ -255,7 +369,10 @@
             </tr>
             </thead>
             <tbody id="products-table-body">
-            <?php foreach ($products as $product):
+            <?php 
+            // Combine all products for table view
+            $all_products = array_merge($active_products, $not_listed_products);
+            foreach ($all_products as $product):
                 $product_id = $product->get_id();
                 $price = $product->get_price();
                 $gb_price = $price * (1 + $markup / 100);
@@ -271,22 +388,15 @@
                 
                 $image = $image_id ? wp_get_attachment_image($image_id, 'thumbnail', false, array('style' => 'width:50px;height:50px;object-fit:cover;')) : false;
 
-                $listing = $wpdb->get_row($wpdb->prepare(
-                    "SELECT * FROM {$wpdb->prefix}gunbroker_listings WHERE product_id = %d",
-                    $product_id
-                ));
-
-                $status = 'not-listed';
-                $status_class = 'not-listed';
-
-                if ($listing) {
-                    $status = ucfirst($listing->status);
-                    $status_class = $listing->status;
-                }
+                $gunbroker_status = $product->gunbroker_status ?: 'not_listed';
+                $gunbroker_id = $product->gunbroker_id;
+                $last_sync = $product->gunbroker_last_sync;
                 ?>
                 <tr data-product-id="<?php echo $product_id; ?>">
                     <td>
-                        <input type="checkbox" class="product-checkbox" value="<?php echo $product_id; ?>">
+                        <?php if ($gunbroker_status !== 'active'): ?>
+                            <input type="checkbox" class="product-checkbox" value="<?php echo $product_id; ?>">
+                        <?php endif; ?>
                     </td>
                     <td><?php echo $image ?: '<div style="width:50px;height:50px;background:#f0f0f0;border-radius:4px;"></div>'; ?></td>
                     <td>
@@ -297,30 +407,27 @@
                     <td class="gb-price">$<?php echo number_format($gb_price, 2); ?></td>
                     <td><?php echo $stock ?: '∞'; ?></td>
                     <td>
-                        <span class="status-badge status-<?php echo $status_class; ?>">
-                            <?php echo $status; ?>
+                        <span class="status-badge status-<?php echo $gunbroker_status; ?>">
+                            <?php echo ucfirst($gunbroker_status); ?>
                         </span>
-                        <?php if ($listing && $listing->gunbroker_id): ?>
-                            <br><small>ID: <?php echo esc_html($listing->gunbroker_id); ?></small>
+                        <?php if ($gunbroker_id): ?>
+                            <br><small>ID: <?php echo esc_html($gunbroker_id); ?></small>
                         <?php endif; ?>
                     </td>
                     <td>
-                        <?php if ($listing): ?>
-                            <!-- Item is already listed on GunBroker -->
-                            <?php if ($listing->status === 'active'): ?>
-                                <button type="button" class="button-link update-listing" data-product-id="<?php echo $product_id; ?>">
-                                    Update
-                                </button>
-                                <button type="button" class="button-link end-listing" data-product-id="<?php echo $product_id; ?>" style="color: #d63638;">
-                                    End
-                                </button>
-                            <?php else: ?>
-                                <span style="color: #50575e; font-style: italic;">
-                                    <?php echo ucfirst($listing->status); ?>
-                                </span>
+                        <?php if ($gunbroker_status === 'active'): ?>
+                            <button type="button" class="button-link update-listing" data-product-id="<?php echo $product_id; ?>">
+                                Update
+                            </button>
+                            <button type="button" class="button-link end-listing" data-product-id="<?php echo $product_id; ?>" style="color: #d63638;">
+                                End
+                            </button>
+                            <?php if ($gunbroker_id): ?>
+                                <br><a href="https://www.gunbroker.com/item/<?php echo esc_attr($gunbroker_id); ?>" target="_blank" style="font-size: 11px;">
+                                    View GB
+                                </a>
                             <?php endif; ?>
                         <?php else: ?>
-                            <!-- Item is not listed, show List Now button -->
                             <button type="button" class="button-link list-single" data-product-id="<?php echo $product_id; ?>">
                                 List Now
                             </button>
@@ -331,7 +438,7 @@
             </tbody>
         </table>
 
-        <?php if (empty($products)): ?>
+        <?php if (empty($active_products) && empty($not_listed_products)): ?>
             <div style="padding: 40px; text-align: center; color: #666;">
                 <h3>No products found</h3>
                 <p>Create some WooCommerce products first, then come back here to list them on GunBroker.</p>

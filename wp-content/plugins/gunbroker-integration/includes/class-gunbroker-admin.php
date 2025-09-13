@@ -24,6 +24,9 @@ class GunBroker_Admin {
         // Add product list column
         add_filter('manage_product_posts_columns', array($this, 'add_product_columns'));
         add_action('manage_product_posts_custom_column', array($this, 'populate_product_columns'), 10, 2);
+        
+        // Ensure database tables exist on admin init
+        add_action('admin_init', array($this, 'ensure_tables_exist'));
     }
 
 
@@ -445,6 +448,12 @@ class GunBroker_Admin {
             wp_send_json_error('Invalid product ID');
         }
 
+        // Check if product is already listed (Active status)
+        $current_status = $this->get_product_gunbroker_status($product_id);
+        if ($current_status['status'] === 'active') {
+            wp_send_json_error('This product is already listed on GunBroker and cannot be listed again. Use the Update button to modify the existing listing.');
+        }
+
         $product = wc_get_product($product_id);
         if (!$product) {
             wp_send_json_error('Product not found');
@@ -468,10 +477,20 @@ class GunBroker_Admin {
         $result = $sync->sync_single_product($product_id);
 
         if (is_wp_error($result)) {
+            // Update status to error
+            $this->update_product_gunbroker_status($product_id, 'error');
             wp_send_json_error($result->get_error_message());
         } else {
             // Get the listing ID for the product
             $listing_id = $this->get_gunbroker_listing_id($product_id);
+            
+            // Update the status in our database to ensure persistence
+            if ($listing_id) {
+                $this->update_product_gunbroker_status($product_id, 'active', $listing_id);
+            } else {
+                // If no listing ID but sync was successful, mark as active anyway
+                $this->update_product_gunbroker_status($product_id, 'active');
+            }
             
             wp_send_json_success(array(
                 'message' => 'Product listed successfully',
@@ -879,6 +898,329 @@ class GunBroker_Admin {
     /**
      * Test product fetching endpoints
      */
+
+    /**
+     * Ensure database tables exist
+     */
+    public function ensure_tables_exist() {
+        global $wpdb;
+        
+        // Check if listings table exists
+        $table_name = $wpdb->prefix . 'gunbroker_listings';
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'");
+        
+        if (!$table_exists) {
+            error_log('GunBroker: Database tables missing, creating them now...');
+            $this->create_tables();
+        }
+    }
+
+    /**
+     * Create database tables
+     */
+    private function create_tables() {
+        global $wpdb;
+        
+        $charset_collate = $wpdb->get_charset_collate();
+
+        // Listings table
+        $table_name = $wpdb->prefix . 'gunbroker_listings';
+        $sql = "CREATE TABLE $table_name (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            product_id bigint(20) NOT NULL,
+            gunbroker_id varchar(100) DEFAULT NULL,
+            status enum('active','inactive','error','pending','not_listed') DEFAULT 'not_listed',
+            last_sync datetime DEFAULT NULL,
+            sync_data longtext,
+            created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+            updated_at timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY unique_product (product_id),
+            KEY idx_status (status),
+            KEY idx_gunbroker_id (gunbroker_id),
+            KEY idx_last_sync (last_sync)
+        ) $charset_collate;";
+
+        // Sync log table
+        $log_table = $wpdb->prefix . 'gunbroker_sync_log';
+        $log_sql = "CREATE TABLE $log_table (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            listing_id bigint(20),
+            product_id bigint(20),
+            action varchar(50),
+            status varchar(20),
+            message text,
+            timestamp timestamp DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY idx_listing (listing_id),
+            KEY idx_product (product_id),
+            KEY idx_timestamp (timestamp),
+            KEY idx_status (status)
+        ) $charset_collate;";
+
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
+        dbDelta($log_sql);
+        
+        // Update database version
+        update_option('gunbroker_db_version', '1.0.2');
+        
+        error_log('GunBroker: Database tables created successfully');
+    }
+
+    /**
+     * Get products organized by GunBroker status
+     * This method efficiently separates products into Active and Not Listed categories
+     */
+    public function get_products_by_status($limit = 50) {
+        global $wpdb;
+        
+        // Ensure tables exist
+        $this->ensure_tables_exist();
+        
+        // First, let's check if we have any products at all
+        $total_products = $wpdb->get_var("
+            SELECT COUNT(*) FROM {$wpdb->posts} 
+            WHERE post_type = 'product' AND post_status = 'publish'
+        ");
+        
+        error_log("GunBroker Debug: Total products found: " . $total_products);
+        
+        if ($total_products == 0) {
+            return array(
+                'active' => array(),
+                'not_listed' => array(),
+                'total_active' => 0,
+                'total_not_listed' => 0
+            );
+        }
+        
+        // Get all products with their GunBroker status in one query
+        $products_query = "
+            SELECT 
+                p.ID as product_id,
+                p.post_title as product_name,
+                p.post_status,
+                pm_sku.meta_value as sku,
+                pm_price.meta_value as price,
+                pm_stock.meta_value as stock,
+                pm_image.meta_value as image_id,
+                gb.status as gunbroker_status,
+                gb.gunbroker_id,
+                gb.last_sync
+            FROM {$wpdb->posts} p
+            LEFT JOIN {$wpdb->postmeta} pm_sku ON p.ID = pm_sku.post_id AND pm_sku.meta_key = '_sku'
+            LEFT JOIN {$wpdb->postmeta} pm_price ON p.ID = pm_price.post_id AND pm_price.meta_key = '_price'
+            LEFT JOIN {$wpdb->postmeta} pm_stock ON p.ID = pm_stock.post_id AND pm_stock.meta_key = '_stock'
+            LEFT JOIN {$wpdb->postmeta} pm_image ON p.ID = pm_image.post_id AND pm_image.meta_key = '_thumbnail_id'
+            LEFT JOIN {$wpdb->prefix}gunbroker_listings gb ON p.ID = gb.product_id
+            WHERE p.post_type = 'product' 
+            AND p.post_status = 'publish'
+            ORDER BY 
+                CASE 
+                    WHEN gb.status = 'active' THEN 1
+                    WHEN gb.status IS NULL OR gb.status = 'not_listed' THEN 2
+                    ELSE 3
+                END,
+                p.post_title
+            LIMIT %d
+        ";
+        
+        $products = $wpdb->get_results($wpdb->prepare($products_query, $limit));
+        
+        error_log("GunBroker Debug: Products from query: " . count($products));
+        
+        // Separate into active and not listed
+        $active_products = array();
+        $not_listed_products = array();
+        
+        foreach ($products as $product_data) {
+            // Create a product object for compatibility
+            $product = wc_get_product($product_data->product_id);
+            if (!$product) {
+                error_log("GunBroker Debug: Failed to get product object for ID: " . $product_data->product_id);
+                continue;
+            }
+            
+            // Add GunBroker data to the product object
+            $product->gunbroker_status = $product_data->gunbroker_status ?: 'not_listed';
+            $product->gunbroker_id = $product_data->gunbroker_id;
+            $product->gunbroker_last_sync = $product_data->last_sync;
+            
+            error_log("GunBroker Debug: Product '{$product->get_name()}' - Status: {$product->gunbroker_status}");
+            
+            // Check if product has a GunBroker ID (meaning it was successfully listed)
+            if ($product_data->gunbroker_id && $product_data->gunbroker_status !== 'error') {
+                // Product has a GunBroker ID and is not in error state - treat as active
+                $product->gunbroker_status = 'active';
+                $active_products[] = $product;
+            } else {
+                // Product has no GunBroker ID or is in error state - treat as not listed
+                $product->gunbroker_status = 'not_listed';
+                $not_listed_products[] = $product;
+            }
+        }
+        
+        error_log("GunBroker Debug: Active products: " . count($active_products) . ", Not listed: " . count($not_listed_products));
+        
+        // Debug: Check what's actually in the database
+        $db_check = $wpdb->get_results("SELECT product_id, gunbroker_id, status FROM {$wpdb->prefix}gunbroker_listings LIMIT 10");
+        error_log("GunBroker Debug: Database contents: " . print_r($db_check, true));
+        
+        // If no active products found, try to fix the database manually
+        if (count($active_products) == 0) {
+            error_log("GunBroker Debug: No active products found, attempting to fix database...");
+            $this->fix_database_listings();
+            
+            // Re-run the query after fix
+            $products = $wpdb->get_results($wpdb->prepare($products_query, $limit));
+            $active_products = array();
+            $not_listed_products = array();
+            
+            foreach ($products as $product_data) {
+                $product = wc_get_product($product_data->product_id);
+                if (!$product) continue;
+                
+                $product->gunbroker_status = $product_data->gunbroker_status ?: 'not_listed';
+                $product->gunbroker_id = $product_data->gunbroker_id;
+                $product->gunbroker_last_sync = $product_data->last_sync;
+                
+                if ($product_data->gunbroker_id && $product_data->gunbroker_status !== 'error') {
+                    $product->gunbroker_status = 'active';
+                    $active_products[] = $product;
+                } else {
+                    $product->gunbroker_status = 'not_listed';
+                    $not_listed_products[] = $product;
+                }
+            }
+            
+            error_log("GunBroker Debug: After fix - Active: " . count($active_products) . ", Not listed: " . count($not_listed_products));
+        }
+        
+        return array(
+            'active' => $active_products,
+            'not_listed' => $not_listed_products,
+            'total_active' => count($active_products),
+            'total_not_listed' => count($not_listed_products)
+        );
+    }
+
+    /**
+     * Update product GunBroker status in database
+     */
+    public function update_product_gunbroker_status($product_id, $status, $gunbroker_id = null, $sync_data = null) {
+        global $wpdb;
+        
+        $this->ensure_tables_exist();
+        
+        $data = array(
+            'product_id' => $product_id,
+            'status' => $status,
+            'last_sync' => current_time('mysql')
+        );
+        
+        if ($gunbroker_id) {
+            $data['gunbroker_id'] = $gunbroker_id;
+        }
+        
+        if ($sync_data) {
+            $data['sync_data'] = is_string($sync_data) ? $sync_data : json_encode($sync_data);
+        }
+        
+        $result = $wpdb->replace(
+            $wpdb->prefix . 'gunbroker_listings',
+            $data,
+            array('%d', '%s', '%s', '%s', '%s')
+        );
+        
+        if ($result !== false) {
+            // Log the status change
+            $this->log_status_change($product_id, $status, $gunbroker_id);
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Log status changes for debugging
+     */
+    private function log_status_change($product_id, $status, $gunbroker_id = null) {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log("GunBroker Status Update: Product {$product_id} -> {$status}" . ($gunbroker_id ? " (ID: {$gunbroker_id})" : ""));
+        }
+    }
+
+    /**
+     * Get product GunBroker status efficiently
+     */
+    public function get_product_gunbroker_status($product_id) {
+        global $wpdb;
+        
+        $this->ensure_tables_exist();
+        
+        $result = $wpdb->get_row($wpdb->prepare(
+            "SELECT status, gunbroker_id, last_sync FROM {$wpdb->prefix}gunbroker_listings WHERE product_id = %d",
+            $product_id
+        ));
+        
+        return $result ? (array) $result : array(
+            'status' => 'not_listed',
+            'gunbroker_id' => null,
+            'last_sync' => null
+        );
+    }
+
+    /**
+     * Fix database listings by updating error status to active for products that should be active
+     */
+    private function fix_database_listings() {
+        global $wpdb;
+        
+        // Get all products that have GunBroker enabled but are in error status
+        $products = get_posts(array(
+            'post_type' => 'product',
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+            'meta_query' => array(
+                array(
+                    'key' => '_gunbroker_enabled',
+                    'value' => 'yes',
+                    'compare' => '='
+                )
+            )
+        ));
+
+        error_log("GunBroker Debug: Found " . count($products) . " products with GunBroker enabled");
+
+        foreach ($products as $product_post) {
+            $product_id = $product_post->ID;
+            $product = wc_get_product($product_id);
+            if (!$product) continue;
+
+            // Check if this product has a listing record
+            $listing = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}gunbroker_listings WHERE product_id = %d",
+                $product_id
+            ));
+
+            if ($listing) {
+                // If it has a GunBroker ID, update status to active
+                if ($listing->gunbroker_id) {
+                    $this->update_product_gunbroker_status($product_id, 'active', $listing->gunbroker_id);
+                    error_log("GunBroker Debug: Fixed product '{$product->get_name()}' - Status: error -> active (ID: {$listing->gunbroker_id})");
+                } else {
+                    // If no GunBroker ID, set to not_listed
+                    $this->update_product_gunbroker_status($product_id, 'not_listed');
+                    error_log("GunBroker Debug: Fixed product '{$product->get_name()}' - Status: error -> not_listed (no GunBroker ID)");
+                }
+            } else {
+                // No listing record, create one as not_listed
+                $this->update_product_gunbroker_status($product_id, 'not_listed');
+                error_log("GunBroker Debug: Created listing record for '{$product->get_name()}' - Status: not_listed");
+            }
+        }
+    }
 
 
 }
