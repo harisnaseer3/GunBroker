@@ -13,6 +13,7 @@ if (isset($_POST['gunbroker_settings_nonce']) && wp_verify_nonce($_POST['gunbrok
     update_option('gunbroker_enable_buy_now', isset($_POST['gunbroker_enable_buy_now']));
     update_option('gunbroker_default_category', intval($_POST['gunbroker_default_category']));
     update_option('gunbroker_default_country', sanitize_text_field($_POST['gunbroker_default_country']));
+    // Product-specific listing options have been moved to the product edit page
     
     echo '<div class="notice notice-success"><p>Settings saved successfully!</p></div>';
 }
@@ -101,6 +102,8 @@ if (isset($_POST['gunbroker_settings_nonce']) && wp_verify_nonce($_POST['gunbrok
                             </td>
                         </tr>
 
+                        
+
                         <tr>
                             <th scope="row">Inventory Management</th>
                             <td>
@@ -110,6 +113,18 @@ if (isset($_POST['gunbroker_settings_nonce']) && wp_verify_nonce($_POST['gunbrok
                                     Automatically end listings when product is out of stock
                                 </label>
                                 <p class="description">Recommended to prevent overselling</p>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">
+                                <label for="gunbroker_default_country">Default Country Code</label>
+                            </th>
+                            <td>
+                                <input type="text" id="gunbroker_default_country" name="gunbroker_default_country"
+                                       value="<?php echo esc_attr(strtoupper(substr((string) get_option('gunbroker_default_country', 'US'),0,2))); ?>"
+                                       class="regular-text" style="width:80px; text-transform:uppercase;" maxlength="2" />
+                                <p class="description">2-letter ISO code (e.g. US, CA). Used when product does not override.</p>
                             </td>
                         </tr>
 

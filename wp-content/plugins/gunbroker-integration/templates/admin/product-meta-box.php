@@ -21,6 +21,116 @@
         </td>
     </tr>
 
+    <?php
+    $gb_returns = get_post_meta($post->ID, '_gunbroker_returns_accepted', true);
+    $gb_international = get_post_meta($post->ID, '_gunbroker_will_ship_international', true);
+    $gb_who_pays = get_post_meta($post->ID, '_gunbroker_who_pays_shipping', true);
+    $gb_auto_relist = get_post_meta($post->ID, '_gunbroker_auto_relist', true);
+    $gb_country = get_post_meta($post->ID, '_gunbroker_country', true);
+    $gb_state = get_post_meta($post->ID, '_gunbroker_seller_state', true);
+    $gb_city = get_post_meta($post->ID, '_gunbroker_seller_city', true);
+    $gb_postal = get_post_meta($post->ID, '_gunbroker_seller_postal', true);
+    $gb_phone = get_post_meta($post->ID, '_gunbroker_contact_phone', true);
+    $gb_pm = (array) get_post_meta($post->ID, '_gunbroker_payment_methods', true);
+    $gb_sm = (array) get_post_meta($post->ID, '_gunbroker_shipping_methods', true);
+    ?>
+
+    <tr>
+        <th scope="row" style="vertical-align: top; padding-top: 15px;">
+            <label>Listing Options</label>
+        </th>
+        <td style="padding-top: 15px;">
+            <div style="background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
+                <h4 style="margin: 0 0 12px 0; color: #333; font-size: 13px;">Returns & Shipping</h4>
+                <p style="margin: 0 0 10px 0;">
+                    <label style="margin-right: 20px;"><input type="checkbox" name="gunbroker_returns_accepted" value="1" <?php checked($gb_returns, '1'); ?> /> Accept returns</label>
+                    <label><input type="checkbox" name="gunbroker_will_ship_international" value="1" <?php checked($gb_international, '1'); ?> /> Will ship internationally</label>
+                </p>
+                <p style="margin: 0 0 10px 0;">
+                    <label style="margin-right: 20px;">Who pays shipping: 
+                        <select name="gunbroker_who_pays_shipping" style="margin-left: 5px;">
+                            <option value="">Use default</option>
+                            <option value="1" <?php selected($gb_who_pays, '1'); ?>>Buyer pays</option>
+                            <option value="2" <?php selected($gb_who_pays, '2'); ?>>Seller pays</option>
+                        </select>
+                    </label>
+                    <label>Auto relist: 
+                        <select name="gunbroker_auto_relist" style="margin-left: 5px;">
+                            <option value="">Use default</option>
+                            <option value="1" <?php selected($gb_auto_relist, '1'); ?>>Do not relist</option>
+                            <option value="2" <?php selected($gb_auto_relist, '2'); ?>>Relist</option>
+                        </select>
+                    </label>
+                </p>
+            </div>
+        </td>
+    </tr>
+
+    <tr>
+        <th scope="row" style="vertical-align: top; padding-top: 15px;">
+            <label>Seller Address</label>
+        </th>
+        <td style="padding-top: 15px;">
+            <div style="background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
+                <h4 style="margin: 0 0 12px 0; color: #333; font-size: 13px;">Location & Contact</h4>
+                <p style="margin: 0 0 10px 0;">
+                    <label style="margin-right: 15px;">Country (2 letters): 
+                        <input type="text" name="gunbroker_country" value="<?php echo esc_attr($gb_country); ?>" style="width:60px; text-transform:uppercase;" maxlength="2" />
+                    </label>
+                    <label style="margin-right: 15px;">City: 
+                        <input type="text" name="gunbroker_seller_city" value="<?php echo esc_attr($gb_city); ?>" style="width:120px;" />
+                    </label>
+                    <label style="margin-right: 15px;">State: 
+                        <input type="text" name="gunbroker_seller_state" value="<?php echo esc_attr($gb_state); ?>" style="width:80px;" />
+                    </label>
+                    <label style="margin-right: 15px;">Postal: 
+                        <input type="text" name="gunbroker_seller_postal" value="<?php echo esc_attr($gb_postal); ?>" style="width:100px;" />
+                    </label>
+                </p>
+                <p style="margin: 0;">
+                    <label>Contact phone: 
+                        <input type="text" name="gunbroker_contact_phone" value="<?php echo esc_attr($gb_phone); ?>" style="width:150px;" />
+                    </label>
+                </p>
+            </div>
+        </td>
+    </tr>
+
+    <tr>
+        <th scope="row" style="vertical-align: top; padding-top: 15px;">
+            <label>Payment Methods</label>
+        </th>
+        <td style="padding-top: 15px;">
+            <div style="background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
+                <h4 style="margin: 0 0 12px 0; color: #333; font-size: 13px;">Accepted Payment Methods</h4>
+                <p style="margin: 0 0 8px 0;">
+                    <label style="margin-right: 15px;"><input type="checkbox" name="gunbroker_payment_methods[]" value="Check" <?php checked(in_array('Check', $gb_pm, true)); ?> /> Check</label>
+                    <label style="margin-right: 15px;"><input type="checkbox" name="gunbroker_payment_methods[]" value="MoneyOrder" <?php checked(in_array('MoneyOrder', $gb_pm, true)); ?> /> Money Order</label>
+                    <label style="margin-right: 15px;"><input type="checkbox" name="gunbroker_payment_methods[]" value="CreditCard" <?php checked(in_array('CreditCard', $gb_pm, true)); ?> /> Credit Card</label>
+                </p>
+                <p style="margin: 0;">
+                    <label style="margin-right: 15px;"><input type="checkbox" name="gunbroker_payment_methods[]" value="CertifiedCheck" <?php checked(in_array('CertifiedCheck', $gb_pm, true)); ?> /> Certified Check</label>
+                    <label><input type="checkbox" name="gunbroker_payment_methods[]" value="USPSMoneyOrder" <?php checked(in_array('USPSMoneyOrder', $gb_pm, true)); ?> /> USPS Money Order</label>
+                </p>
+            </div>
+        </td>
+    </tr>
+
+    <tr>
+        <th scope="row" style="vertical-align: top; padding-top: 15px;">
+            <label>Shipping Methods</label>
+        </th>
+        <td style="padding-top: 15px;">
+            <div style="background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
+                <h4 style="margin: 0 0 12px 0; color: #333; font-size: 13px;">Available Shipping Options</h4>
+                <p style="margin: 0;">
+                    <label style="margin-right: 20px;"><input type="checkbox" name="gunbroker_shipping_methods[]" value="StandardShipping" <?php checked(in_array('StandardShipping', $gb_sm, true)); ?> /> Standard Shipping</label>
+                    <label><input type="checkbox" name="gunbroker_shipping_methods[]" value="UPSGround" <?php checked(in_array('UPSGround', $gb_sm, true)); ?> /> UPS Ground</label>
+                </p>
+            </div>
+        </td>
+    </tr>
+
     <tr>
         <th scope="row">
             <label for="gunbroker_category">GunBroker Category</label>

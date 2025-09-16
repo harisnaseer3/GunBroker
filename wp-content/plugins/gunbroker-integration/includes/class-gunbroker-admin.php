@@ -241,6 +241,57 @@ class GunBroker_Admin {
             update_post_meta($post_id, '_gunbroker_category', sanitize_text_field($_POST['gunbroker_category']));
         }
 
+        // New: save per-product listing options
+        $bool_keys = array(
+            '_gunbroker_returns_accepted' => 'gunbroker_returns_accepted',
+            '_gunbroker_will_ship_international' => 'gunbroker_will_ship_international'
+        );
+        foreach ($bool_keys as $meta_key => $post_key) {
+            update_post_meta($post_id, $meta_key, isset($_POST[$post_key]) ? '1' : '0');
+        }
+
+        $scalar_map = array(
+            '_gunbroker_who_pays_shipping' => 'gunbroker_who_pays_shipping',
+            '_gunbroker_auto_relist' => 'gunbroker_auto_relist',
+            '_gunbroker_country' => 'gunbroker_country',
+            '_gunbroker_seller_city' => 'gunbroker_seller_city',
+            '_gunbroker_seller_state' => 'gunbroker_seller_state',
+            '_gunbroker_seller_postal' => 'gunbroker_seller_postal',
+            '_gunbroker_contact_phone' => 'gunbroker_contact_phone'
+        );
+        foreach ($scalar_map as $meta_key => $post_key) {
+            if (isset($_POST[$post_key]) && $_POST[$post_key] !== '') {
+                update_post_meta($post_id, $meta_key, sanitize_text_field($_POST[$post_key]));
+            } else {
+                delete_post_meta($post_id, $meta_key);
+            }
+        }
+
+        // Arrays: payment and shipping methods
+        $pm = array();
+        if (!empty($_POST['gunbroker_payment_methods']) && is_array($_POST['gunbroker_payment_methods'])) {
+            foreach ($_POST['gunbroker_payment_methods'] as $m) {
+                $pm[] = sanitize_text_field($m);
+            }
+        }
+        if (!empty($pm)) {
+            update_post_meta($post_id, '_gunbroker_payment_methods', $pm);
+        } else {
+            delete_post_meta($post_id, '_gunbroker_payment_methods');
+        }
+
+        $sm = array();
+        if (!empty($_POST['gunbroker_shipping_methods']) && is_array($_POST['gunbroker_shipping_methods'])) {
+            foreach ($_POST['gunbroker_shipping_methods'] as $m) {
+                $sm[] = sanitize_text_field($m);
+            }
+        }
+        if (!empty($sm)) {
+            update_post_meta($post_id, '_gunbroker_shipping_methods', $sm);
+        } else {
+            delete_post_meta($post_id, '_gunbroker_shipping_methods');
+        }
+
         // If enabled, queue for sync
         if ($enabled === 'yes') {
             $sync = new GunBroker_Sync();

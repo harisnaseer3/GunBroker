@@ -521,13 +521,48 @@ class GunBroker_API {
         // Ensure condition is within valid range
         $condition = max(1, min(6, intval($condition)));
 
-        // Get country code - use product-specific or default
+        // Get country code - use product-specific or default, normalize to 2-letter ISO
         $country_code = get_post_meta($product->get_id(), '_gunbroker_country', true);
         if (empty($country_code)) {
-            $country_code = get_option('gunbroker_default_country', 'US'); // Default to US
+            $country_code = get_option('gunbroker_default_country', 'US');
+        }
+        $country_code = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', (string) $country_code), 0, 2));
+        if (strlen($country_code) !== 2) {
+            $country_code = 'US';
         }
 
         // FIXED: Prepare listing data with all required fields based on official API documentation
+        // Read site-wide options to build payload at listing time
+        // Prefer per-product meta; fallback to site options
+        $returns_accepted = get_post_meta($product->get_id(), '_gunbroker_returns_accepted', true);
+        $returns_accepted = $returns_accepted !== '' ? $returns_accepted === '1' : (bool) get_option('gunbroker_returns_accepted', true);
+        $will_ship_international = get_post_meta($product->get_id(), '_gunbroker_will_ship_international', true);
+        $will_ship_international = $will_ship_international !== '' ? $will_ship_international === '1' : (bool) get_option('gunbroker_will_ship_international', false);
+        $auto_relist = get_post_meta($product->get_id(), '_gunbroker_auto_relist', true);
+        $auto_relist = $auto_relist !== '' ? intval($auto_relist) : intval(get_option('gunbroker_auto_relist', 1));
+        $who_pays_shipping = get_post_meta($product->get_id(), '_gunbroker_who_pays_shipping', true);
+        $who_pays_shipping = $who_pays_shipping !== '' ? intval($who_pays_shipping) : intval(get_option('gunbroker_who_pays_shipping', 2));
+        $seller_state = get_post_meta($product->get_id(), '_gunbroker_seller_state', true);
+        if ($seller_state === '') { $seller_state = get_option('gunbroker_seller_state', ''); }
+        $seller_city = get_post_meta($product->get_id(), '_gunbroker_seller_city', true);
+        if ($seller_city === '') { $seller_city = get_option('gunbroker_seller_city', ''); }
+        $seller_postal = get_post_meta($product->get_id(), '_gunbroker_seller_postal', true);
+        if ($seller_postal === '') { $seller_postal = get_option('gunbroker_seller_postal', ''); }
+        $contact_phone = get_post_meta($product->get_id(), '_gunbroker_contact_phone', true);
+        if ($contact_phone === '') { $contact_phone = get_option('gunbroker_contact_phone', ''); }
+        $payment_methods_opt = get_post_meta($product->get_id(), '_gunbroker_payment_methods', true);
+        $payment_methods_opt = !empty($payment_methods_opt) ? (array) $payment_methods_opt : (array) get_option('gunbroker_payment_methods', array('Check','MoneyOrder','CreditCard'));
+        $shipping_methods_opt = get_post_meta($product->get_id(), '_gunbroker_shipping_methods', true);
+        $shipping_methods_opt = !empty($shipping_methods_opt) ? (array) $shipping_methods_opt : (array) get_option('gunbroker_shipping_methods', array('StandardShipping','UPSGround'));
+
+        // Convert arrays into expected boolean map objects
+        $payment_methods = array();
+        foreach ($payment_methods_opt as $pm) { $payment_methods[$pm] = true; }
+        if (empty($payment_methods)) { $payment_methods = array('Check' => true, 'MoneyOrder' => true, 'CreditCard' => true); }
+
+        $shipping_methods = array();
+        foreach ($shipping_methods_opt as $sm) { $shipping_methods[$sm] = true; }
+        if (empty($shipping_methods)) { $shipping_methods = array('StandardShipping' => true, 'UPSGround' => true); }
         $listing_data = array(
             'Title' => substr($title, 0, 75), // Required: 1-75 chars
             'Description' => substr($description, 0, 8000), // Required: 1-8000 chars
@@ -535,31 +570,31 @@ class GunBroker_API {
             'StartingBid' => floatval($gunbroker_price), // Required: decimal 0.01-999999.99 (use float, not string)
             'Quantity' => 1, // Required: integer 1-999999 (set to 1 to avoid fixed price requirement)
             'ListingDuration' => intval(get_option('gunbroker_listing_duration', 7)), // Required: integer 1-99
-            'PaymentMethods' => array('Check' => true, 'MoneyOrder' => true, 'CreditCard' => true), // Required: object with boolean values
-            'ShippingMethods' => array('StandardShipping' => true, 'UPSGround' => true), // Required: object with boolean values
-            // 'InspectionPeriod' => '3', // Optional: removed to avoid enum issues
-            'ReturnsAccepted' => true, // Required: boolean
+            'PaymentMethods' => $payment_methods, // Required: object with boolean values
+            'ShippingMethods' => $shipping_methods, // Required: object with boolean values
+            // 'InspectionPeriod' => '3', // Optional
+            'ReturnsAccepted' => $returns_accepted, // Required: boolean
             'Condition' => intval($condition), // Required: integer 1-10
             'CountryCode' => strtoupper(substr($country_code, 0, 2)), // Required: string 2 chars
-            'State' => 'TX', // Required: string 1-50 chars
-            'City' => 'Austin', // Required: string 1-50 chars
-            'PostalCode' => '78701', // Required: string 1-10 chars
+            'State' => ($seller_state ?: 'AL'), // Required: string 1-50 chars
+            'City' => ($seller_city ?: 'Birmingham'), // Required: string 1-50 chars
+            'PostalCode' => ($seller_postal ?: '35173'), // Required: string 1-10 chars
             'MfgPartNumber' => $product->get_sku() ?: 'N/A', // Required when using IsFFLRequired
             'MinBidIncrement' => 0.50, // Optional: decimal
             'ShippingCost' => 0.00, // Optional: decimal
             'ShippingInsurance' => 0.00, // Optional: decimal
             'ShippingTerms' => 'Buyer pays shipping', // Optional: string
             'SellerContactEmail' => get_option('admin_email'), // Optional: string
-            'SellerContactPhone' => '555-123-4567', // Optional: string - provide default phone
+            'SellerContactPhone' => ($contact_phone ?: '205-000-0000'), // Optional: string
             'IsFixedPrice' => false, // Optional: boolean
             'IsFeatured' => false, // Optional: boolean
             'IsBold' => false, // Optional: boolean
             'IsHighlight' => false, // Optional: boolean
             'IsReservePrice' => false, // Optional: boolean
-            'AutoRelist' => 1, // Required when using IsFFLRequired: 1 = Do Not Relist
+            'AutoRelist' => $auto_relist, // 1 = Do Not Relist, 2 = Relist
             // 'IsFFLRequired' => false, // Conditional: Only for certain categories
-            'WhoPaysForShipping' => 2, // Required: integer - 2 = Seller pays for shipping
-            'WillShipInternational' => false, // Required: boolean - Will ship internationally
+            'WhoPaysForShipping' => $who_pays_shipping, // 1=Buyer, 2=Seller
+            'WillShipInternational' => $will_ship_international, // Required: boolean
             'ShippingClassesSupported' => array(
                 'Ground' => true,
                 'TwoDay' => true,
