@@ -1,3 +1,23 @@
+<?php
+// Handle form submission
+if (isset($_POST['gunbroker_settings_nonce']) && wp_verify_nonce($_POST['gunbroker_settings_nonce'], 'gunbroker_settings')) {
+    // Save all settings
+    update_option('gunbroker_dev_key', sanitize_text_field($_POST['gunbroker_dev_key']));
+    update_option('gunbroker_username', sanitize_text_field($_POST['gunbroker_username']));
+    update_option('gunbroker_password', sanitize_text_field($_POST['gunbroker_password']));
+    update_option('gunbroker_markup_percentage', floatval($_POST['gunbroker_markup_percentage']));
+    update_option('gunbroker_listing_duration', intval($_POST['gunbroker_listing_duration']));
+    update_option('gunbroker_auto_end_zero_stock', isset($_POST['gunbroker_auto_end_zero_stock']));
+    update_option('gunbroker_public_domain', sanitize_text_field($_POST['gunbroker_public_domain']));
+    update_option('gunbroker_sandbox_mode', isset($_POST['gunbroker_sandbox_mode']));
+    update_option('gunbroker_enable_buy_now', isset($_POST['gunbroker_enable_buy_now']));
+    update_option('gunbroker_default_category', intval($_POST['gunbroker_default_category']));
+    update_option('gunbroker_default_country', sanitize_text_field($_POST['gunbroker_default_country']));
+    
+    echo '<div class="notice notice-success"><p>Settings saved successfully!</p></div>';
+}
+?>
+
 <div class="wrap">
     <h1>GunBroker Settings</h1>
 
@@ -90,6 +110,18 @@
                                     Automatically end listings when product is out of stock
                                 </label>
                                 <p class="description">Recommended to prevent overselling</p>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">Public Domain for Images</th>
+                            <td>
+                                <input type="text" name="gunbroker_public_domain" value="<?php echo esc_attr(get_option('gunbroker_public_domain', '')); ?>" 
+                                       placeholder="your-domain.com" class="regular-text" />
+                                <p class="description">
+                                    Enter your public domain (e.g., your-domain.com) for image URLs. 
+                                    Required for GunBroker to access product images. Leave empty to skip images in localhost environment.
+                                </p>
                             </td>
                         </tr>
                     </table>

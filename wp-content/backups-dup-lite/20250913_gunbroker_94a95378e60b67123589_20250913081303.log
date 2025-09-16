@@ -1,0 +1,73 @@
+********************************************************************************
+DUPLICATOR-LITE PACKAGE-LOG: September 13, 2025 8:13 am
+NOTICE: Do NOT post to public sites or forums 
+********************************************************************************
+VERSION:	1.5.13.3
+WORDPRESS:	6.8.2
+PHP INFO:	8.3.16 | SAPI: apache2handler
+SERVER:		Apache/2.4.62 (Win64) OpenSSL/3.0.15 PHP/8.3.16 
+PHP TIME LIMIT: (0) no time limit imposed 
+PHP MAX MEMORY: 4294967296 (512M default) 
+MEMORY STACK: 144MB
+[CTRL DUP ARCIVE] PACKAGE AS NEW ID 1 SAVED | STATUS:0
+[DUP ARCHIVE] BUILDING DATABASE
+
+********************************************************************************
+DATABASE:
+********************************************************************************
+BUILD MODE:   PHP(query limit - 100)
+MYSQLTIMEOUT: 5000
+MYSQLDUMP:    Not Supported
+TABLES: total:101 | filtered:0 | create:101
+FILTERED: []
+SQL CREATED: 20250913_gunbroker_94a95378e60b67123589_20250913081303_database.sql
+SQL FILE SIZE: 5.21MB (5467844)
+SQL FILE TIME: 2025-09-13 08:13:40
+SQL RUNTIME: 1.27 sec.
+[DUP ARCHIVE] VALIDATING DATABASE
+[DUP ARCHIVE] DONE DATABASE
+
+********************************************************************************
+ARCHIVE Type=DUP Mode=DupArchive
+********************************************************************************
+ARCHIVE DIR:  C:/laragon/www/Gunbroker
+ARCHIVE FILE: 20250913_gunbroker_94a95378e60b67123589_20250913081303_archive.daf
+FILTERS: *OFF*
+DIRS:
+	not set
+FILES:
+	not set
+EXTS:  not set
+----------------------------------------
+COMPRESSING
+SIZE:	415.46MB
+STATS:	Dirs 4,487 | Files 26,263 | Total 30,750
+[DUP ARCHIVE] DONE ARCHIVE
+[DUP ARCHIVE] DONE ARCHIVE
+[DUP ARCHIVE] DONE ARCHIVE
+building installer
+[DUP ARCHIVE] DONE ARCHIVE
+COMPRESSED SIZE: 234.64MB
+ARCHIVE RUNTIME: 42.07 sec.
+MEMORY STACK: 158MB
+CREATE WARNINGS: No warnings.
+VALIDATION WARNINGS: No warnings.
+[DUP ARCHIVE] DONE ARCHIVE
+[DUP ARCHIVE] HAS COMPLETED CLOSING
+[DUP ARCHIVE] DUP ARCHIVE INTEGRITY CHECK
+
+********************************************************************************
+INTEGRITY CHECKS:
+********************************************************************************
+SQL FILE: 5.21MB
+INSTALLER FILE: 94.83KB
+ARCHIVE FILE: 234.64MB 
+EXPECTED FILE/DIRECTORY COUNT: 31,488
+ACTUAL FILE/DIRECTORY COUNT: 31,489
+
+********************************************************************************
+RECORD ID:[1]
+TOTAL PROCESS RUNTIME: 42.11 sec.
+PEAK PHP MEMORY USED: 158MB
+DONE PROCESSING => 20250913_gunbroker 2025-09-13 08:14:21
+

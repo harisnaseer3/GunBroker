@@ -668,6 +668,20 @@ class GunBroker_API {
                     // Convert HTTP to HTTPS for GunBroker requirement
                     $secure_url = str_replace('http://', 'https://', $image_url);
                     
+                    // Replace localhost with proper domain for GunBroker access
+                    $public_domain = get_option('gunbroker_public_domain', '');
+                    if (!empty($public_domain)) {
+                        $secure_url = str_replace('localhost', $public_domain, $secure_url);
+                    } else {
+                        // If no public domain configured, skip images for localhost
+                        if (strpos($secure_url, 'localhost') !== false) {
+                            if (defined('WP_DEBUG') && WP_DEBUG) {
+                                error_log('GunBroker: Skipping localhost image URL (configure gunbroker_public_domain setting): ' . $secure_url);
+                            }
+                            continue; // Skip this image
+                        }
+                    }
+                    
                     if (filter_var($secure_url, FILTER_VALIDATE_URL)) {
                         $image_html .= "<p><img src=\"{$secure_url}\" alt=\"Product Image\" style=\"max-width: 500px; height: auto;\"></p>\n";
                         
