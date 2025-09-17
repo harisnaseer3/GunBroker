@@ -166,7 +166,7 @@
                 ?>
                 <div class="product-card" data-product-id="<?php echo $product_id; ?>" style="border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fff; transition: all 0.3s ease; position: relative;">
                     <!-- Product Image -->
-                    <div class="product-image" style="position: relative; height: 200px; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+                    <div class="product-image" style="position: relative; height: 140px; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
                         <?php if ($image_url): ?>
                             <img src="<?php echo esc_url($image_url); ?>"
                                  alt="<?php echo esc_attr($product->get_name()); ?>"
@@ -282,7 +282,7 @@
                 ?>
                 <div class="product-card" data-product-id="<?php echo $product_id; ?>" style="border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fff; transition: all 0.3s ease; position: relative;">
                     <!-- Product Image -->
-                    <div class="product-image" style="position: relative; height: 200px; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+                    <div class="product-image" style="position: relative; height: 140px; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
                         <?php if ($image_url): ?>
                             <img src="<?php echo esc_url($image_url); ?>"
                                  alt="<?php echo esc_attr($product->get_name()); ?>"
@@ -512,7 +512,7 @@
     /* Grid View Styles */
     .products-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 20px;
     }
 
@@ -538,7 +538,7 @@
 
     .product-image {
         position: relative;
-        height: 200px;
+        height: 140px !important;
         background: #f5f5f5;
         display: flex;
         align-items: center;
@@ -547,10 +547,11 @@
     }
 
     .product-image img {
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: cover;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
         transition: transform 0.2s ease;
+        display: block;
     }
 
     .product-card:hover .product-image img {

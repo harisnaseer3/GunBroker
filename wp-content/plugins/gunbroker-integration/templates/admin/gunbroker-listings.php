@@ -1,6 +1,22 @@
 <div class="wrap">
     <h1>Browse GunBroker Listings</h1>
 
+    <style id="gunbroker-listings-styles">
+        /* Enforce original layout */
+        #listings-container { background: #fff; border: 1px solid #ccd0d4; }
+        #listings-grid { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important; gap: 20px !important; padding: 20px !important; }
+        .gb-card { border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fff; }
+        .gb-card img.gb-card__image { width: 100% !important; height: 200px !important; object-fit: cover !important; display: block; }
+        .gb-card .gb-card__image--placeholder { height: 200px !important; background: #f5f5f5; display: flex; align-items: center; justify-content: center; color: #999; }
+        .gb-card .gb-card__body { padding: 15px; }
+        .gb-card .gb-card__title { margin: 0 0 10px 0; font-size: 14px; line-height: 1.3; }
+        .gb-card .gb-card__meta { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .gb-card .gb-card__meta span { font-size: 12px; color: #666; }
+        .gb-card .gb-card__cond { font-size: 12px; color: #666; margin-bottom: 10px; }
+        .gb-card .gb-card__end { font-size: 11px; color: #999; }
+        @media (max-width: 782px) { #listings-grid { grid-template-columns: 1fr !important; } }
+    </style>
+
     <!-- Search Controls -->
     <div style="background: #fff; padding: 15px; border: 1px solid #ccd0d4; margin: 20px 0;">
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; align-items: end;">
@@ -135,25 +151,25 @@
 
             listings.forEach(function(listing) {
                 const card = `
-                <div style="border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fff;">
+                <div class="gb-card">
                     ${listing.image_url ?
-                    `<img src="${listing.image_url}" style="width: 100%; height: 200px; object-fit: cover;">` :
-                    `<div style="height: 200px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; color: #999;">No Image</div>`
+                    `<img class="gb-card__image" src="${listing.image_url}">` :
+                    `<div class="gb-card__image--placeholder">No Image</div>`
                 }
-                    <div style="padding: 15px;">
-                        <h4 style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.3;">
+                    <div class="gb-card__body">
+                        <h4 class="gb-card__title">
                             <a href="${listing.url}" target="_blank" style="text-decoration: none; color: #0073aa;">
                                 ${listing.title}
                             </a>
                         </h4>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <div class="gb-card__meta">
                             <strong>$${parseFloat(listing.price).toFixed(2)}</strong>
-                            <span style="font-size: 12px; color: #666;">${listing.category}</span>
+                            <span>${listing.category}</span>
                         </div>
-                        <div style="font-size: 12px; color: #666; margin-bottom: 10px;">
+                        <div class="gb-card__cond">
                             Condition: ${listing.condition}
                         </div>
-                        <div style="font-size: 11px; color: #999;">
+                        <div class="gb-card__end">
                             Ends: ${new Date(listing.end_date).toLocaleDateString()}
                         </div>
                     </div>
