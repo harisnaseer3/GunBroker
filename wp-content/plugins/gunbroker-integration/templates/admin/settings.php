@@ -5,8 +5,10 @@ if (isset($_POST['gunbroker_settings_nonce']) && wp_verify_nonce($_POST['gunbrok
     update_option('gunbroker_dev_key', sanitize_text_field($_POST['gunbroker_dev_key']));
     update_option('gunbroker_username', sanitize_text_field($_POST['gunbroker_username']));
     update_option('gunbroker_password', sanitize_text_field($_POST['gunbroker_password']));
-    update_option('gunbroker_markup_percentage', floatval($_POST['gunbroker_markup_percentage']));
-    update_option('gunbroker_listing_duration', intval($_POST['gunbroker_listing_duration']));
+    // Save global markup (used as default)
+    if (isset($_POST['gunbroker_markup_percentage'])) {
+        update_option('gunbroker_markup_percentage', floatval($_POST['gunbroker_markup_percentage']));
+    }
     update_option('gunbroker_auto_end_zero_stock', isset($_POST['gunbroker_auto_end_zero_stock']));
     update_option('gunbroker_public_domain', sanitize_text_field($_POST['gunbroker_public_domain']));
     update_option('gunbroker_sandbox_mode', isset($_POST['gunbroker_sandbox_mode']));
@@ -72,7 +74,7 @@ if (isset($_POST['gunbroker_settings_nonce']) && wp_verify_nonce($_POST['gunbrok
                 </div>
 
                 <div style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; margin-bottom: 20px;">
-                    <h2 style="margin-top: 0;">Default Listing Settings</h2>
+                    <h2 style="margin-top: 0;">Inventory & Defaults</h2>
                     <table class="form-table">
                         <tr>
                             <th scope="row">
@@ -82,28 +84,10 @@ if (isset($_POST['gunbroker_settings_nonce']) && wp_verify_nonce($_POST['gunbrok
                                 <input type="number" id="gunbroker_markup_percentage" name="gunbroker_markup_percentage"
                                        value="<?php echo esc_attr(get_option('gunbroker_markup_percentage', 10)); ?>"
                                        min="0" max="500" step="0.1" class="small-text" />
-                                <span>% (Applied to all listings)</span>
-                                <p class="description">Add this percentage to your WooCommerce price for GunBroker listings</p>
+                                <span>% (Applied to all listings by default)</span>
+                                <p class="description">Products can override this per item.</p>
                             </td>
                         </tr>
-
-                        <tr>
-                            <th scope="row">
-                                <label for="gunbroker_listing_duration">Default Listing Duration</label>
-                            </th>
-                            <td>
-                                <select id="gunbroker_listing_duration" name="gunbroker_listing_duration">
-                                    <option value="1" <?php selected(get_option('gunbroker_listing_duration', 7), 1); ?>>1 Day</option>
-                                    <option value="3" <?php selected(get_option('gunbroker_listing_duration', 7), 3); ?>>3 Days</option>
-                                    <option value="5" <?php selected(get_option('gunbroker_listing_duration', 7), 5); ?>>5 Days</option>
-                                    <option value="7" <?php selected(get_option('gunbroker_listing_duration', 7), 7); ?>>7 Days</option>
-                                    <option value="10" <?php selected(get_option('gunbroker_listing_duration', 7), 10); ?>>10 Days</option>
-                                </select>
-                            </td>
-                        </tr>
-
-                        
-
                         <tr>
                             <th scope="row">Inventory Management</th>
                             <td>

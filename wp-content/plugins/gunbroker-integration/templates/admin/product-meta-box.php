@@ -1,17 +1,6 @@
 <table class="form-table">
     <tr>
         <th scope="row">
-            <label for="gunbroker_enabled">Enable GunBroker Sync</label>
-        </th>
-        <td>
-            <input type="checkbox" id="gunbroker_enabled" name="gunbroker_enabled"
-                   value="yes" <?php checked($enabled, 'yes'); ?> />
-            <label for="gunbroker_enabled">Sync this product to GunBroker</label>
-        </td>
-    </tr>
-
-    <tr>
-        <th scope="row">
             <label for="gunbroker_custom_title">Custom GunBroker Title</label>
         </th>
         <td>
@@ -61,6 +50,51 @@
                             <option value="2" <?php selected($gb_auto_relist, '2'); ?>>Relist</option>
                         </select>
                     </label>
+                </p>
+            </div>
+        </td>
+    </tr>
+
+    <?php 
+    $gb_condition = get_post_meta($post->ID, '_gunbroker_condition', true);
+    $gb_inspection_period = get_post_meta($post->ID, '_gunbroker_inspection_period', true);
+    $gb_use_default_taxes = get_post_meta($post->ID, '_gunbroker_use_default_taxes', true);
+    ?>
+    <tr>
+        <th scope="row" style="vertical-align: top; padding-top: 15px;">
+            <label>Item Details</label>
+        </th>
+        <td style="padding-top: 15px;">
+            <div style="background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
+                <h4 style="margin: 0 0 12px 0; color: #333; font-size: 13px;">Product Condition & Policies</h4>
+                <p style="margin: 0 0 10px 0;">
+                    <label style="margin-right: 20px;">Condition: 
+                        <select name="gunbroker_condition" style="margin-left: 5px;">
+                            <option value="">Use default</option>
+                            <option value="1" <?php selected($gb_condition, '1'); ?>>New</option>
+                            <option value="2" <?php selected($gb_condition, '2'); ?>>Used - Like New</option>
+                            <option value="3" <?php selected($gb_condition, '3'); ?>>Used - Very Good</option>
+                            <option value="4" <?php selected($gb_condition, '4'); ?>>Used - Good</option>
+                            <option value="5" <?php selected($gb_condition, '5'); ?>>Used - Fair</option>
+                            <option value="6" <?php selected($gb_condition, '6'); ?>>Used - Poor</option>
+                            <option value="7" <?php selected($gb_condition, '7'); ?>>Refurbished</option>
+                            <option value="8" <?php selected($gb_condition, '8'); ?>>For Parts/Not Working</option>
+                        </select>
+                    </label>
+                    <label>Inspection Period: 
+                        <select name="gunbroker_inspection_period" style="margin-left: 5px;">
+                            <option value="">Use default</option>
+                            <option value="1" <?php selected($gb_inspection_period, '1'); ?>>1 Day</option>
+                            <option value="3" <?php selected($gb_inspection_period, '3'); ?>>3 Days</option>
+                            <option value="7" <?php selected($gb_inspection_period, '7'); ?>>7 Days</option>
+                            <option value="14" <?php selected($gb_inspection_period, '14'); ?>>14 Days</option>
+                            <option value="30" <?php selected($gb_inspection_period, '30'); ?>>30 Days</option>
+                        </select>
+                    </label>
+                </p>
+                <p style="margin: 0;">
+                    <label><input type="checkbox" name="gunbroker_use_default_taxes" value="1" <?php checked($gb_use_default_taxes, '1'); ?> /> Use default tax settings</label>
+                    <span class="description" style="margin-left: 10px;">Sales tax collected based on ship to address</span>
                 </p>
             </div>
         </td>

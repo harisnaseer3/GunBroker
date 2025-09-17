@@ -455,21 +455,33 @@ class GunBroker_API {
     public function prepare_listing_data($product, $category_id = null) {
         // prepare_listing_data called for product ID: {$product->get_id()}
         
-        // Get markup percentage - check for product-specific override first
-        $product_markup = get_post_meta($product->get_id(), '_gunbroker_custom_markup', true);
-        $markup_percentage = !empty($product_markup) ? floatval($product_markup) : get_option('gunbroker_markup_percentage', 10);
+        // Get markup percentage from global settings only
+        $markup_percentage = floatval(get_option('gunbroker_markup_percentage', 10));
         
         // Markup percentage: {$markup_percentage}
 
+        // Derive a reliable base price from WooCommerce
         $base_price = floatval($product->get_regular_price());
         // Regular price: {$base_price}
         
         if ($base_price <= 0) {
-            $base_price = floatval($product->get_price());
-            // Using sale price: {$base_price}
+            $base_price = floatval($product->get_price()); // handles variations too
+        }
+        if ($base_price <= 0) {
+            $base_price = floatval($product->get_sale_price());
+        }
+        if ($base_price <= 0) {
+            $meta_price = get_post_meta($product->get_id(), '_price', true);
+            $base_price = floatval($meta_price);
         }
 
-        $gunbroker_price = $base_price * (1 + $markup_percentage / 100);
+        $fixed_override = get_post_meta($product->get_id(), '_gunbroker_fixed_price', true);
+        $fixed_value = is_numeric($fixed_override) ? floatval($fixed_override) : 0.0;
+        if ($fixed_override !== '' && $fixed_value > 0) {
+            $gunbroker_price = $fixed_value;
+        } else {
+            $gunbroker_price = $base_price * (1 + max(0.0, $markup_percentage) / 100);
+        }
         // Calculated GunBroker price: {$gunbroker_price}
         
         // Validate that we have a valid price
@@ -479,8 +491,8 @@ class GunBroker_API {
         }
         
         if (empty($gunbroker_price) || $gunbroker_price <= 0) {
-            error_log('GunBroker: ERROR - Calculated GunBroker price is invalid: ' . $gunbroker_price);
-            return new WP_Error('invalid_gunbroker_price', 'Unable to calculate valid GunBroker price');
+            // Fallback to base price as last resort
+            $gunbroker_price = $base_price;
         }
 
         // Get custom GunBroker title or use product title
@@ -519,7 +531,15 @@ class GunBroker_API {
         }
         
         // Ensure condition is within valid range
-        $condition = max(1, min(6, intval($condition)));
+        $condition = max(1, min(8, intval($condition)));
+        
+        // Get inspection period
+        $inspection_period = get_post_meta($product->get_id(), '_gunbroker_inspection_period', true);
+        $inspection_period = $inspection_period !== '' ? intval($inspection_period) : intval(get_option('gunbroker_inspection_period', 3));
+        
+        // Get tax settings
+        $use_default_taxes = get_post_meta($product->get_id(), '_gunbroker_use_default_taxes', true);
+        $use_default_taxes = $use_default_taxes !== '' ? $use_default_taxes === '1' : (bool) get_option('gunbroker_use_default_taxes', true);
 
         // Get country code - use product-specific or default, normalize to 2-letter ISO
         $country_code = get_post_meta($product->get_id(), '_gunbroker_country', true);
@@ -542,6 +562,15 @@ class GunBroker_API {
         $auto_relist = $auto_relist !== '' ? intval($auto_relist) : intval(get_option('gunbroker_auto_relist', 1));
         $who_pays_shipping = get_post_meta($product->get_id(), '_gunbroker_who_pays_shipping', true);
         $who_pays_shipping = $who_pays_shipping !== '' ? intval($who_pays_shipping) : intval(get_option('gunbroker_who_pays_shipping', 2));
+        
+        // Map form values to GunBroker API values
+        // Form: 1=Buyer pays, 2=Seller pays
+        // GunBroker API: 2=Buyer pays, 3=Seller pays (based on error message)
+        if ($who_pays_shipping === 1) {
+            $who_pays_shipping = 2; // Buyer pays
+        } elseif ($who_pays_shipping === 2) {
+            $who_pays_shipping = 3; // Seller pays
+        }
         $seller_state = get_post_meta($product->get_id(), '_gunbroker_seller_state', true);
         if ($seller_state === '') { $seller_state = get_option('gunbroker_seller_state', ''); }
         $seller_city = get_post_meta($product->get_id(), '_gunbroker_seller_city', true);
@@ -563,16 +592,26 @@ class GunBroker_API {
         $shipping_methods = array();
         foreach ($shipping_methods_opt as $sm) { $shipping_methods[$sm] = true; }
         if (empty($shipping_methods)) { $shipping_methods = array('StandardShipping' => true, 'UPSGround' => true); }
+        $quantity = get_post_meta($product->get_id(), '_gunbroker_quantity', true);
+        $quantity = $quantity !== '' ? max(1, intval($quantity)) : 1;
+
+        $duration = get_post_meta($product->get_id(), '_gunbroker_listing_duration', true);
+        $duration = $duration !== '' ? intval($duration) : intval(get_option('gunbroker_listing_duration', 7));
+
+        $listing_type = get_post_meta($product->get_id(), '_gunbroker_listing_type', true); // fixed|auction
+
+        $serial_number = get_post_meta($product->get_id(), '_gunbroker_serial_number', true);
+
         $listing_data = array(
             'Title' => substr($title, 0, 75), // Required: 1-75 chars
             'Description' => substr($description, 0, 8000), // Required: 1-8000 chars
             'CategoryID' => intval($category_id), // Required: integer 1-999999
             'StartingBid' => floatval($gunbroker_price), // Required: decimal 0.01-999999.99 (use float, not string)
-            'Quantity' => 1, // Required: integer 1-999999 (set to 1 to avoid fixed price requirement)
-            'ListingDuration' => intval(get_option('gunbroker_listing_duration', 7)), // Required: integer 1-99
+            'Quantity' => $quantity, // Required: integer
+            'ListingDuration' => $duration, // Required: integer 1-99
             'PaymentMethods' => $payment_methods, // Required: object with boolean values
             'ShippingMethods' => $shipping_methods, // Required: object with boolean values
-            // 'InspectionPeriod' => '3', // Optional
+            'InspectionPeriod' => $inspection_period, // Optional
             'ReturnsAccepted' => $returns_accepted, // Required: boolean
             'Condition' => intval($condition), // Required: integer 1-10
             'CountryCode' => strtoupper(substr($country_code, 0, 2)), // Required: string 2 chars
@@ -586,7 +625,8 @@ class GunBroker_API {
             'ShippingTerms' => 'Buyer pays shipping', // Optional: string
             'SellerContactEmail' => get_option('admin_email'), // Optional: string
             'SellerContactPhone' => ($contact_phone ?: '205-000-0000'), // Optional: string
-            'IsFixedPrice' => false, // Optional: boolean
+            'SerialNumber' => $serial_number ?: null,
+            'IsFixedPrice' => ($listing_type === 'fixed'), // Optional: boolean
             'IsFeatured' => false, // Optional: boolean
             'IsBold' => false, // Optional: boolean
             'IsHighlight' => false, // Optional: boolean
@@ -599,7 +639,8 @@ class GunBroker_API {
                 'Ground' => true,
                 'TwoDay' => true,
         
-            ) // Required: object - Supported shipping classes
+            ), // Required: object - Supported shipping classes
+            'UseDefaultTaxes' => $use_default_taxes // Optional: boolean
         );
         
         // Add IsFFLRequired field conditionally based on category type
@@ -699,21 +740,29 @@ class GunBroker_API {
                     if (strpos($image_url, 'http') !== 0) {
                         $image_url = home_url($image_url);
                     }
-                    
-                    // Convert HTTP to HTTPS for GunBroker requirement
-                    $secure_url = str_replace('http://', 'https://', $image_url);
-                    
-                    // Replace localhost with proper domain for GunBroker access
-                    $public_domain = get_option('gunbroker_public_domain', '');
+
+                    // Always force HTTPS
+                    $secure_url = set_url_scheme($image_url, 'https');
+
+                    // Replace any local/non-public host with configured public domain
+                    $public_domain = trim(get_option('gunbroker_public_domain', ''));
                     if (!empty($public_domain)) {
-                        $secure_url = str_replace('localhost', $public_domain, $secure_url);
-                    } else {
-                        // If no public domain configured, skip images for localhost
-                        if (strpos($secure_url, 'localhost') !== false) {
-                            if (defined('WP_DEBUG') && WP_DEBUG) {
-                                error_log('GunBroker: Skipping localhost image URL (configure gunbroker_public_domain setting): ' . $secure_url);
+                        $parsed = wp_parse_url($secure_url);
+                        if (!empty($parsed['host'])) {
+                            $local_hosts = array('localhost', '127.0.0.1');
+                            $is_local = in_array($parsed['host'], $local_hosts, true) || substr($parsed['host'], -6) === '.local';
+                            if ($is_local || $parsed['host'] !== $public_domain) {
+                                $parsed['host'] = $public_domain;
+                                $secure_url = (isset($parsed['scheme']) ? $parsed['scheme'] : 'https') . '://' . $parsed['host'] . (isset($parsed['path']) ? $parsed['path'] : '') . (isset($parsed['query']) ? ('?' . $parsed['query']) : '');
                             }
-                            continue; // Skip this image
+                        }
+                    } else {
+                        // If no public domain configured and URL is localhost-like, skip it
+                        if (strpos($secure_url, 'localhost') !== false || strpos($secure_url, '127.0.0.1') !== false || substr(parse_url($secure_url, PHP_URL_HOST) ?: '', -6) === '.local') {
+                            if (defined('WP_DEBUG') && WP_DEBUG) {
+                                error_log('GunBroker: Skipping non-public image URL (configure gunbroker_public_domain setting): ' . $secure_url);
+                            }
+                            continue;
                         }
                     }
                     
@@ -789,6 +838,48 @@ class GunBroker_API {
             return $result;
         }
         return $result;
+    }
+
+    /**
+     * Try to find an existing listing for this seller by SKU (MfgPartNumber) or keyword
+     */
+    public function find_existing_listing_by_sku($sku) {
+        if (empty($sku)) {
+            return null;
+        }
+        // Authenticate to ensure we can query
+        $username = get_option('gunbroker_username');
+        $password = get_option('gunbroker_password');
+        $auth_result = $this->authenticate($username, $password);
+        if (is_wp_error($auth_result)) {
+            return null;
+        }
+
+        // Use ItemsSelling to scan current listings; fallback to Items search
+        $selling = $this->make_request('ItemsSelling?PageSize=100');
+        if (!is_wp_error($selling) && isset($selling['results']) && is_array($selling['results'])) {
+            foreach ($selling['results'] as $item) {
+                $mfg = $item['mfgPartNumber'] ?? $item['MfgPartNumber'] ?? '';
+                $title = $item['title'] ?? $item['Title'] ?? '';
+                if (strcasecmp($mfg, $sku) === 0 || stripos($title, $sku) !== false) {
+                    return $item['itemID'] ?? $item['ItemID'] ?? null;
+                }
+            }
+        }
+
+        // Fallback search by keyword
+        $result = $this->search_listings(array('Keywords' => $sku));
+        if (!is_wp_error($result) && isset($result['results']) && is_array($result['results'])) {
+            foreach ($result['results'] as $item) {
+                $mfg = $item['mfgPartNumber'] ?? $item['MfgPartNumber'] ?? '';
+                $title = $item['title'] ?? $item['Title'] ?? '';
+                if (strcasecmp($mfg, $sku) === 0 || stripos($title, $sku) !== false) {
+                    return $item['itemID'] ?? $item['ItemID'] ?? null;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

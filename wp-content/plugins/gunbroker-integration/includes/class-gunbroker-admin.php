@@ -6,6 +6,8 @@ class GunBroker_Admin {
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('add_meta_boxes', array($this, 'add_product_meta_boxes'));
         add_action('save_post', array($this, 'save_product_meta'));
+        // After creating or updating a product, redirect to GunBroker listings page
+        add_filter('redirect_post_location', array($this, 'redirect_after_product_save'), 10, 2);
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
         add_action('wp_ajax_gunbroker_test_connection', array($this, 'test_connection_ajax'));
         add_action('wp_ajax_gunbroker_sync_product', array($this, 'sync_product_ajax'));
@@ -229,9 +231,8 @@ class GunBroker_Admin {
             return;
         }
 
-        // Save GunBroker settings
-        $enabled = isset($_POST['gunbroker_enabled']) ? 'yes' : 'no';
-        update_post_meta($post_id, '_gunbroker_enabled', $enabled);
+        // Always enable GunBroker sync for all products
+        update_post_meta($post_id, '_gunbroker_enabled', 'yes');
 
         if (isset($_POST['gunbroker_custom_title'])) {
             update_post_meta($post_id, '_gunbroker_custom_title', sanitize_text_field($_POST['gunbroker_custom_title']));
@@ -244,7 +245,8 @@ class GunBroker_Admin {
         // New: save per-product listing options
         $bool_keys = array(
             '_gunbroker_returns_accepted' => 'gunbroker_returns_accepted',
-            '_gunbroker_will_ship_international' => 'gunbroker_will_ship_international'
+            '_gunbroker_will_ship_international' => 'gunbroker_will_ship_international',
+            '_gunbroker_use_default_taxes' => 'gunbroker_use_default_taxes'
         );
         foreach ($bool_keys as $meta_key => $post_key) {
             update_post_meta($post_id, $meta_key, isset($_POST[$post_key]) ? '1' : '0');
@@ -257,7 +259,9 @@ class GunBroker_Admin {
             '_gunbroker_seller_city' => 'gunbroker_seller_city',
             '_gunbroker_seller_state' => 'gunbroker_seller_state',
             '_gunbroker_seller_postal' => 'gunbroker_seller_postal',
-            '_gunbroker_contact_phone' => 'gunbroker_contact_phone'
+            '_gunbroker_contact_phone' => 'gunbroker_contact_phone',
+            '_gunbroker_condition' => 'gunbroker_condition',
+            '_gunbroker_inspection_period' => 'gunbroker_inspection_period'
         );
         foreach ($scalar_map as $meta_key => $post_key) {
             if (isset($_POST[$post_key]) && $_POST[$post_key] !== '') {
@@ -292,11 +296,44 @@ class GunBroker_Admin {
             delete_post_meta($post_id, '_gunbroker_shipping_methods');
         }
 
-        // If enabled, queue for sync
-        if ($enabled === 'yes') {
+        // Pricing & duration and other fields
+        $simple_map = array(
+            '_gunbroker_listing_duration' => 'gunbroker_listing_duration',
+            '_gunbroker_listing_type' => 'gunbroker_listing_type',
+            '_gunbroker_quantity' => 'gunbroker_quantity',
+            '_gunbroker_fixed_price' => 'gunbroker_fixed_price',
+            '_gunbroker_inspection_period' => 'gunbroker_inspection_period',
+            '_gunbroker_schedule_date' => 'gunbroker_schedule_date',
+            '_gunbroker_schedule_time' => 'gunbroker_schedule_time',
+            '_gunbroker_shipping_profile_id' => 'gunbroker_shipping_profile_id',
+            '_gunbroker_serial_number' => 'gunbroker_serial_number'
+        );
+        foreach ($simple_map as $meta_key => $post_key) {
+            if (isset($_POST[$post_key]) && $_POST[$post_key] !== '') {
+                update_post_meta($post_id, $meta_key, sanitize_text_field($_POST[$post_key]));
+            } else {
+                delete_post_meta($post_id, $meta_key);
+            }
+        }
+
+        // Always queue for sync (all products are now auto-synced)
+        if (true) {
             $sync = new GunBroker_Sync();
             $sync->queue_product_sync($post_id);
         }
+    }
+
+    /**
+     * Redirect to GunBroker listings page after saving/creating a product
+     */
+    public function redirect_after_product_save($location, $post_id) {
+        if (get_post_type($post_id) === 'product') {
+            // Only redirect on standard save/update actions in admin
+            if (!isset($_POST['action']) || in_array($_POST['action'], array('editpost', 'post'))) {
+                $location = admin_url('admin.php?page=gunbroker-integration');
+            }
+        }
+        return $location;
     }
 
     /**

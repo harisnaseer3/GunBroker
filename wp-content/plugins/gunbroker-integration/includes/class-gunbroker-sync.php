@@ -4,6 +4,7 @@ class GunBroker_Sync {
 
     public function __construct() {
         // Hook into WooCommerce product events
+        add_action('woocommerce_new_product', array($this, 'on_product_created'));
         add_action('woocommerce_update_product', array($this, 'on_product_updated'));
         add_action('woocommerce_product_set_stock', array($this, 'on_stock_changed'));
 
@@ -66,12 +67,7 @@ class GunBroker_Sync {
             return new WP_Error('invalid_product', 'Product not found');
         }
 
-        // Check if GunBroker sync is enabled for this product
-        $enabled = get_post_meta($product_id, '_gunbroker_enabled', true);
-        if ($enabled !== 'yes') {
-            error_log('GunBroker: Sync not enabled for product: ' . $product_id);
-            return new WP_Error('sync_disabled', 'GunBroker sync not enabled for this product');
-        }
+        // All products are now auto-synced (checkbox removed)
 
         // Check if plugin is configured
         $settings = new GunBroker_Settings();
@@ -132,9 +128,23 @@ class GunBroker_Sync {
                 $action = 'update';
             } else {
                 // Create new listing
-                // Creating new listing
-                $result = $api->create_listing($listing_data);
-                $action = 'create';
+                // Before creating, try to detect if a listing already exists on GunBroker by SKU
+                $sku = $product->get_sku();
+                if ($sku) {
+                    $maybe_existing_id = $api->find_existing_listing_by_sku($sku);
+                    if ($maybe_existing_id) {
+                        // Link to existing instead of creating duplicate
+                        $this->save_listing_id($product_id, $maybe_existing_id);
+                        $result = $api->update_listing($maybe_existing_id, $listing_data);
+                        $action = 'update';
+                    } else {
+                        $result = $api->create_listing($listing_data);
+                        $action = 'create';
+                    }
+                } else {
+                    $result = $api->create_listing($listing_data);
+                    $action = 'create';
+                }
             }
 
             if (is_wp_error($result)) {
@@ -181,36 +191,38 @@ class GunBroker_Sync {
     }
 
     /**
+     * Handle new product creation
+     */
+    public function on_product_created($product_id) {
+        error_log('GunBroker: New product created, queuing sync: ' . $product_id);
+        $this->queue_product_sync($product_id);
+    }
+
+    /**
      * Handle product updates
      */
     public function on_product_updated($product_id) {
-        $enabled = get_post_meta($product_id, '_gunbroker_enabled', true);
-        if ($enabled === 'yes') {
-            error_log('GunBroker: Product updated, queuing sync: ' . $product_id);
-            $this->queue_product_sync($product_id);
-        }
+        error_log('GunBroker: Product updated, queuing sync: ' . $product_id);
+        $this->queue_product_sync($product_id);
     }
 
     /**
      * Handle stock changes - key feature for client
      */
     public function on_stock_changed($product) {
-        $enabled = get_post_meta($product->get_id(), '_gunbroker_enabled', true);
-        if ($enabled === 'yes') {
-            $auto_end = get_option('gunbroker_auto_end_zero_stock', true);
-            $stock_qty = $product->get_stock_quantity();
+        $auto_end = get_option('gunbroker_auto_end_zero_stock', true);
+        $stock_qty = $product->get_stock_quantity();
 
-            error_log('GunBroker: Stock changed for product ' . $product->get_id() . ' to: ' . $stock_qty);
+        error_log('GunBroker: Stock changed for product ' . $product->get_id() . ' to: ' . $stock_qty);
 
-            // If stock is 0 and auto-end is enabled, end the listing
-            if ($stock_qty <= 0 && $auto_end) {
-                error_log('GunBroker: Stock is 0, ending listing for product: ' . $product->get_id());
-                $this->end_listing_if_out_of_stock($product->get_id());
-            } else {
-                // Update inventory on GunBroker
-                error_log('GunBroker: Updating inventory for product: ' . $product->get_id());
-                $this->queue_product_sync($product->get_id());
-            }
+        // If stock is 0 and auto-end is enabled, end the listing
+        if ($stock_qty <= 0 && $auto_end) {
+            error_log('GunBroker: Stock is 0, ending listing for product: ' . $product->get_id());
+            $this->end_listing_if_out_of_stock($product->get_id());
+        } else {
+            // Update inventory on GunBroker
+            error_log('GunBroker: Updating inventory for product: ' . $product->get_id());
+            $this->queue_product_sync($product->get_id());
         }
     }
 
@@ -220,12 +232,10 @@ class GunBroker_Sync {
     public function sync_all_inventory() {
         error_log('GunBroker: Starting bulk inventory sync');
 
-        // Get all products with GunBroker sync enabled
+        // Get all published products (all are now auto-synced)
         $products = get_posts(array(
             'post_type' => 'product',
             'posts_per_page' => -1,
-            'meta_key' => '_gunbroker_enabled',
-            'meta_value' => 'yes',
             'post_status' => 'publish'
         ));
 
