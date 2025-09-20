@@ -68,19 +68,14 @@
             <div style="background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
                 <h4 style="margin: 0 0 12px 0; color: #333; font-size: 13px;">Product Condition & Policies</h4>
                 <p style="margin: 0 0 10px 0;">
-                    <label style="margin-right: 20px;">Condition: 
-                        <select name="gunbroker_condition" style="margin-left: 5px;">
-                            <option value="">Use default</option>
-                            <option value="1" <?php selected($gb_condition, '1'); ?>>New</option>
-                            <option value="2" <?php selected($gb_condition, '2'); ?>>Used - Like New</option>
-                            <option value="3" <?php selected($gb_condition, '3'); ?>>Used - Very Good</option>
-                            <option value="4" <?php selected($gb_condition, '4'); ?>>Used - Good</option>
-                            <option value="5" <?php selected($gb_condition, '5'); ?>>Used - Fair</option>
-                            <option value="6" <?php selected($gb_condition, '6'); ?>>Used - Poor</option>
-                            <option value="7" <?php selected($gb_condition, '7'); ?>>Refurbished</option>
-                            <option value="8" <?php selected($gb_condition, '8'); ?>>For Parts/Not Working</option>
-                        </select>
-                    </label>
+                            <label style="margin-right: 20px;">Condition: 
+                                <select name="gunbroker_condition" style="margin-left: 5px;">
+                                    <option value="">Use default</option>
+                                    <option value="1" <?php selected($gb_condition, '1'); ?>>Factory New</option>
+                                    <option value="2" <?php selected($gb_condition, '2'); ?>>New Old Stock</option>
+                                    <option value="3" <?php selected($gb_condition, '3'); ?>>Used</option>
+                                </select>
+                            </label>
                     <label>Inspection Period: 
                         <select name="gunbroker_inspection_period" style="margin-left: 5px;">
                             <option value="">Use default</option>
@@ -214,7 +209,7 @@
             result.html('');
 
             $.ajax({
-                url: ajaxurl,
+                url: '<?php echo admin_url('admin-ajax.php'); ?>',
                 type: 'POST',
                 data: {
                     action: 'gunbroker_sync_product',
@@ -245,8 +240,9 @@
         loadTopLevelCategories();
         
         function loadTopLevelCategories() {
+            console.log('Loading top level categories...');
             $.ajax({
-                url: ajaxurl,
+                url: '<?php echo admin_url('admin-ajax.php'); ?>',
                 type: 'POST',
                 data: {
                     action: 'gunbroker_get_top_categories',
@@ -257,26 +253,49 @@
                     if (response.success) {
                         console.log('Categories data:', response.data);
                         populateCategorySelect(response.data, '');
-                        // Set selected value if exists
+                        // Set selected value if exists, otherwise default to Guns & Firearms
                         const selectedValue = '<?php echo esc_js($category); ?>';
                         if (selectedValue) {
                             $('#gunbroker_category').val(selectedValue);
+                        } else {
+                            // Default to Guns & Firearms category (851) for new products
+                            $('#gunbroker_category').val('851');
+                            // Auto-load subcategories for Guns & Firearms to find Rifles, then Semi Auto Rifles
+                            loadSubcategories('851');
                         }
                     } else {
-                        $('#gunbroker_category').html('<option value="">Error loading categories</option>');
+                        console.error('Error loading categories:', response.data);
+                        $('#gunbroker_category').html('<option value="">Error loading categories: ' + (response.data || 'Unknown error') + '</option>');
                     }
                 },
-                error: function() {
-                    $('#gunbroker_category').html('<option value="">Error loading categories</option>');
+                error: function(xhr, status, error) {
+                    console.error('AJAX error loading categories:', status, error, xhr.responseText);
+                    let errorMessage = 'Error loading categories: ' + error;
+                    if (xhr.status === 403) {
+                        errorMessage = 'Authentication error (403). Please check your GunBroker credentials in Settings and test the connection.';
+                    } else if (xhr.status === 401) {
+                        errorMessage = 'Unauthorized (401). Please check your GunBroker credentials in Settings and test the connection.';
+                    } else if (xhr.responseText) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            if (response.data) {
+                                errorMessage = 'Error: ' + response.data;
+                            }
+                        } catch (e) {
+                            // Use default error message
+                        }
+                    }
+                    $('#gunbroker_category').html('<option value="">' + errorMessage + '</option>');
                 }
             });
         }
         
         function loadSubcategories(parentId) {
+            console.log('Loading subcategories for parent ID:', parentId);
             $('#category-loading').show();
             
             $.ajax({
-                url: ajaxurl,
+                url: '<?php echo admin_url('admin-ajax.php'); ?>',
                 type: 'POST',
                 data: {
                     action: 'gunbroker_get_subcategories',
@@ -285,6 +304,7 @@
                 },
                 success: function(response) {
                     $('#category-loading').hide();
+                    console.log('Subcategories response for parent', parentId, ':', response);
                     if (response.success && response.data.length > 0) {
                         // Add subcategories to the stack
                         categoryStack.push({
@@ -294,10 +314,71 @@
                         
                         // Update the select with current level
                         updateCategorySelect();
+                        
+                        // Handle multi-level category loading for Guns & Firearms → Rifles → Semi Auto Rifles
+                        if (parentId === '851') {
+                            console.log('Loading Guns & Firearms subcategories:', response.data);
+                            // First level: Find "Rifles" in Guns & Firearms subcategories
+                            const riflesCategory = response.data.find(cat => 
+                                (cat.name && cat.name.toLowerCase().includes('rifle')) ||
+                                (cat.categoryName && cat.categoryName.toLowerCase().includes('rifle'))
+                            );
+                            console.log('Found Rifles category:', riflesCategory);
+                            if (riflesCategory) {
+                                // Load subcategories of Rifles to find Semi Auto Rifles
+                                loadSubcategories(riflesCategory.id || riflesCategory.categoryID);
+                            }
+                        } else if (response.data.length > 0 && response.data[0].name && response.data[0].name.toLowerCase().includes('rifle')) {
+                            console.log('Loading Rifles subcategories:', response.data);
+                            // Second level: Find "Semi Auto Rifles" in Rifles subcategories
+                            const semiAutoRifles = response.data.find(cat => {
+                                const name = (cat.name || cat.categoryName || '').toLowerCase();
+                                const categoryPath = (cat.categoryPath || cat.CategoryPath || '').toLowerCase();
+                                
+                                // Check both name and category path for "semi auto rifle"
+                                return (name.includes('semi') && name.includes('auto') && name.includes('rifle')) ||
+                                       categoryPath.includes('semi auto rifle');
+                            });
+                            console.log('Found Semi Auto Rifles category:', semiAutoRifles);
+                            if (semiAutoRifles) {
+                                const categoryId = semiAutoRifles.id || semiAutoRifles.categoryID;
+                                $('#gunbroker_category').val(categoryId);
+                                console.log('Selected Semi Auto Rifles with ID:', categoryId);
+                            } else {
+                                console.log('Semi Auto Rifles not found in subcategories. Available categories:', response.data.map(cat => ({
+                                    id: cat.id || cat.categoryID,
+                                    name: cat.name || cat.categoryName,
+                                    path: cat.categoryPath || cat.CategoryPath
+                                })));
+                                
+                                // Fallback: Look for any category containing "semi" and "rifle"
+                                const fallbackSemiRifle = response.data.find(cat => {
+                                    const name = (cat.name || cat.categoryName || '').toLowerCase();
+                                    return name.includes('semi') && name.includes('rifle');
+                                });
+                                
+                                if (fallbackSemiRifle) {
+                                    const categoryId = fallbackSemiRifle.id || fallbackSemiRifle.categoryID;
+                                    $('#gunbroker_category').val(categoryId);
+                                    console.log('Selected fallback semi-rifle category with ID:', categoryId, 'Name:', fallbackSemiRifle.name || fallbackSemiRifle.categoryName);
+                                }
+                            }
+                        }
+                    } else {
+                        console.error('Error loading subcategories:', response.data);
+                        $('#category-loading').hide();
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
+                    console.error('AJAX error loading subcategories:', status, error, xhr.responseText);
                     $('#category-loading').hide();
+                    let errorMessage = 'Error loading subcategories: ' + error;
+                    if (xhr.status === 403) {
+                        errorMessage = 'Authentication error (403). Please check your GunBroker credentials in Settings and test the connection.';
+                    } else if (xhr.status === 401) {
+                        errorMessage = 'Unauthorized (401). Please check your GunBroker credentials in Settings and test the connection.';
+                    }
+                    console.error(errorMessage);
                 }
             });
         }

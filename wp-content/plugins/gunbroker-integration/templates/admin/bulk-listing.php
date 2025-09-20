@@ -647,31 +647,56 @@
         loadBulkTopLevelCategories();
         
         function loadBulkTopLevelCategories() {
+            console.log('Loading top level categories for bulk listing...');
             $.ajax({
-                url: ajaxurl,
+                url: '<?php echo admin_url('admin-ajax.php'); ?>',
                 type: 'POST',
                 data: {
                     action: 'gunbroker_get_top_categories',
                     nonce: '<?php echo wp_create_nonce("gunbroker_ajax_nonce"); ?>'
                 },
                 success: function(response) {
+                    console.log('Bulk categories response:', response);
                     if (response.success) {
+                        console.log('Bulk categories data:', response.data);
                         populateBulkCategorySelect(response.data, '');
+                        // Default to Guns & Firearms category (851) for bulk listing
+                        $('#bulk-category').val('851');
+                        // Auto-load subcategories for Guns & Firearms to find Rifles, then Semi Auto Rifles
+                        loadBulkSubcategories('851');
                     } else {
-                        $('#bulk-category').html('<option value="">Error loading categories</option>');
+                        console.error('Error loading bulk categories:', response.data);
+                        $('#bulk-category').html('<option value="">Error loading categories: ' + (response.data || 'Unknown error') + '</option>');
                     }
                 },
-                error: function() {
-                    $('#bulk-category').html('<option value="">Error loading categories</option>');
+                error: function(xhr, status, error) {
+                    console.error('AJAX error loading bulk categories:', status, error, xhr.responseText);
+                    let errorMessage = 'Error loading categories: ' + error;
+                    if (xhr.status === 403) {
+                        errorMessage = 'Authentication error (403). Please check your GunBroker credentials in Settings and test the connection.';
+                    } else if (xhr.status === 401) {
+                        errorMessage = 'Unauthorized (401). Please check your GunBroker credentials in Settings and test the connection.';
+                    } else if (xhr.responseText) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            if (response.data) {
+                                errorMessage = 'Error: ' + response.data;
+                            }
+                        } catch (e) {
+                            // Use default error message
+                        }
+                    }
+                    $('#bulk-category').html('<option value="">' + errorMessage + '</option>');
                 }
             });
         }
         
         function loadBulkSubcategories(parentId) {
+            console.log('Loading bulk subcategories for parent ID:', parentId);
             $('#bulk-category-loading').show();
             
             $.ajax({
-                url: ajaxurl,
+                url: '<?php echo admin_url('admin-ajax.php'); ?>',
                 type: 'POST',
                 data: {
                     action: 'gunbroker_get_subcategories',
@@ -680,6 +705,7 @@
                 },
                 success: function(response) {
                     $('#bulk-category-loading').hide();
+                    console.log('Bulk subcategories response for parent', parentId, ':', response);
                     if (response.success && response.data.length > 0) {
                         // Add subcategories to the stack
                         bulkCategoryStack.push({
@@ -689,10 +715,71 @@
                         
                         // Update the select with current level
                         updateBulkCategorySelect();
+                        
+                        // Handle multi-level category loading for Guns & Firearms → Rifles → Semi Auto Rifles
+                        if (parentId === '851') {
+                            console.log('Loading Guns & Firearms subcategories for bulk:', response.data);
+                            // First level: Find "Rifles" in Guns & Firearms subcategories
+                            const riflesCategory = response.data.find(cat => 
+                                (cat.name && cat.name.toLowerCase().includes('rifle')) ||
+                                (cat.categoryName && cat.categoryName.toLowerCase().includes('rifle'))
+                            );
+                            console.log('Found Rifles category for bulk:', riflesCategory);
+                            if (riflesCategory) {
+                                // Load subcategories of Rifles to find Semi Auto Rifles
+                                loadBulkSubcategories(riflesCategory.id || riflesCategory.categoryID);
+                            }
+                        } else if (response.data.length > 0 && response.data[0].name && response.data[0].name.toLowerCase().includes('rifle')) {
+                            console.log('Loading Rifles subcategories for bulk:', response.data);
+                            // Second level: Find "Semi Auto Rifles" in Rifles subcategories
+                            const semiAutoRifles = response.data.find(cat => {
+                                const name = (cat.name || cat.categoryName || '').toLowerCase();
+                                const categoryPath = (cat.categoryPath || cat.CategoryPath || '').toLowerCase();
+                                
+                                // Check both name and category path for "semi auto rifle"
+                                return (name.includes('semi') && name.includes('auto') && name.includes('rifle')) ||
+                                       categoryPath.includes('semi auto rifle');
+                            });
+                            console.log('Found Semi Auto Rifles category for bulk:', semiAutoRifles);
+                            if (semiAutoRifles) {
+                                const categoryId = semiAutoRifles.id || semiAutoRifles.categoryID;
+                                $('#bulk-category').val(categoryId);
+                                console.log('Selected Semi Auto Rifles for bulk with ID:', categoryId);
+                            } else {
+                                console.log('Semi Auto Rifles not found in bulk subcategories. Available categories:', response.data.map(cat => ({
+                                    id: cat.id || cat.categoryID,
+                                    name: cat.name || cat.categoryName,
+                                    path: cat.categoryPath || cat.CategoryPath
+                                })));
+                                
+                                // Fallback: Look for any category containing "semi" and "rifle"
+                                const fallbackSemiRifle = response.data.find(cat => {
+                                    const name = (cat.name || cat.categoryName || '').toLowerCase();
+                                    return name.includes('semi') && name.includes('rifle');
+                                });
+                                
+                                if (fallbackSemiRifle) {
+                                    const categoryId = fallbackSemiRifle.id || fallbackSemiRifle.categoryID;
+                                    $('#bulk-category').val(categoryId);
+                                    console.log('Selected fallback semi-rifle category for bulk with ID:', categoryId, 'Name:', fallbackSemiRifle.name || fallbackSemiRifle.categoryName);
+                                }
+                            }
+                        }
+                    } else {
+                        console.error('Error loading bulk subcategories:', response.data);
+                        $('#bulk-category-loading').hide();
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
+                    console.error('AJAX error loading bulk subcategories:', status, error, xhr.responseText);
                     $('#bulk-category-loading').hide();
+                    let errorMessage = 'Error loading subcategories: ' + error;
+                    if (xhr.status === 403) {
+                        errorMessage = 'Authentication error (403). Please check your GunBroker credentials in Settings and test the connection.';
+                    } else if (xhr.status === 401) {
+                        errorMessage = 'Unauthorized (401). Please check your GunBroker credentials in Settings and test the connection.';
+                    }
+                    console.error(errorMessage);
                 }
             });
         }

@@ -515,23 +515,34 @@ class GunBroker_API {
             $description = 'No description available';
         }
 
-        // Get category - use parameter, product-specific, or default
+        // Get category - use parameter, product-specific, WooCommerce category, or default
         if ($category_id === null) {
-        $category_id = get_post_meta($product->get_id(), '_gunbroker_category', true);
-        if (empty($category_id)) {
-            $category_id = get_option('gunbroker_default_category', 3022); // Default firearms category
+            $category_id = get_post_meta($product->get_id(), '_gunbroker_category', true);
+            if (empty($category_id)) {
+                // Check if the product's WooCommerce category has a GunBroker category set
+                $product_categories = wp_get_post_terms($product->get_id(), 'product_cat');
+                if (!empty($product_categories) && !is_wp_error($product_categories)) {
+                    foreach ($product_categories as $category) {
+                        $wc_category_gunbroker_id = get_term_meta($category->term_id, 'gunbroker_category', true);
+                        if (!empty($wc_category_gunbroker_id)) {
+                            $category_id = $wc_category_gunbroker_id;
+                            break; // Use the first category with a GunBroker mapping
+                        }
+                    }
+                }
+                
+                // If still no category found, use default
+                if (empty($category_id)) {
+                    $category_id = get_option('gunbroker_default_category', 851); // Default to Guns & Firearms category
+                }
             }
         }
 
-        // Get condition - use product-specific or default
-        // GunBroker condition mapping: 1=新品未使用, 2=未使用に近い, 3=目立った傷や汚れなし, 4=やや傷や汚れあり, 5=傷や汚れあり, 6=全体的に状態が悪い
-        $condition = get_post_meta($product->get_id(), '_gunbroker_condition', true);
-        if (empty($condition)) {
-            $condition = 1; // Default to 新品未使用 (New, unused)
+        // Get condition - use product-specific or default to Factory New
+        $condition = intval(get_post_meta($product->get_id(), '_gunbroker_condition', true));
+        if ($condition < 1 || $condition > 3) {
+            $condition = 1; // Default to Factory New
         }
-        
-        // Ensure condition is within valid range
-        $condition = max(1, min(8, intval($condition)));
         
         // Get inspection period
         $inspection_period = get_post_meta($product->get_id(), '_gunbroker_inspection_period', true);
@@ -561,15 +572,15 @@ class GunBroker_API {
         $auto_relist = get_post_meta($product->get_id(), '_gunbroker_auto_relist', true);
         $auto_relist = $auto_relist !== '' ? intval($auto_relist) : intval(get_option('gunbroker_auto_relist', 1));
         $who_pays_shipping = get_post_meta($product->get_id(), '_gunbroker_who_pays_shipping', true);
-        $who_pays_shipping = $who_pays_shipping !== '' ? intval($who_pays_shipping) : intval(get_option('gunbroker_who_pays_shipping', 2));
-        
-        // Map form values to GunBroker API values
-        // Form: 1=Buyer pays, 2=Seller pays
-        // GunBroker API: 2=Buyer pays, 3=Seller pays (based on error message)
+        $who_pays_shipping = $who_pays_shipping !== '' ? intval($who_pays_shipping) : intval(get_option('gunbroker_who_pays_shipping', 4));
+
+        // Map UI → GunBroker values per docs
+        // UI stored values (legacy): 1=Buyer pays, 2=Seller pays
+        // GunBroker API: 2=Seller pays, 4=Buyer pays actual, 8=Buyer pays fixed, 16=Use profile
         if ($who_pays_shipping === 1) {
-            $who_pays_shipping = 2; // Buyer pays
+            $who_pays_shipping = 4; // default buyer pays (actual) when our UI records "Buyer pays"
         } elseif ($who_pays_shipping === 2) {
-            $who_pays_shipping = 3; // Seller pays
+            $who_pays_shipping = 2; // seller pays
         }
         $seller_state = get_post_meta($product->get_id(), '_gunbroker_seller_state', true);
         if ($seller_state === '') { $seller_state = get_option('gunbroker_seller_state', ''); }
@@ -602,6 +613,35 @@ class GunBroker_API {
 
         $serial_number = get_post_meta($product->get_id(), '_gunbroker_serial_number', true);
 
+        // Resolve identifiers
+        $sku_value = $product->get_sku();
+        $mpn_value = get_post_meta($product->get_id(), '_gunbroker_mpn', true);
+        // Common meta keys where merchants store UPC/GTIN
+        $upc_value = get_post_meta($product->get_id(), '_upc', true);
+        if ($upc_value === '') { $upc_value = get_post_meta($product->get_id(), '_wc_upc', true); }
+        if ($upc_value === '') { $upc_value = get_post_meta($product->get_id(), '_barcode', true); }
+        if ($upc_value === '') { $upc_value = get_post_meta($product->get_id(), '_gtin', true); }
+
+        // Weight mapping (WooCommerce stores weight with unit setting)
+        $wc_weight = (float) $product->get_weight();
+        $wc_weight_unit = get_option('woocommerce_weight_unit', 'kg');
+        $gb_weight = null; // decimal
+        $gb_weight_unit = null; // 1 pounds, 2 kilograms
+        if ($wc_weight > 0) {
+            switch (strtolower($wc_weight_unit)) {
+                case 'lbs':
+                case 'lb':
+                    $gb_weight = $wc_weight; $gb_weight_unit = 1; break;
+                case 'oz':
+                    $gb_weight = $wc_weight / 16.0; $gb_weight_unit = 1; break;
+                case 'g':
+                    $gb_weight = $wc_weight / 1000.0; $gb_weight_unit = 2; break;
+                case 'kg':
+                default:
+                    $gb_weight = $wc_weight; $gb_weight_unit = 2; break;
+            }
+        }
+
         $listing_data = array(
             'Title' => substr($title, 0, 75), // Required: 1-75 chars
             'Description' => substr($description, 0, 8000), // Required: 1-8000 chars
@@ -618,7 +658,9 @@ class GunBroker_API {
             'State' => ($seller_state ?: 'AL'), // Required: string 1-50 chars
             'City' => ($seller_city ?: 'Birmingham'), // Required: string 1-50 chars
             'PostalCode' => ($seller_postal ?: '35173'), // Required: string 1-10 chars
-            'MfgPartNumber' => $product->get_sku() ?: 'N/A', // Required when using IsFFLRequired
+            'MfgPartNumber' => ($mpn_value ?: ($sku_value ?: 'N/A')),
+            'SKU' => ($sku_value ?: null),
+            'UPC' => ($upc_value ?: null),
             'MinBidIncrement' => 0.50, // Optional: decimal
             'ShippingCost' => 0.00, // Optional: decimal
             'ShippingInsurance' => 0.00, // Optional: decimal
@@ -642,6 +684,11 @@ class GunBroker_API {
             ), // Required: object - Supported shipping classes
             'UseDefaultTaxes' => $use_default_taxes // Optional: boolean
         );
+
+        if ($gb_weight && $gb_weight_unit) {
+            $listing_data['Weight'] = (float) $gb_weight;
+            $listing_data['WeightUnit'] = (int) $gb_weight_unit; // 1 pounds, 2 kilograms per docs
+        }
         
         // Add IsFFLRequired field conditionally based on category type
         // Based on testing, certain categories reject IsFFLRequired field
@@ -698,10 +745,24 @@ class GunBroker_API {
             error_log('GunBroker: Full listing data: ' . print_r($listing_data, true));
         }
 
+        // Monetary fields MUST be sent in canonical decimal format (e.g., 2.00)
+        $format_money = function($amount) {
+            return number_format((float)$amount, 2, '.', '');
+        };
+
+        // Normalize monetary values
+        $listing_data['StartingBid'] = $format_money($listing_data['StartingBid']);
+        if (isset($listing_data['ShippingCost'])) {
+            $listing_data['ShippingCost'] = $format_money($listing_data['ShippingCost']);
+        }
+        if (isset($listing_data['ShippingInsurance'])) {
+            $listing_data['ShippingInsurance'] = $format_money($listing_data['ShippingInsurance']);
+        }
+
         // Add BuyNowPrice as optional if you want both auction and buy-now
         $buy_now_enabled = get_option('gunbroker_enable_buy_now', true);
         if ($buy_now_enabled) {
-            $listing_data['BuyNowPrice'] = floatval($gunbroker_price * 1.1); // 10% higher than starting bid
+            $listing_data['BuyNowPrice'] = $format_money($gunbroker_price * 1.10); // 10% higher than starting bid
         }
 
         // Add images to description as secure HTTPS URLs (GunBroker API requirement)

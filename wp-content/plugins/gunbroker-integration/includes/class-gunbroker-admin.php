@@ -22,8 +22,19 @@ class GunBroker_Admin {
         add_action('wp_ajax_gunbroker_test_raw_auth', array($this, 'test_raw_auth_ajax'));
         add_action('wp_ajax_gunbroker_get_subcategories', array($this, 'get_subcategories_ajax'));
         add_action('wp_ajax_gunbroker_get_top_categories', array($this, 'get_top_categories_ajax'));
+        add_action('wp_ajax_gunbroker_get_complete_hierarchy', array($this, 'get_complete_hierarchy_ajax'));
         add_action('wp_ajax_gunbroker_end_listing', array($this, 'end_listing_ajax'));
+        add_action('wp_ajax_gunbroker_update_listing', array($this, 'update_listing_ajax'));
 
+        // Add MPN field in Inventory tab and save it separately from SKU
+        add_action('woocommerce_product_options_sku', array($this, 'add_mpn_field_to_inventory'));
+        add_action('woocommerce_admin_process_product_object', array($this, 'save_mpn_field'));
+        
+        // Add GunBroker category field to WooCommerce product categories
+        add_action('product_cat_add_form_fields', array($this, 'add_gunbroker_category_field'));
+        add_action('product_cat_edit_form_fields', array($this, 'edit_gunbroker_category_field'));
+        add_action('created_product_cat', array($this, 'save_gunbroker_category_field'));
+        add_action('edited_product_cat', array($this, 'save_gunbroker_category_field'));
         // Add product list column
         add_filter('manage_product_posts_columns', array($this, 'add_product_columns'));
         add_action('manage_product_posts_custom_column', array($this, 'populate_product_columns'), 10, 2);
@@ -116,6 +127,36 @@ class GunBroker_Admin {
         }
 
         include_once GUNBROKER_PLUGIN_PATH . 'templates/admin/settings.php';
+    }
+
+    /**
+     * Add MPN field after SKU in the Inventory tab
+     */
+    public function add_mpn_field_to_inventory() {
+        // Render a WooCommerce text input right after SKU field
+        woocommerce_wp_text_input(array(
+            'id' => '_gunbroker_mpn',
+            'label' => __('MPN (Manufacturer Part Number)', 'gunbroker-integration'),
+            'placeholder' => __('e.g. ABC-123', 'gunbroker-integration'),
+            'desc_tip' => true,
+            'description' => __('Used for GunBroker Mfg Part Number. If empty, SKU will be used.', 'gunbroker-integration'),
+            'value' => get_post_meta(get_the_ID(), '_gunbroker_mpn', true),
+        ));
+    }
+
+    /**
+     * Save MPN field when product is saved
+     */
+    public function save_mpn_field($product) {
+        if (!$product instanceof WC_Product) {
+            return;
+        }
+        $mpn = isset($_POST['_gunbroker_mpn']) ? sanitize_text_field(wp_unslash($_POST['_gunbroker_mpn'])) : '';
+        if ($mpn !== '') {
+            update_post_meta($product->get_id(), '_gunbroker_mpn', $mpn);
+        } else {
+            delete_post_meta($product->get_id(), '_gunbroker_mpn');
+        }
     }
 
     /**
@@ -646,6 +687,50 @@ class GunBroker_Admin {
     }
 
     /**
+     * AJAX: Update an existing GunBroker listing for a product
+     */
+    public function update_listing_ajax() {
+        check_ajax_referer('gunbroker_ajax_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+
+        $product_id = intval($_POST['product_id'] ?? 0);
+        if (!$product_id) {
+            wp_send_json_error('Invalid product');
+        }
+
+        $product = wc_get_product($product_id);
+        if (!$product) {
+            wp_send_json_error('Product not found');
+        }
+
+        global $wpdb;
+        $listing_id = $wpdb->get_var($wpdb->prepare(
+            "SELECT gunbroker_id FROM {$wpdb->prefix}gunbroker_listings WHERE product_id = %d",
+            $product_id
+        ));
+
+        if (empty($listing_id)) {
+            wp_send_json_error('No linked GunBroker listing found for this product');
+        }
+
+        $api = new GunBroker_API();
+        $listing_data = $api->prepare_listing_data($product);
+        if (is_wp_error($listing_data)) {
+            wp_send_json_error($listing_data->get_error_message());
+        }
+
+        $result = $api->update_listing($listing_id, $listing_data);
+        if (is_wp_error($result)) {
+            wp_send_json_error($result->get_error_message());
+        }
+
+        wp_send_json_success('Listing updated');
+    }
+
+    /**
      * Get top-level categories via AJAX
      */
     public function get_top_categories_ajax() {
@@ -680,6 +765,22 @@ class GunBroker_Admin {
         }
         
         wp_send_json_success($subcategories);
+    }
+
+    /**
+     * Get complete category hierarchy via AJAX
+     */
+    public function get_complete_hierarchy_ajax() {
+        check_ajax_referer('gunbroker_ajax_nonce', 'nonce');
+        
+        $api = new GunBroker_API();
+        $hierarchy = $api->get_complete_category_hierarchy();
+        
+        if (is_wp_error($hierarchy)) {
+            wp_send_json_error($hierarchy->get_error_message());
+        }
+        
+        wp_send_json_success($hierarchy);
     }
 
     /**
@@ -1437,6 +1538,312 @@ class GunBroker_Admin {
                 // No listing record, create one as not_listed
                 $this->update_product_gunbroker_status($product_id, 'not_listed');
                 error_log("GunBroker Debug: Created listing record for '{$product->get_name()}' - Status: not_listed");
+            }
+        }
+    }
+
+    /**
+     * Add GunBroker category field to new product category form
+     */
+    public function add_gunbroker_category_field() {
+        ?>
+        <div class="form-field">
+            <label for="gunbroker_category">GunBroker Category</label>
+            <div id="category-selection">
+                <select id="gunbroker_category" name="gunbroker_category">
+                    <option value="">Loading categories...</option>
+                </select>
+                <div id="category-loading" style="display: none; color: #666; font-size: 12px; margin-top: 5px;">
+                    Loading subcategories...
+                </div>
+            </div>
+            <p class="description">Select the GunBroker category for products in this WooCommerce category</p>
+        </div>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            // Load categories and auto-select Semi Auto Rifles
+            loadCategoryDropdown();
+            
+            function loadCategoryDropdown() {
+                $.ajax({
+                    url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                    type: 'POST',
+                    data: {
+                        action: 'gunbroker_get_top_categories',
+                        nonce: '<?php echo wp_create_nonce("gunbroker_ajax_nonce"); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            populateCategorySelect(response.data, '');
+                            // Default to Guns & Firearms category (851)
+                            $('#gunbroker_category').val('851');
+                            // Auto-load subcategories for Guns & Firearms to find Rifles, then Semi Auto Rifles
+                            loadSubcategories('851');
+                        } else {
+                            $('#gunbroker_category').html('<option value="">Error loading categories</option>');
+                        }
+                    },
+                    error: function() {
+                        $('#gunbroker_category').html('<option value="">Error loading categories</option>');
+                    }
+                });
+            }
+            
+            function loadSubcategories(parentId) {
+                $('#category-loading').show();
+                
+                $.ajax({
+                    url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                    type: 'POST',
+                    data: {
+                        action: 'gunbroker_get_subcategories',
+                        parent_category_id: parentId,
+                        nonce: '<?php echo wp_create_nonce("gunbroker_ajax_nonce"); ?>'
+                    },
+                    success: function(response) {
+                        $('#category-loading').hide();
+                        if (response.success && response.data.length > 0) {
+                            populateCategorySelect(response.data, '');
+                            
+                            // Handle multi-level category loading for Guns & Firearms → Rifles → Semi Auto Rifles
+                            if (parentId === '851') {
+                                // First level: Find "Rifles" in Guns & Firearms subcategories
+                                const riflesCategory = response.data.find(cat => 
+                                    (cat.name && cat.name.toLowerCase().includes('rifle')) ||
+                                    (cat.categoryName && cat.categoryName.toLowerCase().includes('rifle'))
+                                );
+                                if (riflesCategory) {
+                                    // Load subcategories of Rifles to find Semi Auto Rifles
+                                    loadSubcategories(riflesCategory.id || riflesCategory.categoryID);
+                                }
+                            } else if (response.data.length > 0 && response.data[0].name && response.data[0].name.toLowerCase().includes('rifle')) {
+                                // Second level: Find "Semi Auto Rifles" in Rifles subcategories
+                                const semiAutoRifles = response.data.find(cat => {
+                                    const name = (cat.name || cat.categoryName || '').toLowerCase();
+                                    const categoryPath = (cat.categoryPath || cat.CategoryPath || '').toLowerCase();
+                                    
+                                    return (name.includes('semi') && name.includes('auto') && name.includes('rifle')) ||
+                                           categoryPath.includes('semi auto rifle');
+                                });
+                                if (semiAutoRifles) {
+                                    const categoryId = semiAutoRifles.id || semiAutoRifles.categoryID;
+                                    $('#gunbroker_category').val(categoryId);
+                                }
+                            }
+                        }
+                    },
+                    error: function() {
+                        $('#category-loading').hide();
+                    }
+                });
+            }
+            
+            function populateCategorySelect(categories, prefix = '') {
+                const $select = $('#gunbroker_category');
+                $select.empty();
+                $select.append('<option value="">Select a category...</option>');
+                
+                if (Array.isArray(categories)) {
+                    categories.forEach(function(category, index) {
+                        const categoryId = category.id || category.ID || category.CategoryID;
+                        const categoryName = category.name || category.Name || category.CategoryName || 'Unknown';
+                        $select.append('<option value="' + categoryId + '">' + prefix + categoryName + '</option>');
+                    });
+                }
+            }
+        });
+        </script>
+        <?php
+    }
+
+    /**
+     * Add GunBroker category field to edit product category form
+     */
+    public function edit_gunbroker_category_field($term) {
+        $gunbroker_category = get_term_meta($term->term_id, 'gunbroker_category', true);
+        // Debug: Log the current category value
+        error_log('GunBroker Edit Page - Term ID: ' . $term->term_id . ', Current GunBroker Category: ' . ($gunbroker_category ?: 'NOT SET'));
+        ?>
+        <tr class="form-field">
+            <th scope="row" valign="top">
+                <label for="gunbroker_category">GunBroker Category</label>
+            </th>
+            <td>
+                <div id="category-selection">
+                    <select id="gunbroker_category" name="gunbroker_category">
+                        <option value="">Loading categories...</option>
+                    </select>
+                    <div id="category-loading" style="display: none; color: #666; font-size: 12px; margin-top: 5px;">
+                        Loading subcategories...
+                    </div>
+                </div>
+                    <p class="description">Select the GunBroker category for products in this WooCommerce category</p>
+            </td>
+        </tr>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            console.log('GunBroker category field loaded for edit page');
+            // Load categories and set selected value with a small delay to ensure DOM is ready
+            setTimeout(function() {
+                loadCategoryDropdown();
+            }, 500);
+            
+            function loadCategoryDropdown() {
+                console.log('Loading categories for edit page...');
+                
+                // Check if the dropdown exists
+                if ($('#gunbroker_category').length === 0) {
+                    console.log('GunBroker category dropdown not found, retrying in 500ms...');
+                    setTimeout(loadCategoryDropdown, 500);
+                    return;
+                }
+                
+                $.ajax({
+                    url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                    type: 'POST',
+                    data: {
+                        action: 'gunbroker_get_top_categories',
+                        nonce: '<?php echo wp_create_nonce("gunbroker_ajax_nonce"); ?>'
+                    },
+                    success: function(response) {
+                        console.log('Edit page categories response:', response);
+                        if (response.success) {
+                            populateCategorySelect(response.data, '');
+                            
+                            // Wait a moment for the dropdown to be populated
+                            setTimeout(function() {
+                                // Set selected value if exists
+                                const selectedValue = '<?php echo esc_js($gunbroker_category); ?>';
+                                console.log('Selected value from PHP:', selectedValue);
+                                console.log('Current dropdown options:', $('#gunbroker_category option').length);
+                                
+                                if (selectedValue && selectedValue !== '') {
+                                    // Check if the option exists in the dropdown
+                                    if ($('#gunbroker_category option[value="' + selectedValue + '"]').length > 0) {
+                                        $('#gunbroker_category').val(selectedValue);
+                                        console.log('Set selected value to:', selectedValue);
+                                    } else {
+                                        console.log('Selected value not found in dropdown, loading subcategories to find it');
+                                        // Load subcategories to find the selected category
+                                        loadSubcategories('851');
+                                    }
+                                } else {
+                                    // Default to Guns & Firearms category (851) and load subcategories
+                                    console.log('No selected value, defaulting to Guns & Firearms');
+                                    $('#gunbroker_category').val('851');
+                                    // Auto-load subcategories for Guns & Firearms to find Rifles, then Semi Auto Rifles
+                                    loadSubcategories('851');
+                                }
+                            }, 200);
+                            
+                            // Fallback: If dropdown still shows "Loading categories..." after 2 seconds, retry
+                            setTimeout(function() {
+                                if ($('#gunbroker_category option:first').text() === 'Loading categories...') {
+                                    console.log('Fallback: Retrying category load...');
+                                    loadCategoryDropdown();
+                                }
+                            }, 2000);
+                            
+                            // Additional fallback: If we have a selected value but it's not in the dropdown, try loading subcategories
+                            setTimeout(function() {
+                                const selectedValue = '<?php echo esc_js($gunbroker_category); ?>';
+                                if (selectedValue && selectedValue !== '' && $('#gunbroker_category option[value="' + selectedValue + '"]').length === 0) {
+                                    console.log('Selected value not found in top-level categories, trying to load subcategories...');
+                                    // Try loading subcategories to find the selected category
+                                    loadSubcategories('851');
+                                }
+                            }, 3000);
+                        } else {
+                            console.error('Error loading categories:', response.data);
+                            $('#gunbroker_category').html('<option value="">Error loading categories</option>');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX error loading categories:', status, error);
+                        $('#gunbroker_category').html('<option value="">Error loading categories</option>');
+                    }
+                });
+            }
+            
+            function loadSubcategories(parentId) {
+                $('#category-loading').show();
+                
+                $.ajax({
+                    url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                    type: 'POST',
+                    data: {
+                        action: 'gunbroker_get_subcategories',
+                        parent_category_id: parentId,
+                        nonce: '<?php echo wp_create_nonce("gunbroker_ajax_nonce"); ?>'
+                    },
+                    success: function(response) {
+                        $('#category-loading').hide();
+                        if (response.success && response.data.length > 0) {
+                            populateCategorySelect(response.data, '');
+                            
+                            // Handle multi-level category loading for Guns & Firearms → Rifles → Semi Auto Rifles
+                            if (parentId === '851') {
+                                // First level: Find "Rifles" in Guns & Firearms subcategories
+                                const riflesCategory = response.data.find(cat => 
+                                    (cat.name && cat.name.toLowerCase().includes('rifle')) ||
+                                    (cat.categoryName && cat.categoryName.toLowerCase().includes('rifle'))
+                                );
+                                if (riflesCategory) {
+                                    // Load subcategories of Rifles to find Semi Auto Rifles
+                                    loadSubcategories(riflesCategory.id || riflesCategory.categoryID);
+                                }
+                            } else if (response.data.length > 0 && response.data[0].name && response.data[0].name.toLowerCase().includes('rifle')) {
+                                // Second level: Find "Semi Auto Rifles" in Rifles subcategories
+                                const semiAutoRifles = response.data.find(cat => {
+                                    const name = (cat.name || cat.categoryName || '').toLowerCase();
+                                    const categoryPath = (cat.categoryPath || cat.CategoryPath || '').toLowerCase();
+                                    
+                                    return (name.includes('semi') && name.includes('auto') && name.includes('rifle')) ||
+                                           categoryPath.includes('semi auto rifle');
+                                });
+                                if (semiAutoRifles) {
+                                    const categoryId = semiAutoRifles.id || semiAutoRifles.categoryID;
+                                    $('#gunbroker_category').val(categoryId);
+                                }
+                            }
+                        }
+                    },
+                    error: function() {
+                        $('#category-loading').hide();
+                    }
+                });
+            }
+            
+            function populateCategorySelect(categories, prefix = '') {
+                const $select = $('#gunbroker_category');
+                $select.empty();
+                $select.append('<option value="">Select a category...</option>');
+                
+                if (Array.isArray(categories)) {
+                    categories.forEach(function(category, index) {
+                        const categoryId = category.id || category.ID || category.CategoryID;
+                        const categoryName = category.name || category.Name || category.CategoryName || 'Unknown';
+                        $select.append('<option value="' + categoryId + '">' + prefix + categoryName + '</option>');
+                    });
+                }
+            }
+        });
+        </script>
+        <?php
+    }
+
+    /**
+     * Save GunBroker category field for product category
+     */
+    public function save_gunbroker_category_field($term_id) {
+        if (isset($_POST['gunbroker_category'])) {
+            $gunbroker_category = sanitize_text_field($_POST['gunbroker_category']);
+            if (!empty($gunbroker_category)) {
+                update_term_meta($term_id, 'gunbroker_category', $gunbroker_category);
+            } else {
+                delete_term_meta($term_id, 'gunbroker_category');
             }
         }
     }
