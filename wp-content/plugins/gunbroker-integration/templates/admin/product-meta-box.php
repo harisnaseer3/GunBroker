@@ -170,7 +170,7 @@
                     <option value="">Loading categories...</option>
                 </select>
                 <div id="category-loading" style="display: none; color: #666; font-size: 12px; margin-top: 5px;">
-                    Loading subcategories...
+                    <span class="spinner is-active" style="float: none; margin: 0 5px 0 0;"></span>Loading subcategories...
                 </div>
             </div>
             <p class="description">Select the appropriate GunBroker category</p>
@@ -241,6 +241,10 @@
         
         function loadTopLevelCategories() {
             console.log('Loading top level categories...');
+            // Show loading spinner
+            $('#gunbroker_category').html('<option value="">Loading categories...</option>');
+            $('#category-loading').show().html('<span class="spinner is-active" style="float: none; margin: 0 5px 0 0;"></span>Loading categories...');
+            
             $.ajax({
                 url: '<?php echo admin_url('admin-ajax.php'); ?>',
                 type: 'POST',
@@ -250,6 +254,8 @@
                 },
                 success: function(response) {
                     console.log('Top categories response:', response);
+                    $('#category-loading').hide(); // Hide loading spinner
+                    
                     if (response.success) {
                         console.log('Categories data:', response.data);
                         populateCategorySelect(response.data, '');
@@ -270,6 +276,8 @@
                 },
                 error: function(xhr, status, error) {
                     console.error('AJAX error loading categories:', status, error, xhr.responseText);
+                    $('#category-loading').hide(); // Hide loading spinner
+                    
                     let errorMessage = 'Error loading categories: ' + error;
                     if (xhr.status === 403) {
                         errorMessage = 'Authentication error (403). Please check your GunBroker credentials in Settings and test the connection.';

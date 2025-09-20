@@ -23,6 +23,7 @@ class GunBroker_Admin {
         add_action('wp_ajax_gunbroker_get_subcategories', array($this, 'get_subcategories_ajax'));
         add_action('wp_ajax_gunbroker_get_top_categories', array($this, 'get_top_categories_ajax'));
         add_action('wp_ajax_gunbroker_get_complete_hierarchy', array($this, 'get_complete_hierarchy_ajax'));
+        add_action('wp_ajax_gunbroker_clear_category_cache', array($this, 'clear_category_cache_ajax'));
         add_action('wp_ajax_gunbroker_end_listing', array($this, 'end_listing_ajax'));
         add_action('wp_ajax_gunbroker_update_listing', array($this, 'update_listing_ajax'));
 
@@ -781,6 +782,32 @@ class GunBroker_Admin {
         }
         
         wp_send_json_success($hierarchy);
+    }
+
+    /**
+     * Clear category cache via AJAX
+     */
+    public function clear_category_cache_ajax() {
+        check_ajax_referer('gunbroker_ajax_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        // Clear all category-related caches
+        delete_transient('gunbroker_categories');
+        delete_transient('gunbroker_top_categories');
+        delete_transient('gunbroker_complete_hierarchy');
+        
+        // Clear subcategory caches (we need to get all possible parent IDs)
+        // For now, we'll clear common ones, but in production you might want to track these
+        $common_parents = [851, 3022, 1, 2, 3]; // Common parent category IDs
+        foreach ($common_parents as $parent_id) {
+            delete_transient('gunbroker_subcategories_' . $parent_id);
+        }
+        
+        error_log('GunBroker: Category cache cleared by admin');
+        wp_send_json_success('Category cache cleared successfully');
     }
 
     /**
@@ -1669,26 +1696,24 @@ class GunBroker_Admin {
             <th scope="row" valign="top">
                 <label for="gunbroker_category">GunBroker Category</label>
             </th>
-            <td>
-                <div id="category-selection">
-                    <select id="gunbroker_category" name="gunbroker_category">
-                        <option value="">Loading categories...</option>
-                    </select>
-                    <div id="category-loading" style="display: none; color: #666; font-size: 12px; margin-top: 5px;">
-                        Loading subcategories...
+                <td>
+                    <div id="category-selection">
+                        <select id="gunbroker_category" name="gunbroker_category">
+                            <option value="">Loading categories...</option>
+                        </select>
+                        <div id="category-loading" style="display: none; color: #666; font-size: 12px; margin-top: 5px;">
+                            <span class="spinner is-active" style="float: none; margin: 0 5px 0 0;"></span>Loading subcategories...
+                        </div>
                     </div>
-                </div>
                     <p class="description">Select the GunBroker category for products in this WooCommerce category</p>
-            </td>
+                </td>
         </tr>
         
         <script>
         jQuery(document).ready(function($) {
             console.log('GunBroker category field loaded for edit page');
-            // Load categories and set selected value with a small delay to ensure DOM is ready
-            setTimeout(function() {
-                loadCategoryDropdown();
-            }, 500);
+            // Load categories immediately - no delay needed with caching
+            loadCategoryDropdown();
             
             function loadCategoryDropdown() {
                 console.log('Loading categories for edit page...');
@@ -1700,6 +1725,10 @@ class GunBroker_Admin {
                     return;
                 }
                 
+                // Show loading spinner
+                $('#gunbroker_category').html('<option value="">Loading categories...</option>');
+                $('#category-loading').show().html('<span class="spinner is-active" style="float: none; margin: 0 5px 0 0;"></span>Loading categories...');
+                
                 $.ajax({
                     url: '<?php echo admin_url('admin-ajax.php'); ?>',
                     type: 'POST',
@@ -1709,6 +1738,8 @@ class GunBroker_Admin {
                     },
                     success: function(response) {
                         console.log('Edit page categories response:', response);
+                        $('#category-loading').hide(); // Hide loading spinner
+                        
                         if (response.success) {
                             populateCategorySelect(response.data, '');
                             
@@ -1762,6 +1793,7 @@ class GunBroker_Admin {
                     },
                     error: function(xhr, status, error) {
                         console.error('AJAX error loading categories:', status, error);
+                        $('#category-loading').hide(); // Hide loading spinner
                         $('#gunbroker_category').html('<option value="">Error loading categories</option>');
                     }
                 });

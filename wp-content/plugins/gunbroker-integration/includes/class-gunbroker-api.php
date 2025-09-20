@@ -1058,12 +1058,10 @@ class GunBroker_API {
     public function get_top_level_categories() {
         $this->ensure_authenticated();
         
-        // Clear cache for testing
-        delete_transient('gunbroker_top_categories');
-        
         // Try to get from cache first
         $cached = get_transient('gunbroker_top_categories');
         if ($cached !== false) {
+            error_log('GunBroker: Using cached top-level categories');
             return $cached;
         }
         
@@ -1099,8 +1097,9 @@ class GunBroker_API {
             return strcmp($a['name'], $b['name']);
         });
         
-        // Cache for 1 hour
-        set_transient('gunbroker_top_categories', $top_categories, HOUR_IN_SECONDS);
+        // Cache for 24 hours (categories don't change often)
+        set_transient('gunbroker_top_categories', $top_categories, HOUR_IN_SECONDS * 24);
+        error_log('GunBroker: Cached top-level categories for 24 hours');
         
         return $top_categories;
     }
@@ -1110,6 +1109,14 @@ class GunBroker_API {
      */
     public function get_subcategories($parent_category_id) {
         $this->ensure_authenticated();
+        
+        // Try to get from cache first
+        $cache_key = 'gunbroker_subcategories_' . $parent_category_id;
+        $cached = get_transient($cache_key);
+        if ($cached !== false) {
+            error_log('GunBroker: Using cached subcategories for parent ' . $parent_category_id);
+            return $cached;
+        }
         
         $endpoint = "Categories?ParentCategoryID={$parent_category_id}";
         $result = $this->make_request($endpoint);
@@ -1141,6 +1148,10 @@ class GunBroker_API {
             return strcmp($a['name'], $b['name']);
         });
         
+        // Cache for 24 hours
+        set_transient($cache_key, $normalized_categories, HOUR_IN_SECONDS * 24);
+        error_log('GunBroker: Cached subcategories for parent ' . $parent_category_id . ' for 24 hours');
+        
         return $normalized_categories;
     }
 
@@ -1152,6 +1163,7 @@ class GunBroker_API {
         // Check if we have cached hierarchy
         $cached_hierarchy = get_transient('gunbroker_complete_hierarchy');
         if ($cached_hierarchy !== false) {
+            error_log('GunBroker: Using cached complete hierarchy');
             return $cached_hierarchy;
         }
         
@@ -1276,8 +1288,9 @@ class GunBroker_API {
             'all_categories' => array_values($category_map)
         );
         
-        // Cache the complete hierarchy for 6 hours
-        set_transient('gunbroker_complete_hierarchy', $hierarchy_data, 6 * HOUR_IN_SECONDS);
+        // Cache the complete hierarchy for 24 hours (categories don't change often)
+        set_transient('gunbroker_complete_hierarchy', $hierarchy_data, HOUR_IN_SECONDS * 24);
+        error_log('GunBroker: Cached complete hierarchy for 24 hours');
         
         return $hierarchy_data;
     }

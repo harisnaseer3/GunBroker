@@ -158,6 +158,18 @@ if (isset($_POST['gunbroker_settings_nonce']) && wp_verify_nonce($_POST['gunbrok
                     Click a button above to see debug information...
                 </div>
             </div>
+
+            <!-- CACHE MANAGEMENT -->
+            <div style="background: #e7f3ff; border: 1px solid #b3d9ff; padding: 20px; margin: 20px 0;">
+                <h3>Category Cache Management</h3>
+                <p style="margin: 0 0 15px 0; color: #666;">
+                    Categories are cached for 24 hours to improve performance. Clear cache if you need fresh data.
+                </p>
+                <button type="button" id="clear-category-cache" class="button button-secondary">Clear Category Cache</button>
+                <div id="cache-results" style="margin-top: 15px; font-family: monospace; font-size: 12px; background: #f9f9f9; padding: 10px; border: 1px solid #ddd; max-height: 200px; overflow-y: auto; display: none;">
+                    <!-- Cache results will appear here -->
+                </div>
+            </div>
         </div>
 
         <!-- Sidebar -->
@@ -301,6 +313,43 @@ if (isset($_POST['gunbroker_settings_nonce']) && wp_verify_nonce($_POST['gunbrok
                 }
             });
         });
+
+        $('#clear-category-cache').click(function() {
+            clearCategoryCache();
+        });
+
+        function clearCategoryCache() {
+            console.log('Clear category cache clicked');
+            var button = $('#clear-category-cache');
+            var $results = $('#cache-results');
+            
+            button.prop('disabled', true).text('Clearing...');
+            $results.show().html('Clearing category cache...');
+
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'gunbroker_clear_category_cache',
+                    nonce: '<?php echo wp_create_nonce("gunbroker_ajax_nonce"); ?>'
+                },
+                success: function(response) {
+                    console.log('Clear cache response:', response);
+                    if (response.success) {
+                        $results.html('<div style="color: green;">✓ ' + response.data + '</div>');
+                    } else {
+                        $results.html('<div style="color: red;">✗ Error: ' + response.data + '</div>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.log('Clear cache error:', error);
+                    $results.html('<div style="color: red;">✗ Error: ' + error + '</div>');
+                },
+                complete: function() {
+                    button.prop('disabled', false).text('Clear Category Cache');
+                }
+            });
+        }
 
     });
 </script>

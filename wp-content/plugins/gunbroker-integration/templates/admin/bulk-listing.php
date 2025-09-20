@@ -52,7 +52,7 @@
                         <option value="">Loading categories...</option>
                     </select>
                     <div id="bulk-category-loading" style="display: none; color: #666; font-size: 12px; margin-top: 5px;">
-                        Loading subcategories...
+                        <span class="spinner is-active" style="float: none; margin: 0 5px 0 0;"></span>Loading subcategories...
                     </div>
                 </div>
                 <small style="display: block; color: #646970; margin-top: 4px;">Select appropriate category</small>
@@ -648,6 +648,10 @@
         
         function loadBulkTopLevelCategories() {
             console.log('Loading top level categories for bulk listing...');
+            // Show loading spinner
+            $('#bulk-category').html('<option value="">Loading categories...</option>');
+            $('#bulk-category-loading').show().html('<span class="spinner is-active" style="float: none; margin: 0 5px 0 0;"></span>Loading categories...');
+            
             $.ajax({
                 url: '<?php echo admin_url('admin-ajax.php'); ?>',
                 type: 'POST',
@@ -657,6 +661,8 @@
                 },
                 success: function(response) {
                     console.log('Bulk categories response:', response);
+                    $('#bulk-category-loading').hide(); // Hide loading spinner
+                    
                     if (response.success) {
                         console.log('Bulk categories data:', response.data);
                         populateBulkCategorySelect(response.data, '');
@@ -671,6 +677,8 @@
                 },
                 error: function(xhr, status, error) {
                     console.error('AJAX error loading bulk categories:', status, error, xhr.responseText);
+                    $('#bulk-category-loading').hide(); // Hide loading spinner
+                    
                     let errorMessage = 'Error loading categories: ' + error;
                     if (xhr.status === 403) {
                         errorMessage = 'Authentication error (403). Please check your GunBroker credentials in Settings and test the connection.';
