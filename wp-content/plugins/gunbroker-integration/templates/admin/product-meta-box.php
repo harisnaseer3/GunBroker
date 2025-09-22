@@ -4,6 +4,7 @@
             <label for="gunbroker_custom_title">Custom GunBroker Title</label>
         </th>
         <td>
+            <?php if (empty($custom_title)) { $custom_title = 'Springfield Armory Echelon 9mm Optics Ready U-Notch Night Sights EC9459B-U'; } ?>
             <input type="text" id="gunbroker_custom_title" name="gunbroker_custom_title"
                    value="<?php echo esc_attr($custom_title); ?>" class="regular-text" />
             <p class="description">Leave blank to use product title</p>
@@ -12,16 +13,11 @@
 
     <?php
     $gb_returns = get_post_meta($post->ID, '_gunbroker_returns_accepted', true);
-    $gb_international = get_post_meta($post->ID, '_gunbroker_will_ship_international', true);
-    $gb_who_pays = get_post_meta($post->ID, '_gunbroker_who_pays_shipping', true);
-    $gb_auto_relist = get_post_meta($post->ID, '_gunbroker_auto_relist', true);
     $gb_country = get_post_meta($post->ID, '_gunbroker_country', true);
     $gb_state = get_post_meta($post->ID, '_gunbroker_seller_state', true);
     $gb_city = get_post_meta($post->ID, '_gunbroker_seller_city', true);
     $gb_postal = get_post_meta($post->ID, '_gunbroker_seller_postal', true);
     $gb_phone = get_post_meta($post->ID, '_gunbroker_contact_phone', true);
-    $gb_pm = (array) get_post_meta($post->ID, '_gunbroker_payment_methods', true);
-    $gb_sm = (array) get_post_meta($post->ID, '_gunbroker_shipping_methods', true);
     ?>
 
     <tr>
@@ -32,24 +28,7 @@
             <div style="background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
                 <h4 style="margin: 0 0 12px 0; color: #333; font-size: 13px;">Returns & Shipping</h4>
                 <p style="margin: 0 0 10px 0;">
-                    <label style="margin-right: 20px;"><input type="checkbox" name="gunbroker_returns_accepted" value="1" <?php checked($gb_returns, '1'); ?> /> Accept returns</label>
-                    <label><input type="checkbox" name="gunbroker_will_ship_international" value="1" <?php checked($gb_international, '1'); ?> /> Will ship internationally</label>
-                </p>
-                <p style="margin: 0 0 10px 0;">
-                    <label style="margin-right: 20px;">Who pays shipping: 
-                        <select name="gunbroker_who_pays_shipping" style="margin-left: 5px;">
-                            <option value="">Use default</option>
-                            <option value="1" <?php selected($gb_who_pays, '1'); ?>>Buyer pays</option>
-                            <option value="2" <?php selected($gb_who_pays, '2'); ?>>Seller pays</option>
-                        </select>
-                    </label>
-                    <label>Auto relist: 
-                        <select name="gunbroker_auto_relist" style="margin-left: 5px;">
-                            <option value="">Use default</option>
-                            <option value="1" <?php selected($gb_auto_relist, '1'); ?>>Do not relist</option>
-                            <option value="2" <?php selected($gb_auto_relist, '2'); ?>>Relist</option>
-                        </select>
-                    </label>
+                    <label><input type="checkbox" name="gunbroker_returns_accepted" value="1" <?php checked($gb_returns, '1'); ?> /> Accept returns</label>
                 </p>
             </div>
         </td>
@@ -57,8 +36,7 @@
 
     <?php 
     $gb_condition = get_post_meta($post->ID, '_gunbroker_condition', true);
-    $gb_inspection_period = get_post_meta($post->ID, '_gunbroker_inspection_period', true);
-    $gb_use_default_taxes = get_post_meta($post->ID, '_gunbroker_use_default_taxes', true);
+    $gb_use_default_taxes = get_post_meta($post->ID, '_gunbroker_use_default_taxes', true); if ($gb_use_default_taxes === '') { $gb_use_default_taxes = '1'; }
     ?>
     <tr>
         <th scope="row" style="vertical-align: top; padding-top: 15px;">
@@ -70,99 +48,105 @@
                 <p style="margin: 0 0 10px 0;">
                             <label style="margin-right: 20px;">Condition: 
                                 <select name="gunbroker_condition" style="margin-left: 5px;">
-                                    <option value="">Use default</option>
                                     <option value="1" <?php selected($gb_condition, '1'); ?>>Factory New</option>
                                     <option value="2" <?php selected($gb_condition, '2'); ?>>New Old Stock</option>
                                     <option value="3" <?php selected($gb_condition, '3'); ?>>Used</option>
                                 </select>
                             </label>
-                    <label>Inspection Period: 
-                        <select name="gunbroker_inspection_period" style="margin-left: 5px;">
-                            <option value="">Use default</option>
-                            <option value="1" <?php selected($gb_inspection_period, '1'); ?>>1 Day</option>
-                            <option value="3" <?php selected($gb_inspection_period, '3'); ?>>3 Days</option>
-                            <option value="7" <?php selected($gb_inspection_period, '7'); ?>>7 Days</option>
-                            <option value="14" <?php selected($gb_inspection_period, '14'); ?>>14 Days</option>
-                            <option value="30" <?php selected($gb_inspection_period, '30'); ?>>30 Days</option>
+                </p>
+                <p style="margin: 0; display:flex; align-items:center; gap:10px;">
+                    <label>Use default taxes: 
+                        <select name="gunbroker_use_default_taxes" style="margin-left:5px;">
+                            <option value="1" <?php selected($gb_use_default_taxes, '1'); ?>>Yes</option>
+                            <option value="0" <?php selected($gb_use_default_taxes, '0'); ?>>No</option>
                         </select>
                     </label>
                 </p>
-                <p style="margin: 0;">
-                    <label><input type="checkbox" name="gunbroker_use_default_taxes" value="1" <?php checked($gb_use_default_taxes, '1'); ?> /> Use default tax settings</label>
-                    <span class="description" style="margin-left: 10px;">Sales tax collected based on ship to address</span>
-                </p>
             </div>
         </td>
     </tr>
 
     <tr>
         <th scope="row" style="vertical-align: top; padding-top: 15px;">
-            <label>Seller Address</label>
+            <label>Shipping Responsibility</label>
         </th>
         <td style="padding-top: 15px;">
-            <div style="background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
-                <h4 style="margin: 0 0 12px 0; color: #333; font-size: 13px;">Location & Contact</h4>
-                <p style="margin: 0 0 10px 0;">
-                    <label style="margin-right: 15px;">Country (2 letters): 
-                        <input type="text" name="gunbroker_country" value="<?php echo esc_attr($gb_country); ?>" style="width:60px; text-transform:uppercase;" maxlength="2" />
-                    </label>
-                    <label style="margin-right: 15px;">City: 
-                        <input type="text" name="gunbroker_seller_city" value="<?php echo esc_attr($gb_city); ?>" style="width:120px;" />
-                    </label>
-                    <label style="margin-right: 15px;">State: 
-                        <input type="text" name="gunbroker_seller_state" value="<?php echo esc_attr($gb_state); ?>" style="width:80px;" />
-                    </label>
-                    <label style="margin-right: 15px;">Postal: 
-                        <input type="text" name="gunbroker_seller_postal" value="<?php echo esc_attr($gb_postal); ?>" style="width:100px;" />
-                    </label>
-                </p>
-                <p style="margin: 0;">
-                    <label>Contact phone: 
-                        <input type="text" name="gunbroker_contact_phone" value="<?php echo esc_attr($gb_phone); ?>" style="width:150px;" />
-                    </label>
-                </p>
-            </div>
+            <?php $gb_who_pays = get_post_meta($post->ID, '_gunbroker_who_pays_shipping', true); ?>
+            <select name="gunbroker_who_pays_shipping" class="regular-text" style="max-width:280px;">
+                <option value="" <?php selected($gb_who_pays, ''); ?>>Use shipping profile</option>
+                <option value="3" <?php selected($gb_who_pays, '3'); ?>>Seller pays for shipping</option>
+                <option value="2" <?php selected($gb_who_pays, '2'); ?>>Buyer pays actual shipping cost</option>
+                <option value="4" <?php selected($gb_who_pays, '4'); ?>>Buyer pays fixed amount</option>
+            </select>
         </td>
     </tr>
 
     <tr>
         <th scope="row" style="vertical-align: top; padding-top: 15px;">
-            <label>Payment Methods</label>
+            <label>Listing Profile</label>
         </th>
         <td style="padding-top: 15px;">
-            <div style="background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
-                <h4 style="margin: 0 0 12px 0; color: #333; font-size: 13px;">Accepted Payment Methods</h4>
-                <p style="margin: 0 0 8px 0;">
-                    <label style="margin-right: 15px;"><input type="checkbox" name="gunbroker_payment_methods[]" value="Check" <?php checked(in_array('Check', $gb_pm, true)); ?> /> Check</label>
-                    <label style="margin-right: 15px;"><input type="checkbox" name="gunbroker_payment_methods[]" value="MoneyOrder" <?php checked(in_array('MoneyOrder', $gb_pm, true)); ?> /> Money Order</label>
-                    <label style="margin-right: 15px;"><input type="checkbox" name="gunbroker_payment_methods[]" value="CreditCard" <?php checked(in_array('CreditCard', $gb_pm, true)); ?> /> Credit Card</label>
-                </p>
-                <p style="margin: 0;">
-                    <label style="margin-right: 15px;"><input type="checkbox" name="gunbroker_payment_methods[]" value="CertifiedCheck" <?php checked(in_array('CertifiedCheck', $gb_pm, true)); ?> /> Certified Check</label>
-                    <label><input type="checkbox" name="gunbroker_payment_methods[]" value="USPSMoneyOrder" <?php checked(in_array('USPSMoneyOrder', $gb_pm, true)); ?> /> USPS Money Order</label>
-                </p>
-            </div>
+            <?php $gb_listing_type = get_post_meta($post->ID, '_gunbroker_listing_type', true); ?>
+            <select id="gb_listing_type" name="gunbroker_listing_type" class="regular-text" style="max-width: 240px;">
+                <option value="" <?php selected($gb_listing_type, ''); ?>>Default</option>
+                <option value="StartingBid" <?php selected($gb_listing_type, 'StartingBid'); ?>>Auction</option>
+                <option value="FixedPrice" <?php selected($gb_listing_type, 'FixedPrice'); ?>>Fixed Price</option>
+            </select>
+            <p class="description">Choose how this item should be listed on GunBroker. Leave as Default to use the global setting.</p>
         </td>
     </tr>
 
     <tr>
         <th scope="row" style="vertical-align: top; padding-top: 15px;">
-            <label>Shipping Methods</label>
+            <label>International Shipping</label>
         </th>
         <td style="padding-top: 15px;">
-            <div style="background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
-                <h4 style="margin: 0 0 12px 0; color: #333; font-size: 13px;">Available Shipping Options</h4>
-                <p style="margin: 0;">
-                    <label style="margin-right: 20px;"><input type="checkbox" name="gunbroker_shipping_methods[]" value="StandardShipping" <?php checked(in_array('StandardShipping', $gb_sm, true)); ?> /> Standard Shipping</label>
-                    <label><input type="checkbox" name="gunbroker_shipping_methods[]" value="UPSGround" <?php checked(in_array('UPSGround', $gb_sm, true)); ?> /> UPS Ground</label>
-                </p>
+            <?php $gb_international = get_post_meta($post->ID, '_gunbroker_will_ship_international', true); if ($gb_international === '') { $gb_international = '0'; } ?>
+            <select name="gunbroker_will_ship_international" class="regular-text" style="max-width:240px;">
+                <option value="0" <?php selected($gb_international, '0'); ?>>No</option>
+                <option value="1" <?php selected($gb_international, '1'); ?>>Yes</option>
+            </select>
+        </td>
+    </tr>
+
+    <tr>
+        <th scope="row" style="vertical-align: top; padding-top: 15px;">
+            <label>Shipping Profile ID</label>
+        </th>
+        <td style="padding-top: 15px;">
+            <?php $gb_ship_profile = get_post_meta($post->ID, '_gunbroker_shipping_profile_id', true); if ($gb_ship_profile === '') { $gb_ship_profile = 'everything'; } ?>
+            <select name="gunbroker_shipping_profile_id" class="regular-text" style="max-width:300px;">
+                <option value="accessories" <?php selected($gb_ship_profile, 'accessories'); ?>>Accessories $15 +7.5</option>
+                <option value="free_ground" <?php selected($gb_ship_profile, 'free_ground'); ?>>FREE SHIPPING - Ground</option>
+                <option value="everything" <?php selected($gb_ship_profile, 'everything'); ?>>everything</option>
+            </select>
+        </td>
+    </tr>
+
+    <tr>
+        <th scope="row" style="vertical-align: top; padding-top: 15px;">
+            <label>Identifiers</label>
+        </th>
+        <td style="padding-top: 15px;">
+            <div style="display:flex; gap:20px; flex-wrap:wrap;">
+                <?php $sku_value = get_post_meta($post->ID, '_sku', true); if ($sku_value === '') { $sku_value = '706397970222'; } ?>
+                <div>
+                    <label style="display:block; margin-bottom:6px;">SKU</label>
+                    <input type="text" name="_sku" value="<?php echo esc_attr($sku_value); ?>" class="regular-text" style="max-width:240px;" />
+                </div>
+                <?php $serial_value = get_post_meta($post->ID, '_gunbroker_serial_number', true); ?>
+                <div>
+                    <label style="display:block; margin-bottom:6px;">Serial Number</label>
+                    <input type="text" name="gunbroker_serial_number" value="<?php echo esc_attr($serial_value); ?>" class="regular-text" style="max-width:240px;" />
+                </div>
             </div>
         </td>
     </tr>
+
 
     <tr>
         <th scope="row">
-            <label for="gunbroker_category">GunBroker Category</label>
+            <label for="gunbroker_category">Category ID</label>
         </th>
         <td>
             <div id="category-selection">
@@ -173,7 +157,7 @@
                     <span class="spinner is-active" style="float: none; margin: 0 5px 0 0;"></span>Loading subcategories...
                 </div>
             </div>
-            <p class="description">Select the appropriate GunBroker category</p>
+            <p class="description">Select the appropriate category; IDs are shown in the list.</p>
         </td>
     </tr>
 
@@ -196,6 +180,161 @@
             </td>
         </tr>
     <?php endif; ?>
+
+    <tr>
+        <th scope="row" style="vertical-align: top; padding-top: 15px;">
+            <label>Inspection Period</label>
+        </th>
+        <td style="padding-top: 15px;">
+            <?php $gb_return_policy = get_post_meta($post->ID, '_gunbroker_return_policy', true); if ($gb_return_policy === '') { $gb_return_policy = '14'; } ?>
+            <select name="gunbroker_return_policy" class="regular-text" style="max-width:420px;">
+                <option value="1"  <?php selected($gb_return_policy, '1');  ?>>AS IS - No refund or exchange</option>
+                <option value="2"  <?php selected($gb_return_policy, '2');  ?>>No refund but item can be returned for exchange or store credit within fourteen days</option>
+                <option value="3"  <?php selected($gb_return_policy, '3');  ?>>No refund but item can be returned for exchange or store credit within thirty days</option>
+                <option value="4"  <?php selected($gb_return_policy, '4');  ?>>Three Days from the date the item is received</option>
+                <option value="5"  <?php selected($gb_return_policy, '5');  ?>>Three Days from the date the item is received, including the cost of shipping</option>
+                <option value="6"  <?php selected($gb_return_policy, '6');  ?>>Five Days from the date the item is received</option>
+                <option value="7"  <?php selected($gb_return_policy, '7');  ?>>Five Days from the date the item is received, including the cost of shipping</option>
+                <option value="8"  <?php selected($gb_return_policy, '8');  ?>>Seven Days from the date the item is received</option>
+                <option value="9"  <?php selected($gb_return_policy, '9');  ?>>Seven Days from the date the item is received, including the cost of shipping</option>
+                <option value="10" <?php selected($gb_return_policy, '10'); ?>>Fourteen Days from the date the item is received</option>
+                <option value="11" <?php selected($gb_return_policy, '11'); ?>>Fourteen Days from the date the item is received, including the cost of shipping</option>
+                <option value="12" <?php selected($gb_return_policy, '12'); ?>>30 day money back guarantee</option>
+                <option value="13" <?php selected($gb_return_policy, '13'); ?>>30 day money back guarantee including the cost of shipping</option>
+                <option value="14" <?php selected($gb_return_policy, '14'); ?>>Factory Warranty</option>
+            </select>
+        </td>
+    </tr>
+
+    <tr>
+        <th scope="row" style="vertical-align: top; padding-top: 15px;">
+            <label>Scheduled Start Time <span style="font-weight: normal; color:#666;">(premium feature)</span></label>
+        </th>
+        <td style="padding-top: 15px;">
+            <?php 
+            $schedule_date = get_post_meta($post->ID, '_gunbroker_schedule_date', true);
+            $schedule_time = get_post_meta($post->ID, '_gunbroker_schedule_time', true);
+            // Build next 14 days list
+            $days = array();
+            $now = current_time('timestamp');
+            for ($i = 0; $i < 14; $i++) {
+                $ts = strtotime('+' . $i . ' day', $now);
+                $days[] = array(
+                    'value' => date('Y-m-d', $ts),
+                    'label' => date('l m/d/y', $ts)
+                );
+            }
+            // Build time options every 30 minutes
+            $times = array();
+            for ($h = 0; $h < 24; $h++) {
+                foreach (array('00','30') as $m) {
+                    $times[] = sprintf('%02d:%s', $h, $m);
+                }
+            }
+            ?>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <select name="gunbroker_schedule_date" class="regular-text" style="max-width:260px;">
+                    <option value="">Day</option>
+                    <?php foreach ($days as $d): ?>
+                        <option value="<?php echo esc_attr($d['value']); ?>" <?php selected($schedule_date, $d['value']); ?>><?php echo esc_html($d['label']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <select name="gunbroker_schedule_time" class="regular-text" style="max-width:180px;">
+                    <option value="">Time</option>
+                    <?php foreach ($times as $t): ?>
+                        <option value="<?php echo esc_attr($t); ?>" <?php selected($schedule_time, $t); ?>><?php echo esc_html($t); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <span style="color:#666;">$0.10 charge if used</span>
+            </div>
+        </td>
+    </tr>
+
+    <tr>
+        <th scope="row" style="vertical-align: top; padding-top: 15px;">
+            <label>Listing Details</label>
+        </th>
+        <td style="padding-top: 15px;">
+            <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:flex-end;">
+                <div>
+                    <label style="display:block; margin-bottom:6px;">Listing Duration</label>
+                    <?php $gb_duration = get_post_meta($post->ID, '_gunbroker_listing_duration', true); if ($gb_duration === '') { $gb_duration = '90'; } ?>
+                    <select id="gb_listing_duration" name="gunbroker_listing_duration" class="regular-text" style="max-width:200px;">
+                        <option value="90" <?php selected($gb_duration, '90'); ?>>90 days</option>
+                        <option value="60" <?php selected($gb_duration, '60'); ?>>60 days</option>
+                        <option value="30" <?php selected($gb_duration, '30'); ?>>30 days</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:6px;">Listing Type</label>
+                    <?php $gb_inner_type = get_post_meta($post->ID, '_gunbroker_inner_listing_type', true); if ($gb_inner_type === '') { $gb_inner_type = 'FixedPrice'; } ?>
+                    <select id="gb_inner_listing_type" name="gunbroker_inner_listing_type" class="regular-text" style="max-width:200px;">
+                        <option value="StartingBid" <?php selected($gb_inner_type, 'StartingBid'); ?>>Starting Bid</option>
+                        <option value="FixedPrice" <?php selected($gb_inner_type, 'FixedPrice'); ?>>Fixed Price</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="gb_fixed_fields" style="margin-top:12px; display:none; gap:20px;">
+                <?php $gb_fixed = get_post_meta($post->ID, '_gunbroker_fixed_price', true); if ($gb_fixed === '') { $gb_fixed = '549.0'; } ?>
+                <?php $gb_qty = get_post_meta($post->ID, '_gunbroker_quantity', true); if ($gb_qty === '') { $gb_qty = '4'; } ?>
+                <div style="margin-right:20px;">
+                    <label style="display:block; margin-bottom:6px;">Fixed Price</label>
+                    <input type="number" step="0.01" min="0" name="gunbroker_fixed_price" value="<?php echo esc_attr($gb_fixed); ?>" class="regular-text" style="max-width:200px;" />
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:6px;">Quantity</label>
+                    <input type="number" min="1" name="gunbroker_quantity" value="<?php echo esc_attr($gb_qty); ?>" class="regular-text" style="max-width:120px;" />
+                </div>
+            </div>
+
+            <div id="gb_auction_fields" style="margin-top:12px; display:none; gap:20px;">
+                <?php $gb_start = get_post_meta($post->ID, '_gunbroker_starting_bid', true); if ($gb_start === '') { $gb_start = '549.0'; } ?>
+                <?php $gb_buy = get_post_meta($post->ID, '_gunbroker_buy_now_price', true); ?>
+                <?php $gb_reserve = get_post_meta($post->ID, '_gunbroker_reserve_price', true); ?>
+                <div style="margin-right:20px;">
+                    <label style="display:block; margin-bottom:6px;">Starting Bid</label>
+                    <input type="number" step="0.01" min="0" name="gunbroker_starting_bid" value="<?php echo esc_attr($gb_start); ?>" class="regular-text" style="max-width:200px;" />
+                </div>
+                <div style="margin-right:20px;">
+                    <label style="display:block; margin-bottom:6px;">Buy Now Price</label>
+                    <input type="number" step="0.01" min="0" name="gunbroker_buy_now_price" value="<?php echo esc_attr($gb_buy); ?>" class="regular-text" style="max-width:200px;" />
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:6px;">Reserve Price</label>
+                    <input type="number" step="0.01" min="0" name="gunbroker_reserve_price" value="<?php echo esc_attr($gb_reserve); ?>" class="regular-text" style="max-width:200px;" />
+                </div>
+            </div>
+        </td>
+    </tr>
+
+    <script>
+    jQuery(function($){
+        function toggleListingFields(){
+            var type = $('#gb_listing_type').val();
+            if(type === 'StartingBid'){
+                $('#gb_auction_fields').show();
+                $('#gb_fixed_fields').hide();
+                var auctionOpts = '<option value="7">7 days</option>';
+                if($('#gb_listing_duration option').length !== 1){
+                    $('#gb_listing_duration').data('orig', $('#gb_listing_duration').html());
+                    $('#gb_listing_duration').html(auctionOpts).val('7');
+                } else {
+                    $('#gb_listing_duration').val('7');
+                }
+                $('#gb_inner_listing_type').val('StartingBid');
+            } else { // Default or FixedPrice
+                $('#gb_auction_fields').hide();
+                $('#gb_fixed_fields').show();
+                var orig = $('#gb_listing_duration').data('orig');
+                if(orig){ $('#gb_listing_duration').html(orig); }
+                $('#gb_inner_listing_type').val('FixedPrice');
+            }
+        }
+        toggleListingFields();
+        $('#gb_listing_type').on('change', toggleListingFields);
+    });
+    </script>
 </table>
 
 <script>
@@ -405,7 +544,9 @@
             categoryStack.forEach(function(level) {
                 level.categories.forEach(function(category) {
                     const indent = '— '.repeat(categoryStack.indexOf(level));
-                    $select.append('<option value="' + category.id + '">' + indent + category.name + '</option>');
+                    const id = category.id || category.categoryID || category.CategoryID;
+                    const name = category.name || category.categoryName || category.CategoryName;
+                    $select.append('<option value="' + id + '">' + indent + name + '</option>');
                 });
             });
             

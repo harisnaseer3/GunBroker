@@ -31,6 +31,12 @@ class GunBroker_Admin {
         add_action('woocommerce_product_options_sku', array($this, 'add_mpn_field_to_inventory'));
         add_action('woocommerce_admin_process_product_object', array($this, 'save_mpn_field'));
         
+        // Set default product title on Add New Product screen
+        add_filter('default_title', array($this, 'set_default_product_title'), 10, 2);
+        // Set default description and short description
+        add_filter('default_content', array($this, 'set_default_product_content'), 10, 2);
+        add_filter('default_excerpt', array($this, 'set_default_product_excerpt'), 10, 2);
+        
         // Add GunBroker category field to WooCommerce product categories
         add_action('product_cat_add_form_fields', array($this, 'add_gunbroker_category_field'));
         add_action('product_cat_edit_form_fields', array($this, 'edit_gunbroker_category_field'));
@@ -42,6 +48,37 @@ class GunBroker_Admin {
         
         // Ensure database tables exist on admin init
         add_action('admin_init', array($this, 'ensure_tables_exist'));
+    }
+
+    /**
+     * Default product title for new products
+     */
+    public function set_default_product_title($title, $post) {
+        if (($post instanceof WP_Post) && $post->post_type === 'product' && empty($title)) {
+            return 'Springfield Armory Echelon 9mm Optics Ready U-Notch Night Sights EC9459B-U';
+        }
+        return $title;
+    }
+
+    /**
+     * Default product content for new products
+     */
+    public function set_default_product_content($content, $post) {
+        if (($post instanceof WP_Post) && $post->post_type === 'product' && empty($content)) {
+            $desc = "<h2>Springfield Armory Echelon 9mm 4.5\" Black 17+1/20+1 EC9459B-U</h2>\n<h3>Echelon</h3>\n<p>The Springfield Armory Echelon sets a new benchmark in modern striker-fired duty pistols, featuring a modular design built around a robust stainless steel chassis and an innovative optics mounting system. This 9mm handgun combines superior ergonomics with exceptional durability to handle the toughest conditions, making it a standout choice for reliable performance. With its ambidextrous controls and included high-capacity magazines, the Echelon offers versatility and adaptability for a wide range of users.</p>\n\n<p>At the core of the Echelon is its patent-pending Variable Interface System, which allows direct mounting of various red dot sights without adapter plates, enhancing quick target acquisition alongside the tritium U-Dot iron sights. The 4.5-inch hammer-forged barrel with Melonite finish ensures accuracy and longevity, while the captive recoil system provides smooth operation. The pistol's black polymer frame and 1.2-inch grip width deliver comfortable handling, and it comes with one 17-round flush magazine and one 20-round extended magazine for flexible carry options.</p>\n\n<p>Ideal for law enforcement, self-defense, and everyday carry, the Echelon excels in tactical scenarios where reliability and modularity are paramount. Its innovative design, inspired by historical military tactics, positions it as a forward-thinking solution for professionals and enthusiasts seeking unparalleled performance in a compact, high-capacity package.</p>\n\n<h3>Specifications</h3>\n<table class=\"widefat striped\" style=\"max-width: 720px;\">\n<tbody>\n<tr><td><strong>Manufacturer</strong></td><td>Springfield Armory</td></tr>\n<tr><td><strong>Model</strong></td><td>Echelon</td></tr>\n<tr><td><strong>Action</strong></td><td>Striker Fired</td></tr>\n<tr><td><strong>Caliber</strong></td><td>9mm</td></tr>\n<tr><td><strong>Barrel Length</strong></td><td>4.5\"</td></tr>\n<tr><td><strong>Overall Length</strong></td><td>8\"</td></tr>\n<tr><td><strong>Weight</strong></td><td>23.9 oz</td></tr>\n<tr><td><strong>Capacity</strong></td><td>17+1 / 20+1</td></tr>\n<tr><td><strong>Sights</strong></td><td>Tritium / Luminescent Front, Tactical Rack U-Dot™ Rear</td></tr>\n<tr><td><strong>Finish</strong></td><td>Melonite</td></tr>\n<tr><td><strong>Stock</strong></td><td>N/A</td></tr>\n<tr><td><strong>Trigger</strong></td><td>N/A</td></tr>\n<tr><td><strong>Magazine</strong></td><td>(1) 17-Round, (1) 20-Round Detachable</td></tr>\n<tr><td><strong>UPC</strong></td><td>706397970222</td></tr>\n<tr><td><strong>MPN</strong></td><td>EC9459B-U</td></tr>\n<tr><td><strong>Condition</strong></td><td>New</td></tr>\n</tbody>\n</table>";
+            return $desc;
+        }
+        return $content;
+    }
+
+    /**
+     * Default short description for new products
+     */
+    public function set_default_product_excerpt($excerpt, $post) {
+        if (($post instanceof WP_Post) && $post->post_type === 'product' && empty($excerpt)) {
+            return 'Springfield Armory Echelon 9mm, 4.5\" barrel, striker-fired, optics-ready with tritium U-Dot sights. Includes (1) 17-round and (1) 20-round magazines. MPN EC9459B-U.';
+        }
+        return $excerpt;
     }
 
 
@@ -284,26 +321,57 @@ class GunBroker_Admin {
             update_post_meta($post_id, '_gunbroker_category', sanitize_text_field($_POST['gunbroker_category']));
         }
 
+        // Allow editing SKU from the GunBroker meta box as convenience
+        if (isset($_POST['_sku'])) {
+            update_post_meta($post_id, '_sku', sanitize_text_field($_POST['_sku']));
+        }
+
         // New: save per-product listing options
         $bool_keys = array(
             '_gunbroker_returns_accepted' => 'gunbroker_returns_accepted',
-            '_gunbroker_will_ship_international' => 'gunbroker_will_ship_international',
             '_gunbroker_use_default_taxes' => 'gunbroker_use_default_taxes'
         );
         foreach ($bool_keys as $meta_key => $post_key) {
             update_post_meta($post_id, $meta_key, isset($_POST[$post_key]) ? '1' : '0');
         }
 
+        // Save FFL required (as explicit 1/0)
+        if (isset($_POST['gunbroker_ffl_required'])) {
+            update_post_meta($post_id, '_gunbroker_ffl_required', $_POST['gunbroker_ffl_required'] === '1' ? '1' : '0');
+        }
+
+        // Save who pays for shipping (empty means use profile/global)
+        if (isset($_POST['gunbroker_who_pays_shipping'])) {
+            $val = sanitize_text_field($_POST['gunbroker_who_pays_shipping']);
+            if ($val === '') {
+                delete_post_meta($post_id, '_gunbroker_who_pays_shipping');
+            } else {
+                update_post_meta($post_id, '_gunbroker_who_pays_shipping', $val);
+            }
+        }
+
+        // Save international shipping
+        if (isset($_POST['gunbroker_will_ship_international'])) {
+            update_post_meta($post_id, '_gunbroker_will_ship_international', $_POST['gunbroker_will_ship_international'] === '1' ? '1' : '0');
+        }
+
+        // Save shipping profile id (string key reflecting mapping)
+        if (isset($_POST['gunbroker_shipping_profile_id'])) {
+            update_post_meta($post_id, '_gunbroker_shipping_profile_id', sanitize_text_field($_POST['gunbroker_shipping_profile_id']));
+        }
+
+        // Save return/inspection policy
+        if (isset($_POST['gunbroker_return_policy'])) {
+            update_post_meta($post_id, '_gunbroker_return_policy', sanitize_text_field($_POST['gunbroker_return_policy']));
+        }
+
         $scalar_map = array(
-            '_gunbroker_who_pays_shipping' => 'gunbroker_who_pays_shipping',
-            '_gunbroker_auto_relist' => 'gunbroker_auto_relist',
             '_gunbroker_country' => 'gunbroker_country',
             '_gunbroker_seller_city' => 'gunbroker_seller_city',
             '_gunbroker_seller_state' => 'gunbroker_seller_state',
             '_gunbroker_seller_postal' => 'gunbroker_seller_postal',
             '_gunbroker_contact_phone' => 'gunbroker_contact_phone',
-            '_gunbroker_condition' => 'gunbroker_condition',
-            '_gunbroker_inspection_period' => 'gunbroker_inspection_period'
+            '_gunbroker_condition' => 'gunbroker_condition'
         );
         foreach ($scalar_map as $meta_key => $post_key) {
             if (isset($_POST[$post_key]) && $_POST[$post_key] !== '') {
@@ -313,30 +381,6 @@ class GunBroker_Admin {
             }
         }
 
-        // Arrays: payment and shipping methods
-        $pm = array();
-        if (!empty($_POST['gunbroker_payment_methods']) && is_array($_POST['gunbroker_payment_methods'])) {
-            foreach ($_POST['gunbroker_payment_methods'] as $m) {
-                $pm[] = sanitize_text_field($m);
-            }
-        }
-        if (!empty($pm)) {
-            update_post_meta($post_id, '_gunbroker_payment_methods', $pm);
-        } else {
-            delete_post_meta($post_id, '_gunbroker_payment_methods');
-        }
-
-        $sm = array();
-        if (!empty($_POST['gunbroker_shipping_methods']) && is_array($_POST['gunbroker_shipping_methods'])) {
-            foreach ($_POST['gunbroker_shipping_methods'] as $m) {
-                $sm[] = sanitize_text_field($m);
-            }
-        }
-        if (!empty($sm)) {
-            update_post_meta($post_id, '_gunbroker_shipping_methods', $sm);
-        } else {
-            delete_post_meta($post_id, '_gunbroker_shipping_methods');
-        }
 
         // Pricing & duration and other fields
         $simple_map = array(
@@ -344,11 +388,15 @@ class GunBroker_Admin {
             '_gunbroker_listing_type' => 'gunbroker_listing_type',
             '_gunbroker_quantity' => 'gunbroker_quantity',
             '_gunbroker_fixed_price' => 'gunbroker_fixed_price',
-            '_gunbroker_inspection_period' => 'gunbroker_inspection_period',
+            '_gunbroker_inspection_period' => 'gunbroker_return_policy',
             '_gunbroker_schedule_date' => 'gunbroker_schedule_date',
             '_gunbroker_schedule_time' => 'gunbroker_schedule_time',
             '_gunbroker_shipping_profile_id' => 'gunbroker_shipping_profile_id',
-            '_gunbroker_serial_number' => 'gunbroker_serial_number'
+            '_gunbroker_serial_number' => 'gunbroker_serial_number',
+            '_gunbroker_auto_relist' => 'gunbroker_auto_relist',
+            '_gunbroker_starting_bid' => 'gunbroker_starting_bid',
+            '_gunbroker_buy_now_price' => 'gunbroker_buy_now_price',
+            '_gunbroker_reserve_price' => 'gunbroker_reserve_price'
         );
         foreach ($simple_map as $meta_key => $post_key) {
             if (isset($_POST[$post_key]) && $_POST[$post_key] !== '') {

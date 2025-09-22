@@ -546,16 +546,32 @@ class GunBroker_API {
         
         // Get inspection period
         $inspection_period = get_post_meta($product->get_id(), '_gunbroker_inspection_period', true);
-        $inspection_period = $inspection_period !== '' ? intval($inspection_period) : intval(get_option('gunbroker_inspection_period', 3));
+        $inspection_period = $inspection_period !== '' ? intval($inspection_period) : intval(get_option('gunbroker_default_inspection_period', 3));
+        
+        // Get return policy
+        $return_policy = get_post_meta($product->get_id(), '_gunbroker_return_policy', true);
+        $return_policy = $return_policy !== '' ? intval($return_policy) : intval(get_option('gunbroker_default_return_policy', 14));
+        
+        // Get standard text ID
+        $standard_text_id = get_post_meta($product->get_id(), '_gunbroker_standard_text_id', true);
+        $standard_text_id = $standard_text_id !== '' ? intval($standard_text_id) : intval(get_option('gunbroker_standard_text_id', 2769));
+        
+        // Get shipping profile IDs from global settings
+        $shipping_profile_ids = get_option('gunbroker_shipping_profile_ids', '3153,4018,2814');
+        $shipping_profile_array = array_map('trim', explode(',', $shipping_profile_ids));
+        
+        // Get header and footer content
+        $header_content = get_option('gunbroker_header_content', '');
+        $footer_content = get_option('gunbroker_footer_content', '');
         
         // Get tax settings
         $use_default_taxes = get_post_meta($product->get_id(), '_gunbroker_use_default_taxes', true);
-        $use_default_taxes = $use_default_taxes !== '' ? $use_default_taxes === '1' : (bool) get_option('gunbroker_use_default_taxes', true);
+        $use_default_taxes = $use_default_taxes !== '' ? $use_default_taxes === '1' : (bool) get_option('gunbroker_default_use_sales_tax', true);
 
         // Get country code - use product-specific or default, normalize to 2-letter ISO
         $country_code = get_post_meta($product->get_id(), '_gunbroker_country', true);
         if (empty($country_code)) {
-            $country_code = get_option('gunbroker_default_country', 'US');
+            $country_code = get_option('gunbroker_default_country_code', 'US');
         }
         $country_code = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', (string) $country_code), 0, 2));
         if (strlen($country_code) !== 2) {
@@ -568,37 +584,32 @@ class GunBroker_API {
         $returns_accepted = get_post_meta($product->get_id(), '_gunbroker_returns_accepted', true);
         $returns_accepted = $returns_accepted !== '' ? $returns_accepted === '1' : (bool) get_option('gunbroker_returns_accepted', true);
         $will_ship_international = get_post_meta($product->get_id(), '_gunbroker_will_ship_international', true);
-        $will_ship_international = $will_ship_international !== '' ? $will_ship_international === '1' : (bool) get_option('gunbroker_will_ship_international', false);
+        $will_ship_international = $will_ship_international !== '' ? $will_ship_international === '1' : (bool) get_option('gunbroker_default_will_ship_international', false);
         $auto_relist = get_post_meta($product->get_id(), '_gunbroker_auto_relist', true);
-        $auto_relist = $auto_relist !== '' ? intval($auto_relist) : intval(get_option('gunbroker_auto_relist', 1));
+        $auto_relist = $auto_relist !== '' ? intval($auto_relist) : intval(get_option('gunbroker_default_auto_relist', 1));
         $who_pays_shipping = get_post_meta($product->get_id(), '_gunbroker_who_pays_shipping', true);
-        $who_pays_shipping = $who_pays_shipping !== '' ? intval($who_pays_shipping) : intval(get_option('gunbroker_who_pays_shipping', 4));
+        $who_pays_shipping = $who_pays_shipping !== '' ? intval($who_pays_shipping) : intval(get_option('gunbroker_default_who_pays_shipping', 4));
 
         // Map UI → GunBroker values per docs
-        // UI stored values (legacy): 1=Buyer pays, 2=Seller pays
-        // GunBroker API: 2=Seller pays, 4=Buyer pays actual, 8=Buyer pays fixed, 16=Use profile
-        if ($who_pays_shipping === 1) {
-            $who_pays_shipping = 4; // default buyer pays (actual) when our UI records "Buyer pays"
-        } elseif ($who_pays_shipping === 2) {
-            $who_pays_shipping = 2; // seller pays
-        }
+        // Settings now use correct GunBroker API values directly:
+        // 2=Buyer pays actual shipping cost, 3=Seller pays for shipping, 4=Buyer pays fixed amount
+        // No mapping needed since settings use correct values
         $seller_state = get_post_meta($product->get_id(), '_gunbroker_seller_state', true);
         if ($seller_state === '') { $seller_state = get_option('gunbroker_seller_state', ''); }
         $seller_city = get_post_meta($product->get_id(), '_gunbroker_seller_city', true);
         if ($seller_city === '') { $seller_city = get_option('gunbroker_seller_city', ''); }
         $seller_postal = get_post_meta($product->get_id(), '_gunbroker_seller_postal', true);
-        if ($seller_postal === '') { $seller_postal = get_option('gunbroker_seller_postal', ''); }
+        if ($seller_postal === '') { $seller_postal = get_option('gunbroker_default_postal', '35137'); }
         $contact_phone = get_post_meta($product->get_id(), '_gunbroker_contact_phone', true);
         if ($contact_phone === '') { $contact_phone = get_option('gunbroker_contact_phone', ''); }
-        $payment_methods_opt = get_post_meta($product->get_id(), '_gunbroker_payment_methods', true);
-        $payment_methods_opt = !empty($payment_methods_opt) ? (array) $payment_methods_opt : (array) get_option('gunbroker_payment_methods', array('Check','MoneyOrder','CreditCard'));
-        $shipping_methods_opt = get_post_meta($product->get_id(), '_gunbroker_shipping_methods', true);
-        $shipping_methods_opt = !empty($shipping_methods_opt) ? (array) $shipping_methods_opt : (array) get_option('gunbroker_shipping_methods', array('StandardShipping','UPSGround'));
+        // Get payment and shipping methods from global settings only
+        $payment_methods_opt = (array) get_option('gunbroker_payment_methods', array('VisaMastercard', 'Check', 'Amex', 'Discover', 'CertifiedCheck', 'USPSMoneyOrder', 'MoneyOrder'));
+        $shipping_methods_opt = (array) get_option('gunbroker_shipping_methods', array('StandardShipping', 'UPSGround'));
 
         // Convert arrays into expected boolean map objects
         $payment_methods = array();
         foreach ($payment_methods_opt as $pm) { $payment_methods[$pm] = true; }
-        if (empty($payment_methods)) { $payment_methods = array('Check' => true, 'MoneyOrder' => true, 'CreditCard' => true); }
+        if (empty($payment_methods)) { $payment_methods = array('VisaMastercard' => true, 'Check' => true, 'Amex' => true, 'Discover' => true, 'CertifiedCheck' => true, 'USPSMoneyOrder' => true, 'MoneyOrder' => true); }
 
         $shipping_methods = array();
         foreach ($shipping_methods_opt as $sm) { $shipping_methods[$sm] = true; }
@@ -607,9 +618,12 @@ class GunBroker_API {
         $quantity = $quantity !== '' ? max(1, intval($quantity)) : 1;
 
         $duration = get_post_meta($product->get_id(), '_gunbroker_listing_duration', true);
-        $duration = $duration !== '' ? intval($duration) : intval(get_option('gunbroker_listing_duration', 7));
-
-        $listing_type = get_post_meta($product->get_id(), '_gunbroker_listing_type', true); // fixed|auction
+        $duration = $duration !== '' ? intval($duration) : intval(get_option('gunbroker_default_listing_duration', 90));
+        
+        $listing_type = get_post_meta($product->get_id(), '_gunbroker_listing_type', true); // FixedPrice|StartingBid
+        if (empty($listing_type)) {
+            $listing_type = get_option('gunbroker_default_listing_type', 'FixedPrice');
+        }
 
         $serial_number = get_post_meta($product->get_id(), '_gunbroker_serial_number', true);
 
@@ -653,6 +667,11 @@ class GunBroker_API {
             'ShippingMethods' => $shipping_methods, // Required: object with boolean values
             'InspectionPeriod' => $inspection_period, // Optional
             'ReturnsAccepted' => $returns_accepted, // Required: boolean
+            'ReturnPolicy' => $return_policy, // Optional: return policy ID
+            'StandardTextID' => $standard_text_id, // Optional: standard text ID
+            'ShippingProfileIDs' => $shipping_profile_array, // Required: array of shipping profile IDs
+            'HeaderContent' => $header_content, // Optional: header content for listings
+            'FooterContent' => $footer_content, // Optional: footer content for listings
             'Condition' => intval($condition), // Required: integer 1-10
             'CountryCode' => strtoupper(substr($country_code, 0, 2)), // Required: string 2 chars
             'State' => ($seller_state ?: 'AL'), // Required: string 1-50 chars
@@ -668,7 +687,7 @@ class GunBroker_API {
             'SellerContactEmail' => get_option('admin_email'), // Optional: string
             'SellerContactPhone' => ($contact_phone ?: '205-000-0000'), // Optional: string
             'SerialNumber' => $serial_number ?: null,
-            'IsFixedPrice' => ($listing_type === 'fixed'), // Optional: boolean
+            'IsFixedPrice' => ($listing_type === 'FixedPrice'), // Optional: boolean
             'IsFeatured' => false, // Optional: boolean
             'IsBold' => false, // Optional: boolean
             'IsHighlight' => false, // Optional: boolean
