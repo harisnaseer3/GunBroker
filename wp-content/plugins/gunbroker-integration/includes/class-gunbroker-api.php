@@ -625,6 +625,46 @@ class GunBroker_API {
             $listing_type = get_option('gunbroker_default_listing_type', 'FixedPrice');
         }
 
+        // Map AutoRelist to API values per docs: 1 Do Not Relist, 4 Relist Fixed Price
+        $auto_relist = get_post_meta($product->get_id(), '_gunbroker_auto_relist', true);
+        if ($auto_relist === '') { $auto_relist = get_option('gunbroker_default_auto_relist', '1'); }
+        // Convert old value 2 (internal) to API value 4 (Relist Fixed Price)
+        if ((string)$auto_relist === '2') { $auto_relist = '4'; }
+
+        // Who pays for shipping mapping per docs: 2 Seller, 4 Buyer actual, 8 Buyer fixed, 16 Use profile
+        $who_pays_shipping_meta = get_post_meta($product->get_id(), '_gunbroker_who_pays_shipping', true);
+        if ($who_pays_shipping_meta === '') {
+            $who_pays_shipping = 16; // use profile by default
+        } else {
+            switch ((string)$who_pays_shipping_meta) {
+                case '3': // Seller pays (legacy)
+                    $who_pays_shipping = 2; break;
+                case '2': // Buyer actual (legacy)
+                    $who_pays_shipping = 4; break;
+                case '4': // Buyer fixed amount (legacy)
+                    $who_pays_shipping = 8; break;
+                default:
+                    $who_pays_shipping = 16; // safe default
+            }
+        }
+
+        // Map per-product shipping profile selection to numeric ID list from settings (CSV order)
+        $shipping_profile_key = get_post_meta($product->get_id(), '_gunbroker_shipping_profile_id', true);
+        $shipping_profile_ids_csv = get_option('gunbroker_shipping_profile_ids', '');
+        $profile_ids = array_filter(array_map('trim', explode(',', $shipping_profile_ids_csv)));
+        $profile_map = array();
+        // Zip known keys to provided IDs by position
+        $known_keys = array('accessories','free_ground','everything');
+        foreach ($known_keys as $index => $key) {
+            if (isset($profile_ids[$index])) {
+                $profile_map[$key] = (int)$profile_ids[$index];
+            }
+        }
+        $selected_shipping_profile_id = 0;
+        if ($shipping_profile_key && isset($profile_map[$shipping_profile_key])) {
+            $selected_shipping_profile_id = $profile_map[$shipping_profile_key];
+        }
+
         $serial_number = get_post_meta($product->get_id(), '_gunbroker_serial_number', true);
 
         // Resolve identifiers
@@ -669,9 +709,7 @@ class GunBroker_API {
             'ReturnsAccepted' => $returns_accepted, // Required: boolean
             'ReturnPolicy' => $return_policy, // Optional: return policy ID
             'StandardTextID' => $standard_text_id, // Optional: standard text ID
-            'ShippingProfileIDs' => $shipping_profile_array, // Required: array of shipping profile IDs
-            'HeaderContent' => $header_content, // Optional: header content for listings
-            'FooterContent' => $footer_content, // Optional: footer content for listings
+            'ShippingProfileID' => ($selected_shipping_profile_id ?: null), // Optional: numeric ID
             'Condition' => intval($condition), // Required: integer 1-10
             'CountryCode' => strtoupper(substr($country_code, 0, 2)), // Required: string 2 chars
             'State' => ($seller_state ?: 'AL'), // Required: string 1-50 chars
@@ -692,14 +730,12 @@ class GunBroker_API {
             'IsBold' => false, // Optional: boolean
             'IsHighlight' => false, // Optional: boolean
             'IsReservePrice' => false, // Optional: boolean
-            'AutoRelist' => $auto_relist, // 1 = Do Not Relist, 2 = Relist
-            // 'IsFFLRequired' => false, // Conditional: Only for certain categories
-            'WhoPaysForShipping' => $who_pays_shipping, // 1=Buyer, 2=Seller
+            'AutoRelist' => intval($auto_relist), // 1 Do Not Relist, 4 Relist Fixed Price
+            'WhoPaysForShipping' => intval($who_pays_shipping), // 2 Seller, 4 Buyer actual, 8 Buyer fixed, 16 Use profile
             'WillShipInternational' => $will_ship_international, // Required: boolean
             'ShippingClassesSupported' => array(
                 'Ground' => true,
                 'TwoDay' => true,
-        
             ), // Required: object - Supported shipping classes
             'UseDefaultTaxes' => $use_default_taxes // Optional: boolean
         );

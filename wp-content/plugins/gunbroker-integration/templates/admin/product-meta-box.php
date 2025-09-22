@@ -252,6 +252,14 @@
                         <option value="FixedPrice" <?php selected($gb_inner_type, 'FixedPrice'); ?>>Fixed Price</option>
                     </select>
                 </div>
+                <div>
+                    <label style="display:block; margin-bottom:6px;">Auto Relist</label>
+                    <?php $gb_auto = get_post_meta($post->ID, '_gunbroker_auto_relist', true); if ($gb_auto === '') { $gb_auto = '4'; } ?>
+                    <select id="gb_auto_relist" name="gunbroker_auto_relist" class="regular-text" style="max-width:220px;">
+                        <option value="4" <?php selected($gb_auto, '4'); ?>>Relist Fixed Price</option>
+                        <option value="1" <?php selected($gb_auto, '1'); ?>>Do Not Relist</option>
+                    </select>
+                </div>
             </div>
 
             <div id="gb_fixed_fields" style="margin-top:12px; display:flex; gap:20px; flex-wrap:wrap;">
@@ -301,12 +309,16 @@
                 } else {
                     $('#gb_listing_duration').val('7');
                 }
+                // AutoRelist: Auction -> Relist Until Sold (2) only
+                $('#gb_auto_relist').html('<option value="2">Relist Until Sold</option>').val('2');
                 $('#gb_inner_listing_type').val('StartingBid');
             } else { // Default or FixedPrice
                 $('#gb_auction_fields').hide();
                 $('#gb_fixed_fields').css('display','flex');
                 var orig = $('#gb_listing_duration').data('orig');
                 if(orig){ $('#gb_listing_duration').html(orig); }
+                // AutoRelist: show Do Not Relist (1) and Relist Fixed Price (4), default 4
+                $('#gb_auto_relist').html('<option value="4">Relist Fixed Price</option><option value="1">Do Not Relist</option>').val('4');
                 $('#gb_inner_listing_type').val('FixedPrice');
             }
         }
