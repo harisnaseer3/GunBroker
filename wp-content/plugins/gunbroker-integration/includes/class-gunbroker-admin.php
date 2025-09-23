@@ -324,7 +324,16 @@ class GunBroker_Admin {
 
         // Allow editing SKU from the GunBroker meta box as convenience
         if (isset($_POST['_sku'])) {
-            update_post_meta($post_id, '_sku', sanitize_text_field($_POST['_sku']));
+            $sku_value = sanitize_text_field($_POST['_sku']);
+            // Save to both WooCommerce SKU and our custom meta
+            update_post_meta($post_id, '_sku', $sku_value);
+            // Also update the WooCommerce product SKU
+            $product = wc_get_product($post_id);
+            if ($product) {
+                $product->set_sku($sku_value);
+                $product->save();
+            }
+            error_log('GunBroker AJAX Debug - Saved SKU: "' . $sku_value . '" for product ' . $post_id);
         }
 
         // New: save per-product listing options
@@ -622,7 +631,16 @@ class GunBroker_Admin {
 
         // Allow editing SKU from the GunBroker meta box as convenience
         if (isset($_POST['_sku'])) {
-            update_post_meta($post_id, '_sku', sanitize_text_field($_POST['_sku']));
+            $sku_value = sanitize_text_field($_POST['_sku']);
+            // Save to both WooCommerce SKU and our custom meta
+            update_post_meta($post_id, '_sku', $sku_value);
+            // Also update the WooCommerce product SKU
+            $product = wc_get_product($post_id);
+            if ($product) {
+                $product->set_sku($sku_value);
+                $product->save();
+            }
+            error_log('GunBroker AJAX Debug - Saved SKU: "' . $sku_value . '" for product ' . $post_id);
         }
 
         // Save serial number
