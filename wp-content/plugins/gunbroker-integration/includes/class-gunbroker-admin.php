@@ -353,7 +353,8 @@ class GunBroker_Admin {
 
         // Save international shipping
         if (isset($_POST['gunbroker_will_ship_international'])) {
-            update_post_meta($post_id, '_gunbroker_will_ship_international', $_POST['gunbroker_will_ship_international'] === '1' ? '1' : '0');
+            $will_ship_value = $_POST['gunbroker_will_ship_international'] === '1' ? '1' : '0';
+            update_post_meta($post_id, '_gunbroker_will_ship_international', $will_ship_value);
         }
 
         // Save shipping profile id (string key reflecting mapping)
@@ -548,8 +549,8 @@ class GunBroker_Admin {
             wp_send_json_error('Invalid product ID');
         }
 
-        // Process the form data similar to the regular save process
-        $this->save_product_meta($product_id);
+        // Process the form data for AJAX requests (bypasses nonce check)
+        $this->save_product_meta_ajax($product_id);
 
         // Run the sync process
         $sync = new GunBroker_Sync();
@@ -568,6 +569,167 @@ class GunBroker_Admin {
                 'message' => 'Product sent to GunBroker successfully!',
                 'status' => 'active'
             ));
+        }
+    }
+
+    public function save_only_ajax() {
+        check_ajax_referer('gunbroker_ajax_nonce', 'nonce');
+
+        if (!current_user_can('edit_posts')) {
+            wp_die('Unauthorized');
+        }
+
+        $product_id = intval($_POST['post_id']);
+        if (!$product_id) {
+            wp_send_json_error('Invalid product ID');
+        }
+
+        // Process the form data for AJAX requests (bypasses nonce check)
+        $this->save_product_meta_ajax($product_id);
+
+        // Ensure product is published and appears in Not Listed
+        if (get_post_status($product_id) !== 'publish') {
+            wp_update_post(array('ID' => $product_id, 'post_status' => 'publish'));
+        }
+        $this->update_product_gunbroker_status($product_id, 'not_listed');
+
+        wp_send_json_success(array(
+            'message' => 'Product saved successfully!'
+        ));
+    }
+
+    /**
+     * Process form data for AJAX requests (bypasses nonce check since AJAX has its own)
+     */
+    private function save_product_meta_ajax($post_id) {
+        if (!current_user_can('edit_post', $post_id)) {
+            return;
+        }
+
+
+        // Always enable GunBroker sync for all products
+        update_post_meta($post_id, '_gunbroker_enabled', 'yes');
+
+        // Save custom title
+        if (isset($_POST['gunbroker_custom_title'])) {
+            update_post_meta($post_id, '_gunbroker_custom_title', sanitize_text_field($_POST['gunbroker_custom_title']));
+        }
+
+        // Save category
+        if (isset($_POST['gunbroker_category'])) {
+            update_post_meta($post_id, '_gunbroker_category', sanitize_text_field($_POST['gunbroker_category']));
+        }
+
+        // Allow editing SKU from the GunBroker meta box as convenience
+        if (isset($_POST['_sku'])) {
+            update_post_meta($post_id, '_sku', sanitize_text_field($_POST['_sku']));
+        }
+
+        // Save serial number
+        if (isset($_POST['gunbroker_serial_number'])) {
+            update_post_meta($post_id, '_gunbroker_serial_number', sanitize_text_field($_POST['gunbroker_serial_number']));
+        }
+
+        // Save boolean fields
+        $bool_keys = array(
+            '_gunbroker_returns_accepted' => 'gunbroker_returns_accepted',
+            '_gunbroker_use_default_taxes' => 'gunbroker_use_default_taxes'
+        );
+        foreach ($bool_keys as $meta_key => $post_key) {
+            update_post_meta($post_id, $meta_key, isset($_POST[$post_key]) ? '1' : '0');
+        }
+
+        // Save FFL required (as explicit 1/0)
+        if (isset($_POST['gunbroker_ffl_required'])) {
+            update_post_meta($post_id, '_gunbroker_ffl_required', $_POST['gunbroker_ffl_required'] === '1' ? '1' : '0');
+        }
+
+        // Save who pays for shipping
+        if (isset($_POST['gunbroker_who_pays_shipping'])) {
+            $val = sanitize_text_field($_POST['gunbroker_who_pays_shipping']);
+            if ($val === '') {
+                delete_post_meta($post_id, '_gunbroker_who_pays_shipping');
+            } else {
+                update_post_meta($post_id, '_gunbroker_who_pays_shipping', $val);
+            }
+        }
+
+        // Save international shipping
+        if (isset($_POST['gunbroker_will_ship_international'])) {
+            $will_ship_value = $_POST['gunbroker_will_ship_international'] === '1' ? '1' : '0';
+            update_post_meta($post_id, '_gunbroker_will_ship_international', $will_ship_value);
+        }
+
+        // Save shipping profile id
+        if (isset($_POST['gunbroker_shipping_profile_id'])) {
+            update_post_meta($post_id, '_gunbroker_shipping_profile_id', sanitize_text_field($_POST['gunbroker_shipping_profile_id']));
+        }
+
+        // Save return/inspection policy
+        if (isset($_POST['gunbroker_return_policy'])) {
+            update_post_meta($post_id, '_gunbroker_return_policy', sanitize_text_field($_POST['gunbroker_return_policy']));
+        }
+
+        // Save condition
+        if (isset($_POST['gunbroker_condition'])) {
+            update_post_meta($post_id, '_gunbroker_condition', sanitize_text_field($_POST['gunbroker_condition']));
+        }
+
+        // Save listing type profile
+        if (isset($_POST['gunbroker_listing_type'])) {
+            update_post_meta($post_id, '_gunbroker_listing_type', sanitize_text_field($_POST['gunbroker_listing_type']));
+        }
+
+        // Save inner listing type
+        if (isset($_POST['gunbroker_inner_listing_type'])) {
+            update_post_meta($post_id, '_gunbroker_inner_listing_type', sanitize_text_field($_POST['gunbroker_inner_listing_type']));
+        }
+
+        // Save listing duration
+        if (isset($_POST['gunbroker_listing_duration'])) {
+            update_post_meta($post_id, '_gunbroker_listing_duration', sanitize_text_field($_POST['gunbroker_listing_duration']));
+        }
+
+        // Save auto relist
+        if (isset($_POST['gunbroker_auto_relist'])) {
+            update_post_meta($post_id, '_gunbroker_auto_relist', sanitize_text_field($_POST['gunbroker_auto_relist']));
+        }
+
+        // Save quantity
+        if (isset($_POST['gunbroker_quantity'])) {
+            update_post_meta($post_id, '_gunbroker_quantity', sanitize_text_field($_POST['gunbroker_quantity']));
+        }
+
+        // Save fixed price (from Listing Details section)
+        if (isset($_POST['gunbroker_fixed_price'])) {
+            $price = floatval($_POST['gunbroker_fixed_price']);
+            update_post_meta($post_id, '_gunbroker_fixed_price', $price);
+        }
+
+        // Save starting bid
+        if (isset($_POST['gunbroker_starting_bid'])) {
+            $price = floatval($_POST['gunbroker_starting_bid']);
+            update_post_meta($post_id, '_gunbroker_starting_bid', $price);
+        }
+
+        // Save buy now price
+        if (isset($_POST['gunbroker_buy_now_price'])) {
+            $price = floatval($_POST['gunbroker_buy_now_price']);
+            update_post_meta($post_id, '_gunbroker_buy_now_price', $price);
+        }
+
+        // Save reserve price
+        if (isset($_POST['gunbroker_reserve_price'])) {
+            $price = floatval($_POST['gunbroker_reserve_price']);
+            update_post_meta($post_id, '_gunbroker_reserve_price', $price);
+        }
+
+        // Save scheduled date and time
+        if (isset($_POST['gunbroker_schedule_date'])) {
+            update_post_meta($post_id, '_gunbroker_schedule_date', sanitize_text_field($_POST['gunbroker_schedule_date']));
+        }
+        if (isset($_POST['gunbroker_schedule_time'])) {
+            update_post_meta($post_id, '_gunbroker_schedule_time', sanitize_text_field($_POST['gunbroker_schedule_time']));
         }
     }
 

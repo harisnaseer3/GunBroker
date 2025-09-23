@@ -238,8 +238,8 @@ if (isset($_POST['gunbroker_settings_nonce']) && wp_verify_nonce($_POST['gunbrok
                                     <a href="https://www.gunbroker.com/User/StandardText" target="_blank">Click here to view your GunBroker standard text entries</a>
                                 </p>
                                 <input type="text" name="gunbroker_standard_text_id" 
-                                       value="<?php echo esc_attr(get_option('gunbroker_standard_text_id', '2769')); ?>"
-                                       class="regular-text" placeholder="2769" />
+                                       value="<?php echo esc_attr(get_option('gunbroker_standard_text_id', '')); ?>"
+                                       class="regular-text" placeholder="Leave blank to omit (optional)" />
                             </div>
                         </div>
 

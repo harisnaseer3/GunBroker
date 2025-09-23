@@ -336,12 +336,24 @@ class GunBroker_API {
             return new WP_Error('empty_data', 'No listing data provided');
         }
         
-        // Check for required fields
-        $required_fields = array('Title', 'Description', 'CategoryID', 'StartingBid', 'Condition', 'CountryCode');
+        // Check for required fields based on GunBroker API documentation
+        $required_fields = array(
+            'Title', 'Description', 'CategoryID', 'StartingBid', 'Quantity',
+            'ListingDuration', 'PaymentMethods', 'ShippingMethods', 'ReturnsAccepted',
+            'Condition', 'CountryCode', 'State', 'City', 'PostalCode',
+            'WillShipInternational', 'IsFFLRequired'
+        );
         $missing_fields = array();
         foreach ($required_fields as $field) {
-            if (!isset($listing_data[$field]) || empty($listing_data[$field])) {
-                $missing_fields[] = $field;
+            // Special handling for boolean fields - they can be false but not empty
+            if ($field === 'WillShipInternational' || $field === 'ReturnsAccepted' || $field === 'IsFFLRequired') {
+                if (!isset($listing_data[$field])) {
+                    $missing_fields[] = $field;
+                }
+            } else {
+                if (!isset($listing_data[$field]) || empty($listing_data[$field])) {
+                    $missing_fields[] = $field;
+                }
             }
         }
         
@@ -454,45 +466,44 @@ class GunBroker_API {
      */
     public function prepare_listing_data($product, $category_id = null) {
         // prepare_listing_data called for product ID: {$product->get_id()}
-        
+
         // Get markup percentage from global settings only
         $markup_percentage = floatval(get_option('gunbroker_markup_percentage', 10));
-        
+
         // Markup percentage: {$markup_percentage}
 
-        // Derive a reliable base price from WooCommerce
-        $base_price = floatval($product->get_regular_price());
-        // Regular price: {$base_price}
-        
-        if ($base_price <= 0) {
-            $base_price = floatval($product->get_price()); // handles variations too
-        }
-        if ($base_price <= 0) {
-            $base_price = floatval($product->get_sale_price());
-        }
-        if ($base_price <= 0) {
-            $meta_price = get_post_meta($product->get_id(), '_price', true);
-            $base_price = floatval($meta_price);
-        }
-
+        // PRIORITIZE GUNBROKER FIXED PRICE FIRST (from GunBroker Integration section)
         $fixed_override = get_post_meta($product->get_id(), '_gunbroker_fixed_price', true);
         $fixed_value = is_numeric($fixed_override) ? floatval($fixed_override) : 0.0;
+
         if ($fixed_override !== '' && $fixed_value > 0) {
             $gunbroker_price = $fixed_value;
         } else {
+            $base_price = floatval($product->get_regular_price());
+
+            if ($base_price <= 0) {
+                $base_price = floatval($product->get_price());
+            }
+            if ($base_price <= 0) {
+                $base_price = floatval($product->get_sale_price());
+            }
+            if ($base_price <= 0) {
+                $meta_price = get_post_meta($product->get_id(), '_price', true);
+                $base_price = floatval($meta_price);
+            }
+
+            if ($base_price <= 0) {
+                return new WP_Error('no_price', 'No valid price found. Please set a price in the GunBroker Integration section or in the Product data section.');
+            }
+
             $gunbroker_price = $base_price * (1 + max(0.0, $markup_percentage) / 100);
         }
+
         // Calculated GunBroker price: {$gunbroker_price}
-        
-        // Validate that we have a valid price
-        if (empty($base_price) || $base_price <= 0) {
-            error_log('GunBroker: ERROR - Product has no price or invalid price: ' . $base_price);
-            return new WP_Error('invalid_price', 'Product must have a valid price to list on GunBroker');
-        }
-        
+
+        // Validate that we have a valid final price
         if (empty($gunbroker_price) || $gunbroker_price <= 0) {
-            // Fallback to base price as last resort
-            $gunbroker_price = $base_price;
+            return new WP_Error('invalid_price', 'Product must have a valid price to list on GunBroker');
         }
 
         // Get custom GunBroker title or use product title
@@ -552,9 +563,9 @@ class GunBroker_API {
         $return_policy = get_post_meta($product->get_id(), '_gunbroker_return_policy', true);
         $return_policy = $return_policy !== '' ? intval($return_policy) : intval(get_option('gunbroker_default_return_policy', 14));
         
-        // Get standard text ID
-        $standard_text_id = get_post_meta($product->get_id(), '_gunbroker_standard_text_id', true);
-        $standard_text_id = $standard_text_id !== '' ? intval($standard_text_id) : intval(get_option('gunbroker_standard_text_id', 2769));
+        // StandardTextID COMPLETELY DISABLED - causing too many issues
+        // Will be re-enabled later when we have proper validation
+        $standard_text_id = null;
         
         // Get shipping profile IDs from global settings
         $shipping_profile_ids = get_option('gunbroker_shipping_profile_ids', '3153,4018,2814');
@@ -581,12 +592,34 @@ class GunBroker_API {
         // FIXED: Prepare listing data with all required fields based on official API documentation
         // Read site-wide options to build payload at listing time
         // Prefer per-product meta; fallback to site options
-        $returns_accepted = get_post_meta($product->get_id(), '_gunbroker_returns_accepted', true);
-        $returns_accepted = $returns_accepted !== '' ? $returns_accepted === '1' : (bool) get_option('gunbroker_returns_accepted', true);
-        $will_ship_international = get_post_meta($product->get_id(), '_gunbroker_will_ship_international', true);
-        $will_ship_international = $will_ship_international !== '' ? $will_ship_international === '1' : (bool) get_option('gunbroker_default_will_ship_international', false);
-        $auto_relist = get_post_meta($product->get_id(), '_gunbroker_auto_relist', true);
-        $auto_relist = $auto_relist !== '' ? intval($auto_relist) : intval(get_option('gunbroker_default_auto_relist', 1));
+        $returns_accepted_raw = get_post_meta($product->get_id(), '_gunbroker_returns_accepted', true);
+
+        if ($returns_accepted_raw === '1' || $returns_accepted_raw === 'true' || $returns_accepted_raw === true || $returns_accepted_raw === 1) {
+            $returns_accepted = true;
+        } else if ($returns_accepted_raw === '0' || $returns_accepted_raw === 'false' || $returns_accepted_raw === false || $returns_accepted_raw === 0 || $returns_accepted_raw === '' || $returns_accepted_raw === null) {
+            $default_returns = get_option('gunbroker_returns_accepted', '1');
+            $returns_accepted = (bool) $default_returns;
+        } else {
+            $default_returns = get_option('gunbroker_returns_accepted', '1');
+            $returns_accepted = (bool) $default_returns;
+        }
+
+        $returns_accepted = (bool) $returns_accepted;
+        // Get WillShipInternational - required boolean field per API docs
+        $will_ship_international_raw = get_post_meta($product->get_id(), '_gunbroker_will_ship_international', true);
+        $default_will_ship = get_option('gunbroker_default_will_ship_international', '0');
+
+        // Process WillShipInternational - required field, must be boolean
+        if ($will_ship_international_raw === '1' || $will_ship_international_raw === 'true' || $will_ship_international_raw === true || $will_ship_international_raw === 1) {
+            $will_ship_international = true;
+        } else if ($will_ship_international_raw === '0' || $will_ship_international_raw === 'false' || $will_ship_international_raw === false || $will_ship_international_raw === 0 || $will_ship_international_raw === '' || $will_ship_international_raw === null) {
+            $will_ship_international = (bool) $default_will_ship;
+        } else {
+            $will_ship_international = (bool) $default_will_ship;
+        }
+
+        $will_ship_international = (bool) $will_ship_international;
+        // Auto relist is now handled above with proper auction/fixed price logic
         $who_pays_shipping = get_post_meta($product->get_id(), '_gunbroker_who_pays_shipping', true);
         $who_pays_shipping = $who_pays_shipping !== '' ? intval($who_pays_shipping) : intval(get_option('gunbroker_default_who_pays_shipping', 4));
 
@@ -620,16 +653,39 @@ class GunBroker_API {
         $duration = get_post_meta($product->get_id(), '_gunbroker_listing_duration', true);
         $duration = $duration !== '' ? intval($duration) : intval(get_option('gunbroker_default_listing_duration', 90));
         
-        $listing_type = get_post_meta($product->get_id(), '_gunbroker_listing_type', true); // FixedPrice|StartingBid
-        if (empty($listing_type)) {
-            $listing_type = get_option('gunbroker_default_listing_type', 'FixedPrice');
+        // Get the ACTUAL listing type that determines auction vs fixed price
+        $inner_listing_type = get_post_meta($product->get_id(), '_gunbroker_inner_listing_type', true);
+        if (empty($inner_listing_type)) {
+            $inner_listing_type = get_option('gunbroker_default_listing_type', 'FixedPrice');
         }
 
-        // Map AutoRelist to API values per docs: 1 Do Not Relist, 4 Relist Fixed Price
-        $auto_relist = get_post_meta($product->get_id(), '_gunbroker_auto_relist', true);
-        if ($auto_relist === '') { $auto_relist = get_option('gunbroker_default_auto_relist', '1'); }
-        // Convert old value 2 (internal) to API value 4 (Relist Fixed Price)
-        if ((string)$auto_relist === '2') { $auto_relist = '4'; }
+        // Get listing profile (this is different from the actual listing type)
+        $listing_profile = get_post_meta($product->get_id(), '_gunbroker_listing_type', true);
+        if (empty($listing_profile)) {
+            $listing_profile = get_option('gunbroker_default_listing_type', 'FixedPrice');
+        }
+
+        // Map AutoRelist to API values per docs: 1 Do Not Relist, 2 Relist Until Sold, 4 Relist Fixed Price
+        $auto_relist_raw = get_post_meta($product->get_id(), '_gunbroker_auto_relist', true);
+        if ($auto_relist_raw === '') { $auto_relist_raw = get_option('gunbroker_default_auto_relist', '1'); }
+        
+        // CRITICAL: Fix auction vs fixed price conflict
+        // Use the INNER listing type (the one that actually determines auction vs fixed price)
+        if ($inner_listing_type === 'StartingBid') {
+            // For auction listings, force to "Relist Until Sold" if they had "Relist Fixed Price"
+            if ((string)$auto_relist_raw === '4' || (string)$auto_relist_raw === '2') {
+                $auto_relist = '2'; // Relist Until Sold
+            } else {
+                $auto_relist = '1'; // Do Not Relist
+            }
+        } else {
+            // For fixed price listings, allow all options
+            if ((string)$auto_relist_raw === '2') { $auto_relist_raw = '4'; } // Convert old internal value
+            $auto_relist = $auto_relist_raw;
+        }
+
+        // Use inner_listing_type for IsFixedPrice field
+        $listing_type = $inner_listing_type;
 
         // Who pays for shipping mapping per docs: 2 Seller, 4 Buyer actual, 8 Buyer fixed, 16 Use profile
         $who_pays_shipping_meta = get_post_meta($product->get_id(), '_gunbroker_who_pays_shipping', true);
@@ -648,22 +704,9 @@ class GunBroker_API {
             }
         }
 
-        // Map per-product shipping profile selection to numeric ID list from settings (CSV order)
-        $shipping_profile_key = get_post_meta($product->get_id(), '_gunbroker_shipping_profile_id', true);
-        $shipping_profile_ids_csv = get_option('gunbroker_shipping_profile_ids', '');
-        $profile_ids = array_filter(array_map('trim', explode(',', $shipping_profile_ids_csv)));
-        $profile_map = array();
-        // Zip known keys to provided IDs by position
-        $known_keys = array('accessories','free_ground','everything');
-        foreach ($known_keys as $index => $key) {
-            if (isset($profile_ids[$index])) {
-                $profile_map[$key] = (int)$profile_ids[$index];
-            }
-        }
-        $selected_shipping_profile_id = 0;
-        if ($shipping_profile_key && isset($profile_map[$shipping_profile_key])) {
-            $selected_shipping_profile_id = $profile_map[$shipping_profile_key];
-        }
+        // ShippingProfileID DISABLED - causes API validation errors
+        // Will be re-enabled when we have proper shipping profile validation
+        $final_shipping_profile_id = null;
 
         $serial_number = get_post_meta($product->get_id(), '_gunbroker_serial_number', true);
 
@@ -708,8 +751,6 @@ class GunBroker_API {
             'InspectionPeriod' => $inspection_period, // Optional
             'ReturnsAccepted' => $returns_accepted, // Required: boolean
             'ReturnPolicy' => $return_policy, // Optional: return policy ID
-            'StandardTextID' => $standard_text_id, // Optional: standard text ID
-            'ShippingProfileID' => ($selected_shipping_profile_id ?: null), // Optional: numeric ID
             'Condition' => intval($condition), // Required: integer 1-10
             'CountryCode' => strtoupper(substr($country_code, 0, 2)), // Required: string 2 chars
             'State' => ($seller_state ?: 'AL'), // Required: string 1-50 chars
@@ -730,29 +771,32 @@ class GunBroker_API {
             'IsBold' => false, // Optional: boolean
             'IsHighlight' => false, // Optional: boolean
             'IsReservePrice' => false, // Optional: boolean
-            'AutoRelist' => intval($auto_relist), // 1 Do Not Relist, 4 Relist Fixed Price
+            'AutoRelist' => intval($auto_relist), // 1 Do Not Relist, 2 Relist Until Sold, 4 Relist Fixed Price
             'WhoPaysForShipping' => intval($who_pays_shipping), // 2 Seller, 4 Buyer actual, 8 Buyer fixed, 16 Use profile
             'WillShipInternational' => $will_ship_international, // Required: boolean
             'ShippingClassesSupported' => array(
                 'Ground' => true,
                 'TwoDay' => true,
             ), // Required: object - Supported shipping classes
-            'UseDefaultTaxes' => $use_default_taxes // Optional: boolean
+            'UseDefaultTaxes' => $use_default_taxes, // Optional: boolean
         );
+
+        // ShippingProfileID is DISABLED - never include it in payload
+
+        // StandardTextID is DISABLED - never include it in payload
+        // This field causes API errors and will be re-enabled later with proper validation
 
         if ($gb_weight && $gb_weight_unit) {
             $listing_data['Weight'] = (float) $gb_weight;
             $listing_data['WeightUnit'] = (int) $gb_weight_unit; // 1 pounds, 2 kilograms per docs
         }
         
-        // Add IsFFLRequired field conditionally based on category type
-        // Based on testing, certain categories reject IsFFLRequired field
-        $categories_that_reject_ffl = array(851, 2338, 3022, 3023, 3024, 3025); // Categories that reject IsFFLRequired
-        
-        if (!in_array($category_id, $categories_that_reject_ffl)) {
-            $listing_data['IsFFLRequired'] = false; // Only include for categories that support it
-        }
-        // Note: IsFFLRequired is excluded for categories that reject it
+        // Add IsFFLRequired field for all categories - now required by GunBroker API
+        // Get FFL required setting from product meta
+        $ffl_required = get_post_meta($product->get_id(), '_gunbroker_ffl_required', true);
+        $ffl_required = $ffl_required === '1' ? true : false;
+
+        $listing_data['IsFFLRequired'] = $ffl_required;
         
         // Additional validation based on API documentation
         if (strlen($listing_data['Title']) < 1 || strlen($listing_data['Title']) > 75) {
@@ -794,10 +838,6 @@ class GunBroker_API {
         // Debug logging for listing data preparation
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('GunBroker: Prepared listing data for product: ' . $product->get_name());
-            error_log('GunBroker: Quantity set to: ' . $listing_data['Quantity']);
-            error_log('GunBroker: Condition set to: ' . $listing_data['Condition']);
-            error_log('GunBroker: Product stock quantity: ' . $product->get_stock_quantity());
-            error_log('GunBroker: Full listing data: ' . print_r($listing_data, true));
         }
 
         // Monetary fields MUST be sent in canonical decimal format (e.g., 2.00)

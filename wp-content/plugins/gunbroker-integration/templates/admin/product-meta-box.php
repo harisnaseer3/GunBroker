@@ -45,6 +45,13 @@
                             <option value="0" <?php selected($ffl_required, '0'); ?>>No</option>
                         </select>
                     </label>
+                    <label style="margin:0;">Returns Accepted?
+                        <?php $returns_accepted = get_post_meta($post->ID, '_gunbroker_returns_accepted', true); if ($returns_accepted === '') { $returns_accepted = '1'; } ?>
+                        <select name="gunbroker_returns_accepted" style="margin-left:5px; max-width:120px;">
+                            <option value="1" <?php selected($returns_accepted, '1'); ?>>Yes</option>
+                            <option value="0" <?php selected($returns_accepted, '0'); ?>>No</option>
+                        </select>
+                    </label>
                 </div>
             </div>
         </td>
@@ -332,7 +339,6 @@
             <label>Actions</label>
         </th>
         <td style="padding-top: 15px;">
-            <input type="hidden" name="gb_save_and_send" id="gb_save_and_send" value="0" />
             <button type="button" class="button gb-save">Save</button>
             <button type="button" class="button button-primary gb-save-send">Save and Send to GunBroker</button>
         </td>
@@ -340,42 +346,92 @@
 
     <script>
     jQuery(function($){
-        // Toast notification function
-        function showToast(message, type = 'success') {
-            var bgColor = type === 'success' ? '#46b450' : (type === 'error' ? '#dc3232' : '#2271b1');
-            var $toast = $('<div></div>')
-                .text(message)
-                .css({
-                    position: 'fixed',
-                    top: '20px',
-                    right: '20px',
-                    zIndex: 100000,
-                    padding: '12px 16px',
-                    borderRadius: '6px',
-                    background: bgColor,
-                    color: '#fff',
-                    boxShadow: '0 4px 12px rgba(0,0,0,.2)',
-                    fontSize: '14px',
-                    maxWidth: '300px',
-                    wordWrap: 'break-word'
-                });
-            $('body').append($toast);
-            setTimeout(function(){
-                $toast.fadeOut(300, function(){
-                    $(this).remove();
-                });
-            }, 4000);
+        // Modal notification function
+        function showModal(message, type = 'success') {
+            // Remove existing modal if present
+            $('.gb-notification-modal').remove();
+
+            var modalBgColor = type === 'success' ? '#46b450' : '#dc3232';
+            var iconClass = type === 'success' ? 'dashicons-yes' : 'dashicons-no-alt';
+
+            var $modal = $(
+                '<div class="gb-notification-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100000; display: flex; align-items: center; justify-content: center;">' +
+                    '<div style="background: #fff; border-radius: 8px; padding: 30px; max-width: 400px; width: 90%; box-shadow: 0 4px 20px rgba(0,0,0,0.3); text-align: center;">' +
+                        '<div style="width: 60px; height: 60px; border-radius: 50%; background: ' + modalBgColor + '; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">' +
+                            '<span class="dashicons ' + iconClass + '" style="font-size: 30px; color: white;"></span>' +
+                        '</div>' +
+                        '<h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">' +
+                            (type === 'success' ? 'Success!' : 'Error!') +
+                        '</h3>' +
+                        '<p style="margin: 0 0 25px 0; color: #666; font-size: 14px; line-height: 1.5;">' + message + '</p>' +
+                        '<button type="button" class="button button-primary gb-modal-close" style="padding: 10px 30px; font-size: 14px;">Okay</button>' +
+                    '</div>' +
+                '</div>'
+            );
+
+            $('body').append($modal);
+
+            // Handle modal close
+            $modal.find('.gb-modal-close').on('click', function() {
+                $modal.remove();
+            });
+
+            // Close on background click
+            $modal.on('click', function(e) {
+                if (e.target === this) {
+                    $modal.remove();
+                }
+            });
+
+            // Close on Escape key
+            $(document).on('keydown.gb-modal', function(e) {
+                if (e.keyCode === 27) {
+                    $modal.remove();
+                    $(document).off('keydown.gb-modal');
+                }
+            });
         }
 
-        function submitWith(send){
-            $('#gb_save_and_send').val(send ? '1' : '0');
-            $('#post').trigger('submit');
-        }
 
         $('.gb-save').on('click', function(){
             if ($(this).prop('disabled')) return;
-            $(this).prop('disabled', true);
-            submitWith(false);
+            var $button = $(this);
+            var originalText = $button.text();
+
+            $button.prop('disabled', true).text('Saving...');
+
+            // Collect form data
+            var formData = new FormData($('#post')[0]);
+            formData.append('action', 'gunbroker_save_only');
+            formData.append('nonce', '<?php echo wp_create_nonce("gunbroker_ajax_nonce"); ?>');
+            formData.append('post_id', <?php echo $post->ID; ?>);
+
+            $.ajax({
+                url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        showModal(response.data.message || 'Product saved successfully!', 'success');
+                    } else {
+                        showModal(response.data || 'Failed to save product', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    var errorMessage = 'Failed to save product';
+                    if (xhr.responseJSON && xhr.responseJSON.data) {
+                        errorMessage = xhr.responseJSON.data;
+                    } else if (error) {
+                        errorMessage = error;
+                    }
+                    showModal(errorMessage, 'error');
+                },
+                complete: function() {
+                    $button.prop('disabled', false).text(originalText);
+                }
+            });
         });
 
         $('.gb-save-send').on('click', function(){
@@ -399,13 +455,13 @@
                 contentType: false,
                 success: function(response) {
                     if (response.success) {
-                        showToast(response.data.message || 'Product sent to GunBroker successfully!', 'success');
+                        showModal(response.data.message || 'Product sent to GunBroker successfully!', 'success');
                         // Update status if provided
                         if (response.data.status) {
                             location.reload(); // Reload to show updated status
                         }
                     } else {
-                        showToast(response.data || 'Failed to send product to GunBroker', 'error');
+                        showModal(response.data || 'Failed to send product to GunBroker', 'error');
                     }
                 },
                 error: function(xhr, status, error) {
@@ -415,7 +471,7 @@
                     } else if (error) {
                         errorMessage = error;
                     }
-                    showToast(errorMessage, 'error');
+                    showModal(errorMessage, 'error');
                 },
                 complete: function() {
                     $button.prop('disabled', false).text(originalText);
