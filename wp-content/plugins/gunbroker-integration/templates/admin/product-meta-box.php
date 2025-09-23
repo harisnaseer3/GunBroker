@@ -99,10 +99,10 @@
                     <?php $gb_who_pays = get_post_meta($post->ID, '_gunbroker_who_pays_shipping', true); ?>
                     <label style="display:block; margin-bottom:6px;">Who pays for shipping?</label>
                     <select name="gunbroker_who_pays_shipping" class="regular-text">
-                        <option value="" <?php selected($gb_who_pays, ''); ?>>Use shipping profile</option>
-                        <option value="3" <?php selected($gb_who_pays, '3'); ?>>Seller pays for shipping</option>
-                        <option value="2" <?php selected($gb_who_pays, '2'); ?>>Buyer pays actual shipping cost</option>
-                        <option value="4" <?php selected($gb_who_pays, '4'); ?>>Buyer pays fixed amount</option>
+                        <option value="" <?php selected($gb_who_pays, '16'); ?>>Use shipping profile</option>
+                        <option value="3" <?php selected($gb_who_pays, '2'); ?>>Seller pays for shipping</option>
+                        <option value="2" <?php selected($gb_who_pays, '4'); ?>>Buyer pays actual shipping cost</option>
+                        <option value="4" <?php selected($gb_who_pays, '8'); ?>>Buyer pays fixed amount</option>
                     </select>
                 </div>
                 <div>
@@ -324,6 +324,104 @@
         }
         toggleListingFields();
         $('#gb_listing_type').on('change', toggleListingFields);
+    });
+    </script>
+
+    <tr>
+        <th scope="row" style="vertical-align: top; padding-top: 15px;">
+            <label>Actions</label>
+        </th>
+        <td style="padding-top: 15px;">
+            <input type="hidden" name="gb_save_and_send" id="gb_save_and_send" value="0" />
+            <button type="button" class="button gb-save">Save</button>
+            <button type="button" class="button button-primary gb-save-send">Save and Send to GunBroker</button>
+        </td>
+    </tr>
+
+    <script>
+    jQuery(function($){
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            var bgColor = type === 'success' ? '#46b450' : (type === 'error' ? '#dc3232' : '#2271b1');
+            var $toast = $('<div></div>')
+                .text(message)
+                .css({
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    zIndex: 100000,
+                    padding: '12px 16px',
+                    borderRadius: '6px',
+                    background: bgColor,
+                    color: '#fff',
+                    boxShadow: '0 4px 12px rgba(0,0,0,.2)',
+                    fontSize: '14px',
+                    maxWidth: '300px',
+                    wordWrap: 'break-word'
+                });
+            $('body').append($toast);
+            setTimeout(function(){
+                $toast.fadeOut(300, function(){
+                    $(this).remove();
+                });
+            }, 4000);
+        }
+
+        function submitWith(send){
+            $('#gb_save_and_send').val(send ? '1' : '0');
+            $('#post').trigger('submit');
+        }
+
+        $('.gb-save').on('click', function(){
+            if ($(this).prop('disabled')) return;
+            $(this).prop('disabled', true);
+            submitWith(false);
+        });
+
+        $('.gb-save-send').on('click', function(){
+            if ($(this).prop('disabled')) return;
+            var $button = $(this);
+            var originalText = $button.text();
+
+            $button.prop('disabled', true).text('Saving and sending...');
+
+            // Collect form data
+            var formData = new FormData($('#post')[0]);
+            formData.append('action', 'gunbroker_save_and_send');
+            formData.append('nonce', '<?php echo wp_create_nonce("gunbroker_ajax_nonce"); ?>');
+            formData.append('post_id', <?php echo $post->ID; ?>);
+
+            $.ajax({
+                url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        showToast(response.data.message || 'Product sent to GunBroker successfully!', 'success');
+                        // Update status if provided
+                        if (response.data.status) {
+                            location.reload(); // Reload to show updated status
+                        }
+                    } else {
+                        showToast(response.data || 'Failed to send product to GunBroker', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    var errorMessage = 'Failed to send product to GunBroker';
+                    if (xhr.responseJSON && xhr.responseJSON.data) {
+                        errorMessage = xhr.responseJSON.data;
+                    } else if (error) {
+                        errorMessage = error;
+                    }
+                    showToast(errorMessage, 'error');
+                },
+                complete: function() {
+                    $button.prop('disabled', false).text(originalText);
+                }
+            });
+        });
     });
     </script>
 </table>
@@ -576,3 +674,12 @@
         });
     });
 </script>
+
+<style>
+/* Temporarily hide default WooCommerce publish controls on product edit */
+body.post-type-product #publish,
+body.post-type-product #save-post,
+body.post-type-product .editor-post-publish-panel__toggle,
+body.post-type-product .editor-post-publish-button,
+body.post-type-product .edit-post-post-publish-panel__toggle { display: none !important; }
+</style>

@@ -78,7 +78,7 @@
     <div id="products-grid-view" class="products-view" style="background: #fff; border: 1px solid #ccd0d4; padding: 20px;">
         <?php
         // Get products organized by status using the new robust method
-        $products_data = $this->get_products_by_status(50);
+        $products_data = $this->get_products_by_status(5000);
         $active_products = $products_data['active'];
         $not_listed_products = $products_data['not_listed'];
         $total_active = $products_data['total_active'];
@@ -135,6 +135,33 @@
         }
         
         $markup = get_option('gunbroker_markup_percentage', 10);
+
+        // Pagination and sorting setup
+        $per_page = 12;
+        $apage = isset($_GET['apage']) ? max(1, intval($_GET['apage'])) : 1;
+        $npage = isset($_GET['npage']) ? max(1, intval($_GET['npage'])) : 1;
+
+        // Sort by newest product first
+        $by_newest = function($a, $b) {
+            $a_dt = method_exists($a, 'get_date_created') && $a->get_date_created() ? intval($a->get_date_created()->getTimestamp()) : 0;
+            $b_dt = method_exists($b, 'get_date_created') && $b->get_date_created() ? intval($b->get_date_created()->getTimestamp()) : 0;
+            if ($a_dt === $b_dt) { return 0; }
+            return ($b_dt <=> $a_dt);
+        };
+        if (!empty($active_products)) { usort($active_products, $by_newest); }
+        if (!empty($not_listed_products)) { usort($not_listed_products, $by_newest); }
+
+        // Compute total pages
+        $active_total_pages = max(1, (int) ceil(count($active_products) / $per_page));
+        $not_listed_total_pages = max(1, (int) ceil(count($not_listed_products) / $per_page));
+
+        // Clamp current pages within range
+        if ($apage > $active_total_pages) { $apage = $active_total_pages; }
+        if ($npage > $not_listed_total_pages) { $npage = $not_listed_total_pages; }
+
+        // Slice for current page
+        $active_slice = array_slice($active_products, ($apage - 1) * $per_page, $per_page);
+        $not_listed_slice = array_slice($not_listed_products, ($npage - 1) * $per_page, $per_page);
         ?>
         
         <!-- Active Listings Section -->
@@ -145,7 +172,7 @@
                 Active Listings (<?php echo $total_active; ?>)
             </h2>
             <div class="products-grid">
-                <?php foreach ($active_products as $product):
+                <?php foreach ($active_slice as $product):
                     $product_id = $product->get_id();
                     $price = $product->get_price();
                     $gb_price = $price * (1 + $markup / 100);
@@ -250,6 +277,21 @@
                 </div>
                 <?php endforeach; ?>
             </div>
+            <?php
+                // Pagination controls for Active
+                if ($active_total_pages > 1) {
+                    echo '<div style="margin-top: 16px; display:flex; gap:8px; align-items:center; justify-content:center;">';
+                    $base_url = remove_query_arg(array('apage'), $_SERVER['REQUEST_URI']);
+                    $prev = max(1, $apage - 1);
+                    $next = min($active_total_pages, $apage + 1);
+                    $prev_url = esc_url(add_query_arg('apage', $prev, $base_url));
+                    $next_url = esc_url(add_query_arg('apage', $next, $base_url));
+                    echo '<a class="button" href="' . $prev_url . '">&laquo; Prev</a>';
+                    echo '<span>Page ' . intval($apage) . ' of ' . intval($active_total_pages) . '</span>';
+                    echo '<a class="button" href="' . $next_url . '">Next &raquo;</a>';
+                    echo '</div>';
+                }
+            ?>
         </div>
         <?php endif; ?>
         
@@ -261,7 +303,7 @@
                 Not Listed (<?php echo $total_not_listed; ?>)
             </h2>
             <div class="products-grid">
-                <?php foreach ($not_listed_products as $product):
+                <?php foreach ($not_listed_slice as $product):
                     $product_id = $product->get_id();
                     $price = $product->get_price();
                     $gb_price = $price * (1 + $markup / 100);
@@ -350,6 +392,21 @@
                 </div>
                 <?php endforeach; ?>
             </div>
+            <?php
+                // Pagination controls for Not Listed
+                if ($not_listed_total_pages > 1) {
+                    echo '<div style="margin-top: 16px; display:flex; gap:8px; align-items:center; justify-content:center;">';
+                    $base_url = remove_query_arg(array('npage'), $_SERVER['REQUEST_URI']);
+                    $prev = max(1, $npage - 1);
+                    $next = min($not_listed_total_pages, $npage + 1);
+                    $prev_url = esc_url(add_query_arg('npage', $prev, $base_url));
+                    $next_url = esc_url(add_query_arg('npage', $next, $base_url));
+                    echo '<a class="button" href="' . $prev_url . '">&laquo; Prev</a>';
+                    echo '<span>Page ' . intval($npage) . ' of ' . intval($not_listed_total_pages) . '</span>';
+                    echo '<a class="button" href="' . $next_url . '">Next &raquo;</a>';
+                    echo '</div>';
+                }
+            ?>
         </div>
         <?php endif; ?>
 

@@ -55,6 +55,7 @@ class GunBroker_Integration {
 
         // Add admin notices
         add_action('admin_notices', array($this, 'admin_notices'));
+        add_action('admin_enqueue_scripts', array($this, 'inject_toast_and_redirect'));
 
         // Add activation/deactivation hooks
         register_activation_hook(__FILE__, array($this, 'activate'));
@@ -140,6 +141,29 @@ class GunBroker_Integration {
                 </p>
             </div>
             <?php
+        }
+    }
+
+    // Inject toast popup and handle redirect after save
+    public function inject_toast_and_redirect($hook) {
+        if (!is_admin()) return;
+        $notice = get_transient('gb_sync_notice_' . get_current_user_id());
+        $redirect_flag = get_transient('gb_redirect_after_save_' . get_current_user_id());
+        if ($notice || $redirect_flag) {
+            delete_transient('gb_sync_notice_' . get_current_user_id());
+            delete_transient('gb_redirect_after_save_' . get_current_user_id());
+            $msg = $notice ? esc_js($notice['msg']) : '';
+            $is_success = $notice && $notice['type'] === 'success';
+            $bg = $is_success ? '#46b450' : ($notice && $notice['type']==='error' ? '#dc3232' : '#2271b1');
+            $toast_js = $notice ? "(function($){ var $m=$('<div></div>').text('{$msg}').css({position:'fixed',top:'20px',right:'20px',zIndex:100000,padding:'12px 16px',borderRadius:'6px',background:'{$bg}',color:'#fff',boxShadow:'0 4px 12px rgba(0,0,0,.2)'}); $('body').append($m); setTimeout(function(){ $m.fadeOut(300,function(){ $(this).remove(); }); }, 4000); })(jQuery);" : '';
+            $redir_js = '';
+            if ($redirect_flag === 'gunbroker') {
+                $url = esc_url(admin_url('admin.php?page=gunbroker-integration'));
+                $redir_js = "setTimeout(function(){ window.location.href='{$url}'; }, 500);";
+            }
+            $inline = "jQuery(function($){ {$toast_js} {$redir_js} });";
+            // Attach to WordPress admin's default jQuery handle
+            wp_add_inline_script('jquery', $inline);
         }
     }
 

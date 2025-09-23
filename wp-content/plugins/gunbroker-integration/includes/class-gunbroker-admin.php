@@ -26,6 +26,7 @@ class GunBroker_Admin {
         add_action('wp_ajax_gunbroker_clear_category_cache', array($this, 'clear_category_cache_ajax'));
         add_action('wp_ajax_gunbroker_end_listing', array($this, 'end_listing_ajax'));
         add_action('wp_ajax_gunbroker_update_listing', array($this, 'update_listing_ajax'));
+        add_action('wp_ajax_gunbroker_save_and_send', array($this, 'save_and_send_ajax'));
 
         // Add MPN field in Inventory tab and save it separately from SKU
         add_action('woocommerce_product_options_sku', array($this, 'add_mpn_field_to_inventory'));
@@ -406,10 +407,37 @@ class GunBroker_Admin {
             }
         }
 
-        // Always queue for sync (all products are now auto-synced)
-        if (true) {
-            $sync = new GunBroker_Sync();
-            $sync->queue_product_sync($post_id);
+        // Queue for background sync (non-blocking)
+        $sync = new GunBroker_Sync();
+        $sync->queue_product_sync($post_id);
+
+        // If Save & Send requested, run an immediate sync and show result
+        if (isset($_POST['gb_save_and_send']) && $_POST['gb_save_and_send'] === '1') {
+            $last_sync = get_transient('gb_last_sync_' . $post_id);
+            if ($last_sync && (time() - $last_sync) < 30) {
+                set_transient('gb_sync_notice_' . get_current_user_id(), array('type' => 'warning', 'msg' => 'Product sync already in progress. Please wait before syncing again.'), 60);
+            } else {
+                set_transient('gb_last_sync_' . $post_id, time(), 60);
+                $result = $sync->sync_single_product($post_id);
+                if (is_wp_error($result)) {
+                    set_transient('gb_sync_notice_' . get_current_user_id(), array('type' => 'error', 'msg' => 'GunBroker sync failed: ' . $result->get_error_message()), 120);
+                } else {
+                    set_transient('gb_sync_notice_' . get_current_user_id(), array('type' => 'success', 'msg' => 'Product sent to GunBroker successfully.'), 120);
+                    // Ensure product is published and mark as active locally
+                    if (get_post_status($post_id) !== 'publish') {
+                        wp_update_post(array('ID' => $post_id, 'post_status' => 'publish'));
+                    }
+                    $this->update_product_gunbroker_status($post_id, 'active');
+                }
+            }
+        } else {
+            // Normal Save
+            set_transient('gb_sync_notice_' . get_current_user_id(), array('type' => 'success', 'msg' => 'Product saved.'), 60);
+            // Ensure product is published and appears in Not Listed
+            if (get_post_status($post_id) !== 'publish') {
+                wp_update_post(array('ID' => $post_id, 'post_status' => 'publish'));
+            }
+            $this->update_product_gunbroker_status($post_id, 'not_listed');
         }
     }
 
@@ -418,10 +446,8 @@ class GunBroker_Admin {
      */
     public function redirect_after_product_save($location, $post_id) {
         if (get_post_type($post_id) === 'product') {
-            // Only redirect on standard save/update actions in admin
-            if (!isset($_POST['action']) || in_array($_POST['action'], array('editpost', 'post'))) {
-                $location = admin_url('admin.php?page=gunbroker-integration');
-            }
+            // Stay on edit page so popup is visible
+            $location = $location;
         }
         return $location;
     }
@@ -450,6 +476,18 @@ class GunBroker_Admin {
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('gunbroker_ajax_nonce')
             ));
+
+            // Inject a small script to read our transient notice and show popup
+            $notice = get_transient('gb_sync_notice_' . get_current_user_id());
+            if ($notice) {
+                delete_transient('gb_sync_notice_' . get_current_user_id());
+                $msg = esc_js($notice['msg']);
+                $is_success = $notice['type'] === 'success';
+                $bg = $is_success ? '#46b450' : '#dc3232';
+                $fg = '#fff';
+                $inline_js = "jQuery(function($){ var $m=$('<div></div>').text('{$msg}').css({position:'fixed',top:'20px',right:'20px',zIndex:100000,padding:'12px 16px',borderRadius:'6px',background:'{$bg}',color:'{$fg}',boxShadow:'0 4px 12px rgba(0,0,0,.2)'}); $('body').append($m); setTimeout(function(){ $m.fadeOut(300,function(){ $(this).remove(); }); }, 4000); });";
+                wp_add_inline_script('gunbroker-admin', $inline_js);
+            }
         }
     }
 
@@ -495,6 +533,41 @@ class GunBroker_Admin {
             wp_send_json_error($result->get_error_message());
         } else {
             wp_send_json_success('Product synced successfully!');
+        }
+    }
+
+    public function save_and_send_ajax() {
+        check_ajax_referer('gunbroker_ajax_nonce', 'nonce');
+
+        if (!current_user_can('edit_posts')) {
+            wp_die('Unauthorized');
+        }
+
+        $product_id = intval($_POST['post_id']);
+        if (!$product_id) {
+            wp_send_json_error('Invalid product ID');
+        }
+
+        // Process the form data similar to the regular save process
+        $this->save_product_meta($product_id);
+
+        // Run the sync process
+        $sync = new GunBroker_Sync();
+        $result = $sync->sync_single_product($product_id);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error('GunBroker sync failed: ' . $result->get_error_message());
+        } else {
+            // Ensure product is published and mark as active locally
+            if (get_post_status($product_id) !== 'publish') {
+                wp_update_post(array('ID' => $product_id, 'post_status' => 'publish'));
+            }
+            $this->update_product_gunbroker_status($product_id, 'active');
+
+            wp_send_json_success(array(
+                'message' => 'Product sent to GunBroker successfully!',
+                'status' => 'active'
+            ));
         }
     }
 
