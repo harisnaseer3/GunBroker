@@ -337,12 +337,25 @@ class GunBroker_API {
         }
         
         // Check for required fields based on GunBroker API documentation
-        $required_fields = array(
-            'Title', 'Description', 'CategoryID', 'StartingBid', 'Quantity',
+        // CRITICAL: Different required fields for auction vs fixed price
+        $base_required_fields = array(
+            'Title', 'Description', 'CategoryID', 'Quantity',
             'ListingDuration', 'PaymentMethods', 'ShippingMethods', 'ReturnsAccepted',
             'Condition', 'CountryCode', 'State', 'City', 'PostalCode',
             'WillShipInternational', 'IsFFLRequired'
         );
+        
+        // Add listing-type-specific required fields
+        if (isset($listing_data['IsFixedPrice']) && $listing_data['IsFixedPrice'] === true) {
+            // Fixed Price listing - requires FixedPrice field
+            $required_fields = array_merge($base_required_fields, array('FixedPrice'));
+            error_log('=== VALIDATION === Validating as FIXED PRICE listing');
+        } else {
+            // Auction listing - requires StartingBid field
+            $required_fields = array_merge($base_required_fields, array('StartingBid'));
+            error_log('=== VALIDATION === Validating as AUCTION listing');
+        }
+        
         $missing_fields = array();
         foreach ($required_fields as $field) {
             // Special handling for boolean fields - they can be false but not empty
@@ -669,10 +682,30 @@ class GunBroker_API {
         $auto_relist_raw = get_post_meta($product->get_id(), '_gunbroker_auto_relist', true);
         if ($auto_relist_raw === '') { $auto_relist_raw = get_option('gunbroker_default_auto_relist', '1'); }
         
-        // CRITICAL: Fix auction vs fixed price conflicts
-        // Use the INNER listing type (the one that actually determines auction vs fixed price)
-        if ($inner_listing_type === 'StartingBid') {
+        // CRITICAL: Fix auction vs fixed price conflicts  
+        // Check BOTH listing profile and inner listing type to determine final type
+        $listing_profile = get_post_meta($product->get_id(), '_gunbroker_listing_type', true);
+        
+        error_log('=== GunBroker LISTING TYPE DEBUG ===');
+        error_log('Listing Profile: "' . $listing_profile . '"');
+        error_log('Inner Listing Type: "' . $inner_listing_type . '"');
+        error_log('AutoRelist Raw: "' . $auto_relist_raw . '"');
+        
+        // Determine final listing type based on user selection
+        $final_listing_type = $inner_listing_type;
+        
+        // Override based on listing profile if explicitly set
+        if ($listing_profile === 'FixedPrice') {
+            $final_listing_type = 'FixedPrice';
+            error_log('Forcing listing type to FixedPrice based on profile selection');
+        } elseif ($listing_profile === 'StartingBid') {
+            $final_listing_type = 'StartingBid';
+            error_log('Forcing listing type to StartingBid based on profile selection');
+        }
+        
+        if ($final_listing_type === 'StartingBid') {
             // AUCTION LISTINGS: Apply strict rules
+            error_log('Processing as AUCTION listing');
             
             // 1. Force quantity to 1 (auctions cannot have quantity > 1)
             $quantity = 1;
@@ -685,13 +718,19 @@ class GunBroker_API {
             }
         } else {
             // FIXED PRICE LISTINGS: Allow normal options
+            error_log('Processing as FIXED PRICE listing');
+            
             if ((string)$auto_relist_raw === '2') { $auto_relist_raw = '4'; } // Convert old internal value
             $auto_relist = $auto_relist_raw;
             // Quantity can be > 1 for fixed price listings
         }
 
-        // Use inner_listing_type for IsFixedPrice field
-        $listing_type = $inner_listing_type;
+        // Use final_listing_type for IsFixedPrice field
+        $listing_type = $final_listing_type;
+        
+        error_log('Final listing type: "' . $listing_type . '"');
+        error_log('Final auto relist: "' . $auto_relist . '"');
+        error_log('Final quantity: "' . $quantity . '"');
 
         // Who pays for shipping mapping per docs: 2 Seller, 4 Buyer actual, 8 Buyer fixed, 16 Use profile
         $who_pays_shipping_meta = get_post_meta($product->get_id(), '_gunbroker_who_pays_shipping', true);
@@ -816,11 +855,11 @@ class GunBroker_API {
             }
         }
 
+        // Build listing data based on listing type - CRITICAL: Different fields for auction vs fixed price
         $listing_data = array(
             'Title' => substr($title, 0, 75), // Required: 1-75 chars
             'Description' => substr($description, 0, 8000), // Required: 1-8000 chars
             'CategoryID' => intval($category_id), // Required: integer 1-999999
-            'StartingBid' => floatval($gunbroker_price), // Required: decimal 0.01-999999.99 (use float, not string)
             'Quantity' => $quantity, // Required: integer
             'ListingDuration' => $duration, // Required: integer 1-99
             'PaymentMethods' => $payment_methods, // Required: object with boolean values
@@ -843,11 +882,9 @@ class GunBroker_API {
             'SellerContactEmail' => get_option('admin_email'), // Optional: string
             'SellerContactPhone' => ($contact_phone ?: '205-000-0000'), // Optional: string
             'SerialNumber' => $serial_number ?: null,
-            'IsFixedPrice' => ($listing_type === 'FixedPrice'), // Optional: boolean
             'IsFeatured' => false, // Optional: boolean
             'IsBold' => false, // Optional: boolean
             'IsHighlight' => false, // Optional: boolean
-            'IsReservePrice' => false, // Optional: boolean
             'AutoRelist' => intval($auto_relist), // 1 Do Not Relist, 2 Relist Until Sold, 4 Relist Fixed Price
             'WhoPaysForShipping' => intval($who_pays_shipping), // 2 Seller, 4 Buyer actual, 8 Buyer fixed, 16 Use profile
             'WillShipInternational' => $will_ship_international, // Required: boolean
@@ -857,6 +894,34 @@ class GunBroker_API {
             ), // Required: object - Supported shipping classes
             'UseDefaultTaxes' => $use_default_taxes, // Optional: boolean
         );
+
+        // CRITICAL: Add listing-type-specific fields - NO MIXING OF AUCTION AND FIXED PRICE FIELDS
+        if ($listing_type === 'FixedPrice') {
+            // FIXED PRICE LISTING: Only send fixed price fields, NO auction fields
+            $listing_data['IsFixedPrice'] = true;
+            $listing_data['FixedPrice'] = floatval($gunbroker_price);
+            // CRITICAL: Do NOT send any auction-related fields
+            // StartingBid, ReservePrice, BuyNowPrice are NOT allowed for fixed price listings
+            error_log('=== FIXED PRICE LISTING === Using FixedPrice: ' . floatval($gunbroker_price));
+            error_log('=== FIXED PRICE LISTING === NO auction fields (StartingBid/ReservePrice/BuyNowPrice) will be sent');
+        } else {
+            // AUCTION LISTING: Send auction fields, NO fixed price fields
+            $listing_data['StartingBid'] = floatval($gunbroker_price);
+            $listing_data['IsFixedPrice'] = false;
+            
+            // Add auction-specific fields if they exist
+            $buy_now_price = get_post_meta($product->get_id(), '_gunbroker_buy_now_price', true);
+            $reserve_price = get_post_meta($product->get_id(), '_gunbroker_reserve_price', true);
+            
+            if (!empty($buy_now_price) && floatval($buy_now_price) > 0) {
+                $listing_data['BuyNowPrice'] = floatval($buy_now_price);
+            }
+            if (!empty($reserve_price) && floatval($reserve_price) > 0) {
+                $listing_data['ReservePrice'] = floatval($reserve_price);
+            }
+            
+            error_log('=== AUCTION LISTING === Using StartingBid: ' . floatval($gunbroker_price));
+        }
 
         // ShippingProfileID is COMPLETELY DISABLED - never include it
 
@@ -891,9 +956,20 @@ class GunBroker_API {
             return new WP_Error('invalid_category', 'CategoryID must be 1-999999');
         }
         
-        if ($listing_data['StartingBid'] < 0.01 || $listing_data['StartingBid'] > 999999.99) {
-            error_log('GunBroker: ERROR - StartingBid invalid: ' . $listing_data['StartingBid']);
-            return new WP_Error('invalid_starting_bid', 'StartingBid must be 0.01-999999.99');
+        // Only validate StartingBid if it exists (auction listings)
+        if (isset($listing_data['StartingBid'])) {
+            if ($listing_data['StartingBid'] < 0.01 || $listing_data['StartingBid'] > 999999.99) {
+                error_log('GunBroker: ERROR - StartingBid invalid: ' . $listing_data['StartingBid']);
+                return new WP_Error('invalid_starting_bid', 'StartingBid must be 0.01-999999.99');
+            }
+        }
+        
+        // Only validate FixedPrice if it exists (fixed price listings)
+        if (isset($listing_data['FixedPrice'])) {
+            if ($listing_data['FixedPrice'] < 0.01 || $listing_data['FixedPrice'] > 999999.99) {
+                error_log('GunBroker: ERROR - FixedPrice invalid: ' . $listing_data['FixedPrice']);
+                return new WP_Error('invalid_fixed_price', 'FixedPrice must be 0.01-999999.99');
+            }
         }
         
         if ($listing_data['Condition'] < 1 || $listing_data['Condition'] > 6) {
@@ -912,6 +988,25 @@ class GunBroker_API {
             return new WP_Error('invalid_shipping_methods', 'ShippingMethods must be a non-empty object');
         }
 
+        // CRITICAL DEBUG: Show exactly what's being sent to API
+        error_log('=== GunBroker API PAYLOAD DEBUG ===');
+        error_log('Listing Type: ' . $listing_type);
+        error_log('IsFixedPrice: ' . ($listing_data['IsFixedPrice'] ? 'true' : 'false'));
+        if (isset($listing_data['FixedPrice'])) {
+            error_log('FixedPrice field: ' . $listing_data['FixedPrice']);
+        }
+        if (isset($listing_data['StartingBid'])) {
+            error_log('StartingBid field: ' . $listing_data['StartingBid'] . ' *** ERROR: Should not be present for Fixed Price ***');
+        }
+        if (isset($listing_data['ReservePrice'])) {
+            error_log('ReservePrice field: ' . $listing_data['ReservePrice'] . ' *** ERROR: Should not be present for Fixed Price ***');
+        }
+        if (isset($listing_data['BuyNowPrice'])) {
+            error_log('BuyNowPrice field: ' . $listing_data['BuyNowPrice'] . ' *** ERROR: Should not be present for Fixed Price ***');
+        }
+        error_log('Full API payload: ' . json_encode($listing_data, JSON_PRETTY_PRINT));
+        error_log('=== END API PAYLOAD DEBUG ===');
+
         // Debug logging for listing data preparation
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('GunBroker: Prepared listing data for product: ' . $product->get_name());
@@ -922,19 +1017,24 @@ class GunBroker_API {
             return number_format((float)$amount, 2, '.', '');
         };
 
-        // Normalize monetary values
-        $listing_data['StartingBid'] = $format_money($listing_data['StartingBid']);
+        // Normalize monetary values - ONLY format fields that exist
+        if (isset($listing_data['StartingBid'])) {
+            $listing_data['StartingBid'] = $format_money($listing_data['StartingBid']);
+        }
+        if (isset($listing_data['FixedPrice'])) {
+            $listing_data['FixedPrice'] = $format_money($listing_data['FixedPrice']);
+        }
+        if (isset($listing_data['ReservePrice'])) {
+            $listing_data['ReservePrice'] = $format_money($listing_data['ReservePrice']);
+        }
+        if (isset($listing_data['BuyNowPrice'])) {
+            $listing_data['BuyNowPrice'] = $format_money($listing_data['BuyNowPrice']);
+        }
         if (isset($listing_data['ShippingCost'])) {
             $listing_data['ShippingCost'] = $format_money($listing_data['ShippingCost']);
         }
         if (isset($listing_data['ShippingInsurance'])) {
             $listing_data['ShippingInsurance'] = $format_money($listing_data['ShippingInsurance']);
-        }
-
-        // Add BuyNowPrice as optional if you want both auction and buy-now
-        $buy_now_enabled = get_option('gunbroker_enable_buy_now', true);
-        if ($buy_now_enabled) {
-            $listing_data['BuyNowPrice'] = $format_money($gunbroker_price * 1.10); // 10% higher than starting bid
         }
 
         // Add images to description as secure HTTPS URLs (GunBroker API requirement)
