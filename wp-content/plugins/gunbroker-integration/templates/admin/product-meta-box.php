@@ -99,10 +99,10 @@
                     <?php $gb_who_pays = get_post_meta($post->ID, '_gunbroker_who_pays_shipping', true); ?>
                     <label style="display:block; margin-bottom:6px;">Who pays for shipping?</label>
                     <select name="gunbroker_who_pays_shipping" class="regular-text">
-                        <option value="16" <?php selected($gb_who_pays, '16'); ?>>Use shipping profile</option>
+                        <option value="" <?php selected($gb_who_pays, ''); ?>>Use shipping profile</option>
                         <option value="2" <?php selected($gb_who_pays, '2'); ?>>Seller pays for shipping</option>
-                        <option value="16" <?php selected($gb_who_pays, '16'); ?>></option>
-                        <option value="8" <?php selected($gb_who_pays, '8'); ?>>Buyer pays fixed amBuyer pays actual shipping costount</option>
+                        <option value="4" <?php selected($gb_who_pays, '4'); ?>>Buyer pays actual shipping cost</option>
+                        <option value="8" <?php selected($gb_who_pays, '8'); ?>>Buyer pays fixed amount</option>
                     </select>
                 </div>
                 <div>

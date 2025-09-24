@@ -526,32 +526,38 @@ class GunBroker_API {
         $custom_title = get_post_meta($product->get_id(), '_gunbroker_custom_title', true);
         $title = !empty($custom_title) ? $custom_title : $product->get_name();
 
-        // Prepare description - strip HTML tags for GunBroker
-        $description = $product->get_description();
-        if (empty($description)) {
-            $description = $product->get_short_description();
+        // Prepare description: pull exact Product Description (post_content) as seen in editor
+        $post_content = get_post_field('post_content', $product->get_id());
+        // Apply WP content filters so shortcodes/embeds render similar to the editor display
+        $filtered_content = apply_filters('the_content', $post_content);
+        $raw_description = $filtered_content;
+
+        // Fallbacks if post content is empty
+        if (strlen(trim(wp_strip_all_tags($raw_description))) < 1) {
+            $alt = $product->get_description();
+            if (strlen(trim(wp_strip_all_tags($alt))) > 0) {
+                $raw_description = $alt;
+            } else {
+                $alt2 = $product->get_short_description();
+                $raw_description = $alt2 ?: 'High-quality product available for sale. Please contact seller for more details.';
+            }
         }
-        if (empty($description)) {
-            $description = 'High-quality product available for sale. Please contact seller for more details.';
+
+        // Allow safe HTML for GunBroker while preventing empty content after trimming
+        $description = trim(wp_kses_post($raw_description));
+
+        // If safe-HTML result is effectively empty, fallback to plain-text version of the same content
+        if (strlen(trim(wp_strip_all_tags($description))) < 1) {
+            $description = trim(wp_strip_all_tags($raw_description));
         }
-        
-        // Strip HTML tags and clean up description for GunBroker
-        $description = wp_strip_all_tags($description);
-        $description = trim($description);
-        
-        // Ensure description meets GunBroker requirements (1-8000 characters)
-        if (empty($description) || strlen($description) < 1) {
+        // If still empty, fallback to a concise default
+        if (strlen($description) < 1) {
             $description = 'High-quality ' . $product->get_name() . ' available for sale. Please contact seller for more details.';
         }
-        
-        // Ensure description is not too long
+
+        // Ensure description length is within 1-8000 characters (truncate if necessary)
         if (strlen($description) > 8000) {
             $description = substr($description, 0, 7997) . '...';
-        }
-        
-        // Final validation
-        if (strlen($description) < 1) {
-            $description = 'Product available for sale.';
         }
         
         // Debug description
@@ -755,21 +761,22 @@ class GunBroker_API {
         // Who pays for shipping mapping per docs: 2 Seller, 4 Buyer actual, 8 Buyer fixed, 16 Use profile
         $who_pays_shipping_meta = get_post_meta($product->get_id(), '_gunbroker_who_pays_shipping', true);
         if ($who_pays_shipping_meta === '') {
-            // CANNOT use 16 (Use profile) since we disabled ShippingProfileID
             $who_pays_shipping = 4; // Default to "Buyer pays actual shipping cost"
         } else {
             switch ((string)$who_pays_shipping_meta) {
-                case '3': // Seller pays (legacy)
+                case '3': // Seller pays (legacy UI)
                     $who_pays_shipping = 2; break;
-                case '2': // Buyer actual (legacy)
+                case '2': // Buyer actual (legacy UI)
                     $who_pays_shipping = 4; break;
-                case '4': // Buyer fixed amount (legacy)
+                case '4': // Buyer fixed amount (legacy UI)
                     $who_pays_shipping = 8; break;
-                case '16': // Use profile - NOT ALLOWED since we disabled profiles
-                    $who_pays_shipping = 4; // Fallback to buyer pays actual
-                    break;
+                case '16': // Use shipping profile (disabled) -> fallback to Buyer pays actual
+                    $who_pays_shipping = 4; break;
+                case '2': case '4': case '8': case '16':
+                    // Already correct codes
+                    $who_pays_shipping = (int) $who_pays_shipping_meta; break;
                 default:
-                    $who_pays_shipping = 4; // Safe default: buyer pays actual
+                    $who_pays_shipping = (int) $who_pays_shipping_meta ?: 4;
             }
         }
 
@@ -778,10 +785,10 @@ class GunBroker_API {
 
         $serial_number = get_post_meta($product->get_id(), '_gunbroker_serial_number', true);
 
-        // Get product description for parsing identifiers
-        $description = $product->get_description();
-        if (empty($description)) {
-            $description = $product->get_short_description();
+        // Get text for identifier parsing (do not overwrite payload description)
+        $parsing_text = $product->get_description();
+        if (empty($parsing_text)) {
+            $parsing_text = $product->get_short_description();
         }
         
         // Extract SKU from anywhere in description or form
@@ -796,10 +803,10 @@ class GunBroker_API {
             if (!empty($sku_wc)) {
                 $sku_value = $sku_wc;
             } else {
-                // Parse from description
-                if (preg_match('/SKU[:\s]*([A-Za-z0-9\-_]+)/i', $description, $matches)) {
+                // Parse from product text
+                if (preg_match('/SKU[:\s]*([A-Za-z0-9\-_]+)/i', $parsing_text, $matches)) {
                     $sku_value = trim($matches[1]);
-                } elseif (preg_match('/([0-9]{10,15})/', $description, $matches)) {
+                } elseif (preg_match('/([0-9]{10,15})/', $parsing_text, $matches)) {
                     // Look for long numeric codes that could be SKUs
                     $sku_value = trim($matches[1]);
                 }
@@ -808,24 +815,24 @@ class GunBroker_API {
 
         // Extract UPC from description or anywhere on the page
         $upc_value = '';
-        // Parse UPC from description - look for UPC patterns
-        if (preg_match('/UPC[:\s]*([0-9]{10,15})/i', $description, $matches)) {
+        // Parse UPC - look for UPC patterns
+        if (preg_match('/UPC[:\s]*([0-9]{10,15})/i', $parsing_text, $matches)) {
             $upc_value = trim($matches[1]);
-        } elseif (preg_match('/GTIN[:\s]*([0-9]{10,15})/i', $description, $matches)) {
+        } elseif (preg_match('/GTIN[:\s]*([0-9]{10,15})/i', $parsing_text, $matches)) {
             $upc_value = trim($matches[1]);
-        } elseif (preg_match('/([0-9]{12,14})/', $description, $matches)) {
+        } elseif (preg_match('/([0-9]{12,14})/', $parsing_text, $matches)) {
             // Look for 12-14 digit codes (UPC/GTIN format)
             $upc_value = trim($matches[1]);
         }
         
         // Extract MPN from description  
         $mpn_value = '';
-        // Parse MPN/Model from description
-        if (preg_match('/MPN[:\s]*([A-Za-z0-9\-_]+)/i', $description, $matches)) {
+        // Parse MPN/Model
+        if (preg_match('/MPN[:\s]*([A-Za-z0-9\-_]+)/i', $parsing_text, $matches)) {
             $mpn_value = trim($matches[1]);
-        } elseif (preg_match('/Model[:\s]*([A-Za-z0-9\-_]+)/i', $description, $matches)) {
+        } elseif (preg_match('/Model[:\s]*([A-Za-z0-9\-_]+)/i', $parsing_text, $matches)) {
             $mpn_value = trim($matches[1]);
-        } elseif (preg_match('/Part\s*Number[:\s]*([A-Za-z0-9\-_]+)/i', $description, $matches)) {
+        } elseif (preg_match('/Part\s*Number[:\s]*([A-Za-z0-9\-_]+)/i', $parsing_text, $matches)) {
             $mpn_value = trim($matches[1]);
         }
         
