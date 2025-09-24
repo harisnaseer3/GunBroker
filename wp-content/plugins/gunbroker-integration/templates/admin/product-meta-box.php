@@ -45,13 +45,6 @@
                             <option value="0" <?php selected($ffl_required, '0'); ?>>No</option>
                         </select>
                     </label>
-                    <label style="margin:0;">Returns Accepted?
-                        <?php $returns_accepted = get_post_meta($post->ID, '_gunbroker_returns_accepted', true); if ($returns_accepted === '') { $returns_accepted = '1'; } ?>
-                        <select name="gunbroker_returns_accepted" style="margin-left:5px; max-width:120px;">
-                            <option value="1" <?php selected($returns_accepted, '1'); ?>>Yes</option>
-                            <option value="0" <?php selected($returns_accepted, '0'); ?>>No</option>
-                        </select>
-                    </label>
                 </div>
             </div>
         </td>

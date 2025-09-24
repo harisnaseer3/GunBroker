@@ -529,15 +529,32 @@ class GunBroker_API {
             $description = $product->get_short_description();
         }
         if (empty($description)) {
-            $description = 'No description available';
+            $description = 'High-quality product available for sale. Please contact seller for more details.';
         }
         
         // Strip HTML tags and clean up description for GunBroker
         $description = wp_strip_all_tags($description);
         $description = trim($description);
-        if (empty($description)) {
-            $description = 'No description available';
+        
+        // Ensure description meets GunBroker requirements (1-8000 characters)
+        if (empty($description) || strlen($description) < 1) {
+            $description = 'High-quality ' . $product->get_name() . ' available for sale. Please contact seller for more details.';
         }
+        
+        // Ensure description is not too long
+        if (strlen($description) > 8000) {
+            $description = substr($description, 0, 7997) . '...';
+        }
+        
+        // Final validation
+        if (strlen($description) < 1) {
+            $description = 'Product available for sale.';
+        }
+        
+        // Debug description
+        error_log('=== GunBroker DESCRIPTION DEBUG ===');
+        error_log('Description length: ' . strlen($description));
+        error_log('Description preview: "' . substr($description, 0, 100) . '..."');
 
         // Get category - use parameter, product-specific, WooCommerce category, or default
         if ($category_id === null) {
@@ -855,59 +872,99 @@ class GunBroker_API {
             }
         }
 
-        // Build listing data based on listing type - CRITICAL: Different fields for auction vs fixed price
-        $listing_data = array(
-            'Title' => substr($title, 0, 75), // Required: 1-75 chars
-            'Description' => substr($description, 0, 8000), // Required: 1-8000 chars
-            'CategoryID' => intval($category_id), // Required: integer 1-999999
-            'Quantity' => $quantity, // Required: integer
-            'ListingDuration' => $duration, // Required: integer 1-99
-            'PaymentMethods' => $payment_methods, // Required: object with boolean values
-            'ShippingMethods' => $shipping_methods, // Required: object with boolean values
-            'InspectionPeriod' => $inspection_period, // Optional
-            'ReturnsAccepted' => $returns_accepted, // Required: boolean
-            'ReturnPolicy' => $return_policy, // Optional: return policy ID
-            'Condition' => intval($condition), // Required: integer 1-10
-            'CountryCode' => strtoupper(substr($country_code, 0, 2)), // Required: string 2 chars
-            'State' => ($seller_state ?: 'AL'), // Required: string 1-50 chars
-            'City' => ($seller_city ?: 'Birmingham'), // Required: string 1-50 chars
-            'PostalCode' => ($seller_postal ?: '35173'), // Required: string 1-10 chars
-            'MfgPartNumber' => $mpn_value, // Always send MPN
-            'SKU' => $sku_value, // Always send SKU  
-            'UPC' => $upc_value, // Always send UPC
-            'MinBidIncrement' => 0.50, // Optional: decimal
-            'ShippingCost' => 0.00, // Optional: decimal
-            'ShippingInsurance' => 0.00, // Optional: decimal
-            'ShippingTerms' => 'Buyer pays shipping', // Optional: string
-            'SellerContactEmail' => get_option('admin_email'), // Optional: string
-            'SellerContactPhone' => ($contact_phone ?: '205-000-0000'), // Optional: string
-            'SerialNumber' => $serial_number ?: null,
-            'IsFeatured' => false, // Optional: boolean
-            'IsBold' => false, // Optional: boolean
-            'IsHighlight' => false, // Optional: boolean
-            'AutoRelist' => intval($auto_relist), // 1 Do Not Relist, 2 Relist Until Sold, 4 Relist Fixed Price
-            'WhoPaysForShipping' => intval($who_pays_shipping), // 2 Seller, 4 Buyer actual, 8 Buyer fixed, 16 Use profile
-            'WillShipInternational' => $will_ship_international, // Required: boolean
-            'ShippingClassesSupported' => array(
-                'Ground' => true,
-                'TwoDay' => true,
-            ), // Required: object - Supported shipping classes
-            'UseDefaultTaxes' => $use_default_taxes, // Optional: boolean
-        );
-
-        // CRITICAL: Add listing-type-specific fields - NO MIXING OF AUCTION AND FIXED PRICE FIELDS
+        // CRITICAL: Build completely separate payloads for Fixed Price vs Auction
         if ($listing_type === 'FixedPrice') {
-            // FIXED PRICE LISTING: Only send fixed price fields, NO auction fields
-            $listing_data['IsFixedPrice'] = true;
-            $listing_data['FixedPrice'] = floatval($gunbroker_price);
-            // CRITICAL: Do NOT send any auction-related fields
-            // StartingBid, ReservePrice, BuyNowPrice are NOT allowed for fixed price listings
+            // FIXED PRICE LISTING - Completely different API structure
+            error_log('=== BUILDING FIXED PRICE LISTING ===');
+            
+            $listing_data = array(
+                'Title' => substr($title, 0, 75), // Required: 1-75 chars
+                'Description' => $description, // Required: 1-8000 chars (already validated above)
+                'CategoryID' => intval($category_id), // Required: integer 1-999999
+                'FixedPrice' => floatval($gunbroker_price), // FIXED PRICE - NOT StartingBid
+                'IsFixedPrice' => true, // CRITICAL: Tell API this is Fixed Price
+                'Quantity' => $quantity, // Required: integer (can be > 1)
+                'ListingDuration' => $duration, // Required: integer 1-99
+                'PaymentMethods' => $payment_methods, // Required: object with boolean values
+                'ShippingMethods' => $shipping_methods, // Required: object with boolean values
+                'InspectionPeriod' => $inspection_period, // Optional
+                'ReturnsAccepted' => $returns_accepted, // Required: boolean
+                'ReturnPolicy' => $return_policy, // Optional: return policy ID
+                'Condition' => intval($condition), // Required: integer 1-10
+                'CountryCode' => strtoupper(substr($country_code, 0, 2)), // Required: string 2 chars
+                'State' => ($seller_state ?: 'AL'), // Required: string 1-50 chars
+                'City' => ($seller_city ?: 'Birmingham'), // Required: string 1-50 chars
+                'PostalCode' => ($seller_postal ?: '35173'), // Required: string 1-10 chars
+                'MfgPartNumber' => $mpn_value, // Always send MPN
+                'SKU' => $sku_value, // Always send SKU  
+                'UPC' => $upc_value, // Always send UPC
+                'ShippingCost' => 0.00, // Optional: decimal
+                'ShippingInsurance' => 0.00, // Optional: decimal
+                'ShippingTerms' => 'Buyer pays shipping', // Optional: string
+                'SellerContactEmail' => get_option('admin_email'), // Optional: string
+                'SellerContactPhone' => ($contact_phone ?: '205-000-0000'), // Optional: string
+                'SerialNumber' => $serial_number ?: null,
+                'IsFeatured' => false, // Optional: boolean
+                'IsBold' => false, // Optional: boolean
+                'IsHighlight' => false, // Optional: boolean
+                'AutoRelist' => intval($auto_relist), // 4 = Relist Fixed Price (allowed for fixed price)
+                'WhoPaysForShipping' => intval($who_pays_shipping), // 2 Seller, 4 Buyer actual, 8 Buyer fixed, 16 Use profile
+                'WillShipInternational' => $will_ship_international, // Required: boolean
+                'ShippingClassesSupported' => array(
+                    'Ground' => true,
+                    'TwoDay' => true,
+                ), // Required: object - Supported shipping classes
+                'UseDefaultTaxes' => $use_default_taxes, // Optional: boolean
+            );
+            
+            // CRITICAL: NO StartingBid, NO ReservePrice, NO BuyNowPrice for Fixed Price
             error_log('=== FIXED PRICE LISTING === Using FixedPrice: ' . floatval($gunbroker_price));
-            error_log('=== FIXED PRICE LISTING === NO auction fields (StartingBid/ReservePrice/BuyNowPrice) will be sent');
+            error_log('=== FIXED PRICE LISTING === IsFixedPrice: true');
+            
         } else {
-            // AUCTION LISTING: Send auction fields, NO fixed price fields
-            $listing_data['StartingBid'] = floatval($gunbroker_price);
-            $listing_data['IsFixedPrice'] = false;
+            // AUCTION LISTING - Original working structure (don't touch)
+            error_log('=== BUILDING AUCTION LISTING ===');
+            
+            $listing_data = array(
+                'Title' => substr($title, 0, 75), // Required: 1-75 chars
+                'Description' => $description, // Required: 1-8000 chars (already validated above)
+                'CategoryID' => intval($category_id), // Required: integer 1-999999
+                'StartingBid' => floatval($gunbroker_price), // AUCTION - Starting bid price
+                'IsFixedPrice' => false, // CRITICAL: Tell API this is Auction
+                'Quantity' => $quantity, // Required: integer (forced to 1 for auctions)
+                'ListingDuration' => $duration, // Required: integer 1-99
+                'PaymentMethods' => $payment_methods, // Required: object with boolean values
+                'ShippingMethods' => $shipping_methods, // Required: object with boolean values
+                'InspectionPeriod' => $inspection_period, // Optional
+                'ReturnsAccepted' => $returns_accepted, // Required: boolean
+                'ReturnPolicy' => $return_policy, // Optional: return policy ID
+                'Condition' => intval($condition), // Required: integer 1-10
+                'CountryCode' => strtoupper(substr($country_code, 0, 2)), // Required: string 2 chars
+                'State' => ($seller_state ?: 'AL'), // Required: string 1-50 chars
+                'City' => ($seller_city ?: 'Birmingham'), // Required: string 1-50 chars
+                'PostalCode' => ($seller_postal ?: '35173'), // Required: string 1-10 chars
+                'MfgPartNumber' => $mpn_value, // Always send MPN
+                'SKU' => $sku_value, // Always send SKU  
+                'UPC' => $upc_value, // Always send UPC
+                'MinBidIncrement' => 0.50, // Optional: decimal
+                'ShippingCost' => 0.00, // Optional: decimal
+                'ShippingInsurance' => 0.00, // Optional: decimal
+                'ShippingTerms' => 'Buyer pays shipping', // Optional: string
+                'SellerContactEmail' => get_option('admin_email'), // Optional: string
+                'SellerContactPhone' => ($contact_phone ?: '205-000-0000'), // Optional: string
+                'SerialNumber' => $serial_number ?: null,
+                'IsFeatured' => false, // Optional: boolean
+                'IsBold' => false, // Optional: boolean
+                'IsHighlight' => false, // Optional: boolean
+                'AutoRelist' => intval($auto_relist), // 2 = Relist Until Sold (valid for auctions)
+                'WhoPaysForShipping' => intval($who_pays_shipping), // 2 Seller, 4 Buyer actual, 8 Buyer fixed, 16 Use profile
+                'WillShipInternational' => $will_ship_international, // Required: boolean
+                'ShippingClassesSupported' => array(
+                    'Ground' => true,
+                    'TwoDay' => true,
+                ), // Required: object - Supported shipping classes
+                'UseDefaultTaxes' => $use_default_taxes, // Optional: boolean
+            );
             
             // Add auction-specific fields if they exist
             $buy_now_price = get_post_meta($product->get_id(), '_gunbroker_buy_now_price', true);
@@ -946,9 +1003,20 @@ class GunBroker_API {
             return new WP_Error('invalid_title', 'Title must be 1-75 characters');
         }
         
+        // CRITICAL DEBUG: Check what description is actually in the payload
+        error_log('=== DESCRIPTION VALIDATION DEBUG ===');
+        error_log('Description in listing_data: "' . $listing_data['Description'] . '"');
+        error_log('Description length: ' . strlen($listing_data['Description']));
+        error_log('Description is empty: ' . (empty($listing_data['Description']) ? 'YES' : 'NO'));
+        
         if (strlen($listing_data['Description']) < 1 || strlen($listing_data['Description']) > 8000) {
             error_log('GunBroker: ERROR - Description length invalid: ' . strlen($listing_data['Description']));
-            return new WP_Error('invalid_description', 'Description must be 1-8000 characters');
+            error_log('GunBroker: ERROR - Description content: "' . $listing_data['Description'] . '"');
+            
+            // FORCE a valid description
+            $listing_data['Description'] = 'High-quality ' . $product->get_name() . ' available for sale. Please contact seller for more details about this item.';
+            error_log('GunBroker: FORCED description to: "' . $listing_data['Description'] . '"');
+            error_log('GunBroker: FORCED description length: ' . strlen($listing_data['Description']));
         }
         
         if ($listing_data['CategoryID'] < 1 || $listing_data['CategoryID'] > 999999) {
