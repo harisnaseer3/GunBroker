@@ -99,10 +99,10 @@
                     <?php $gb_who_pays = get_post_meta($post->ID, '_gunbroker_who_pays_shipping', true); ?>
                     <label style="display:block; margin-bottom:6px;">Who pays for shipping?</label>
                     <select name="gunbroker_who_pays_shipping" class="regular-text">
-                        <option value="" <?php selected($gb_who_pays, '16'); ?>>Use shipping profile</option>
-                        <option value="3" <?php selected($gb_who_pays, '2'); ?>>Seller pays for shipping</option>
-                        <option value="2" <?php selected($gb_who_pays, '4'); ?>>Buyer pays actual shipping cost</option>
-                        <option value="4" <?php selected($gb_who_pays, '8'); ?>>Buyer pays fixed amount</option>
+                        <option value="16" <?php selected($gb_who_pays, '16'); ?>>Use shipping profile</option>
+                        <option value="2" <?php selected($gb_who_pays, '2'); ?>>Seller pays for shipping</option>
+                        <option value="16" <?php selected($gb_who_pays, '16'); ?>></option>
+                        <option value="8" <?php selected($gb_who_pays, '8'); ?>>Buyer pays fixed amBuyer pays actual shipping costount</option>
                     </select>
                 </div>
                 <div>
@@ -220,9 +220,8 @@
             <label>Listing Profile</label>
         </th>
         <td style="padding-top: 15px;">
-            <?php $gb_listing_type_profile = get_post_meta($post->ID, '_gunbroker_listing_type', true); ?>
+            <?php $gb_listing_type_profile = get_post_meta($post->ID, '_gunbroker_listing_type', true); if ($gb_listing_type_profile === '') { $gb_listing_type_profile = 'FixedPrice'; } ?>
             <select id="gb_listing_type" name="gunbroker_listing_type" class="regular-text" style="max-width: 240px;">
-                <option value="" <?php selected($gb_listing_type_profile, ''); ?>>Default</option>
                 <option value="FixedPrice" <?php selected($gb_listing_type_profile, 'FixedPrice'); ?>>Fixed Price</option>
                 <option value="StartingBid" <?php selected($gb_listing_type_profile, 'StartingBid'); ?>>Auction</option>
             </select>

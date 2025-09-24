@@ -104,12 +104,17 @@ class GunBroker_Sync {
                 return $listing_data;
             }
 
-            // Validate required fields
-            $required_fields = array('Title', 'Description', 'CategoryID', 'StartingBid', 'Condition', 'CountryCode');
+            // Validate required fields (dynamic based on listing type)
+            $required_fields = array('Title', 'Description', 'CategoryID', 'Condition', 'CountryCode');
+            if (isset($listing_data['IsFixedPrice']) && $listing_data['IsFixedPrice'] === true) {
+                $required_fields[] = 'FixedPrice';
+            } else {
+                $required_fields[] = 'StartingBid';
+            }
+
             $missing_fields = array();
-            
             foreach ($required_fields as $field) {
-                if (empty($listing_data[$field])) {
+                if (!isset($listing_data[$field]) || $listing_data[$field] === '' || $listing_data[$field] === null) {
                     $missing_fields[] = $field;
                 }
             }

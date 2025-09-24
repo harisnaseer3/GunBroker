@@ -415,7 +415,7 @@
                 <span class="dashicons dashicons-store" style="font-size: 48px; color: #ddd; display: block; margin-bottom: 20px;"></span>
                 <h3>No products found</h3>
                 <p>Create some WooCommerce products first, then come back here to list them on GunBroker.</p>
-                <a href="<?php echo admin_url('post-new.php?post_type=product'); ?>" class="button button-primary">Add New Productaaa</a>
+                <a href="<?php echo admin_url('post-new.php?post_type=product'); ?>" class="button button-primary">Add New Product</a>
             </div>
         <?php endif; ?>
     </div>

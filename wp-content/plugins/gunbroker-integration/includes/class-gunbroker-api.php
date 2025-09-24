@@ -345,16 +345,19 @@ class GunBroker_API {
             'WillShipInternational', 'IsFFLRequired'
         );
         
-        // Add listing-type-specific required fields
+        // CRITICAL: Determine listing type from the actual payload, not variables
+        // Check what type of listing we actually built
         if (isset($listing_data['IsFixedPrice']) && $listing_data['IsFixedPrice'] === true) {
-            // Fixed Price listing - requires FixedPrice field
+            // Fixed Price listing - requires FixedPrice field, NOT StartingBid
             $required_fields = array_merge($base_required_fields, array('FixedPrice'));
-            error_log('=== VALIDATION === Validating as FIXED PRICE listing');
+            error_log('=== VALIDATION === Detected FIXED PRICE listing from payload (requires FixedPrice field)');
         } else {
-            // Auction listing - requires StartingBid field
+            // Auction listing - requires StartingBid field, NOT FixedPrice
             $required_fields = array_merge($base_required_fields, array('StartingBid'));
-            error_log('=== VALIDATION === Validating as AUCTION listing');
+            error_log('=== VALIDATION === Detected AUCTION listing from payload (requires StartingBid field)');
         }
+        
+        error_log('=== VALIDATION DEBUG === Required fields: ' . implode(', ', $required_fields));
         
         $missing_fields = array();
         foreach ($required_fields as $field) {
@@ -692,7 +695,7 @@ class GunBroker_API {
         // Get listing profile (this is different from the actual listing type)
         $listing_profile = get_post_meta($product->get_id(), '_gunbroker_listing_type', true);
         if (empty($listing_profile)) {
-            $listing_profile = get_option('gunbroker_default_listing_type', 'FixedPrice');
+            $listing_profile = 'FixedPrice'; // Default to Fixed Price as requested
         }
 
         // Map AutoRelist to API values per docs: 1 Do Not Relist, 2 Relist Until Sold, 4 Relist Fixed Price
@@ -883,6 +886,8 @@ class GunBroker_API {
                 'CategoryID' => intval($category_id), // Required: integer 1-999999
                 'FixedPrice' => floatval($gunbroker_price), // FIXED PRICE - NOT StartingBid
                 'IsFixedPrice' => true, // CRITICAL: Tell API this is Fixed Price
+                // Ensure StartingBid field exists but is empty for Fixed Price use-case
+                'StartingBid' => null,
                 'Quantity' => $quantity, // Required: integer (can be > 1)
                 'ListingDuration' => $duration, // Required: integer 1-99
                 'PaymentMethods' => $payment_methods, // Required: object with boolean values
