@@ -132,6 +132,10 @@ class GunBroker_Sync {
                 $result = $api->update_listing($listing_id, $listing_data);
                 $action = 'update';
             } else {
+                // De-duplication guard: prevent multiple creates within a short window per product
+                $lock_key = 'gb_create_lock_' . $product_id;
+                $locked_until = get_transient($lock_key);
+
                 // Create new listing
                 // Before creating, try to detect if a listing already exists on GunBroker by SKU
                 $sku = $product->get_sku();
@@ -143,12 +147,41 @@ class GunBroker_Sync {
                         $result = $api->update_listing($maybe_existing_id, $listing_data);
                         $action = 'update';
                     } else {
+                        if ($locked_until && time() < intval($locked_until)) {
+                            // If a recent create was fired, try to re-check/link instead of erroring
+                            $recheck_listing_id = $this->get_listing_id($product_id);
+                            if ($recheck_listing_id) {
+                                $result = $api->update_listing($recheck_listing_id, $listing_data);
+                                $action = 'update';
+                            } else {
+                                // proceed but refresh lock to prevent rapid duplicates
+                                set_transient($lock_key, time() + 60, 60);
+                                $result = $api->create_listing($listing_data);
+                                $action = 'create';
+                            }
+                        } else {
+                            // Set lock for 60 seconds
+                            set_transient($lock_key, time() + 60, 60);
+                            $result = $api->create_listing($listing_data);
+                            $action = 'create';
+                        }
+                    }
+                } else {
+                    if ($locked_until && time() < intval($locked_until)) {
+                        $recheck_listing_id = $this->get_listing_id($product_id);
+                        if ($recheck_listing_id) {
+                            $result = $api->update_listing($recheck_listing_id, $listing_data);
+                            $action = 'update';
+                        } else {
+                            set_transient($lock_key, time() + 60, 60);
+                            $result = $api->create_listing($listing_data);
+                            $action = 'create';
+                        }
+                    } else {
+                        set_transient($lock_key, time() + 60, 60);
                         $result = $api->create_listing($listing_data);
                         $action = 'create';
                     }
-                } else {
-                    $result = $api->create_listing($listing_data);
-                    $action = 'create';
                 }
             }
 
@@ -165,7 +198,7 @@ class GunBroker_Sync {
             // Save the listing ID if it's a new listing
             $listing_id = null;
             if ($action === 'create') {
-                // Check multiple possible field names for the listing ID
+                // 1) Direct fields
                 $possible_fields = ['ItemID', 'itemId', 'id', 'listingId', 'listing_id', 'ItemId'];
                 foreach ($possible_fields as $field) {
                     if (isset($result[$field]) && !empty($result[$field])) {
@@ -173,10 +206,21 @@ class GunBroker_Sync {
                         break;
                     }
                 }
-                
+                // 2) Links[0].title (GunBroker returns ID here)
+                if (!$listing_id && isset($result['links'][0]['title']) && !empty($result['links'][0]['title'])) {
+                    $listing_id = $result['links'][0]['title'];
+                }
+                // 3) Parse from userMessage: "Item listed with itemID: 15101659"
+                if (!$listing_id && isset($result['userMessage'])) {
+                    if (preg_match('/itemID:\s*(\d+)/i', $result['userMessage'], $m)) {
+                        $listing_id = $m[1];
+                    }
+                }
+
                 if ($listing_id) {
                     $this->save_listing_id($product_id, $listing_id);
                     error_log('GunBroker: Saved new listing ID: ' . $listing_id . ' for product: ' . $product_id);
+                    delete_transient($lock_key);
                 } else {
                     error_log('GunBroker: No listing ID found in response - Action: ' . $action);
                     error_log('GunBroker: Available keys in result: ' . implode(', ', array_keys($result)));

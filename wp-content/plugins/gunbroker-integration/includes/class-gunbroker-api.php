@@ -330,7 +330,7 @@ class GunBroker_API {
 
         // About to create listing with data
         
-        // Validate that we have data to send
+        // Validate that we have data to send 
         if (empty($listing_data)) {
             error_log('GunBroker: ERROR - Empty listing data provided to create_listing');
             return new WP_Error('empty_data', 'No listing data provided');
@@ -539,7 +539,8 @@ class GunBroker_API {
                 $raw_description = $alt;
             } else {
                 $alt2 = $product->get_short_description();
-                $raw_description = $alt2 ?: 'High-quality product available for sale. Please contact seller for more details.';
+                // Do NOT use generic filler here; leave empty so we can see the real issue
+                $raw_description = $alt2 ?: '';
             }
         }
 
@@ -551,9 +552,7 @@ class GunBroker_API {
             $description = trim(wp_strip_all_tags($raw_description));
         }
         // If still empty, fallback to a concise default
-        if (strlen($description) < 1) {
-            $description = 'High-quality ' . $product->get_name() . ' available for sale. Please contact seller for more details.';
-        }
+        // If still empty after sanitization, keep empty to surface the problem in logs instead of sending filler
 
         // Ensure description length is within 1-8000 characters (truncate if necessary)
         if (strlen($description) > 8000) {

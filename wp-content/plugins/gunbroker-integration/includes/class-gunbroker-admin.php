@@ -27,6 +27,10 @@ class GunBroker_Admin {
         add_action('wp_ajax_gunbroker_end_listing', array($this, 'end_listing_ajax'));
         add_action('wp_ajax_gunbroker_update_listing', array($this, 'update_listing_ajax'));
         add_action('wp_ajax_gunbroker_save_and_send', array($this, 'save_and_send_ajax'));
+        // Missing hook: register Save-only AJAX action used by the product meta box
+        add_action('wp_ajax_gunbroker_save_only', array($this, 'save_only_ajax'));
+        // Hook for debug listing payload
+        add_action('wp_ajax_gunbroker_debug_listing_data', array($this, 'debug_listing_data_ajax'));
 
         // Add MPN field in Inventory tab and save it separately from SKU
         add_action('woocommerce_product_options_sku', array($this, 'add_mpn_field_to_inventory'));

@@ -112,6 +112,14 @@ if (isset($_POST['gunbroker_settings_nonce']) && wp_verify_nonce($_POST['gunbrok
                     <h2 style="margin-top: 0;">Listing Configuration</h2>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div style="grid-column: 1 / -1;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">AUTO-END WHEN OUT OF STOCK</label>
+                            <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" name="gunbroker_auto_end_zero_stock" value="1" <?php checked(get_option('gunbroker_auto_end_zero_stock', true)); ?> />
+                                <span>End active GunBroker listings automatically when WooCommerce stock reaches zero</span>
+                            </label>
+                            <p class="description" style="margin-top: 6px; color:#666;">When enabled, listings are ended on stock change events if quantity is 0.</p>
+                        </div>
                         <div>
                             <label for="gunbroker_default_postal" style="display: block; margin-bottom: 6px; font-weight: 600;">POSTAL CODE</label>
                             <input type="text" id="gunbroker_default_postal" name="gunbroker_default_postal"

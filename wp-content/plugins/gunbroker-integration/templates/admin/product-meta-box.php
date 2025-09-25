@@ -339,7 +339,7 @@
     <script>
     jQuery(function($){
         // Modal notification function
-        function showModal(message, type = 'success') {
+        function showModal(message, type = 'success', onClose = null) {
             // Remove existing modal if present
             $('.gb-notification-modal').remove();
 
@@ -366,6 +366,7 @@
             // Handle modal close
             $modal.find('.gb-modal-close').on('click', function() {
                 $modal.remove();
+                if (typeof onClose === 'function') { onClose(); }
             });
 
             // Close on background click
@@ -406,7 +407,10 @@
                 contentType: false,
                 success: function(response) {
                     if (response.success) {
-                        showModal(response.data.message || 'Product saved successfully!', 'success');
+                        // Show success modal, redirect on Okay
+                        showModal(response.data.message || 'Product saved successfully!', 'success', function(){
+                            window.location.href = '<?php echo admin_url('admin.php?page=gunbroker-integration'); ?>';
+                        });
                     } else {
                         showModal(response.data || 'Failed to save product', 'error');
                     }
@@ -447,11 +451,10 @@
                 contentType: false,
                 success: function(response) {
                     if (response.success) {
-                        showModal(response.data.message || 'Product sent to GunBroker successfully!', 'success');
-                        // Update status if provided
-                        if (response.data.status) {
-                            location.reload(); // Reload to show updated status
-                        }
+                        // Show success modal, redirect on Okay
+                        showModal(response.data.message || 'Product sent to GunBroker successfully!', 'success', function(){
+                            window.location.href = '<?php echo admin_url('admin.php?page=gunbroker-integration'); ?>';
+                        });
                     } else {
                         showModal(response.data || 'Failed to send product to GunBroker', 'error');
                     }
