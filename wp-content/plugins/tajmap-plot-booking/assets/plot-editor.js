@@ -246,35 +246,7 @@
         });
 
         // Plot details panel events
-        $('#close-plot-details').on('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            hidePlotDetails();
-        });
-
-        $('#edit-plot-from-details').on('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (selectedPlot) {
-                // Switch to select tool and focus on the plot
-                selectTool('select');
-                $('#editor-status').text(`Editing: ${selectedPlot.plot_name || 'Unnamed Plot'}`);
-            }
-        });
-
-        $('#delete-plot-from-details').on('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (selectedPlot) {
-                const plotId = selectedPlot.id;
-                if (plotId) {
-                    deletePlot(plotId);
-                } else {
-                    deletePlot(null);
-                }
-                hidePlotDetails();
-            }
-        });
+        // (removed) plot details panel events
 
         // Window resize
         $(window).on('resize', resizeCanvas);
@@ -623,15 +595,12 @@
 
         if (selectedPlot) {
             loadPlotIntoForm(selectedPlot);
-            showPlotDetails(selectedPlot);
             
             // Update plot list selection
             $('.plot-list-item').removeClass('selected');
             if (selectedPlot.id) {
                 $(`.plot-list-item[data-id="${selectedPlot.id}"]`).addClass('selected');
             }
-        } else {
-            hidePlotDetails();
         }
     }
 
@@ -712,7 +681,6 @@
         // Select the duplicated plot
         selectedPlot = duplicatedPlot;
         loadPlotIntoForm(duplicatedPlot);
-        showPlotDetails(duplicatedPlot);
 
         // Update the plot list
         updatePlotList();
@@ -992,7 +960,6 @@
 
         selectedPlot = plot;
         loadPlotIntoForm(plot);
-        showPlotDetails(plot);
 
         // Visual feedback
         $('.plot-list-item').removeClass('selected');
@@ -1177,49 +1144,7 @@
             $('#plot-coordinates').val(JSON.stringify(selectedPlot.points, null, 2));
         }
     }
-
-
-    function showPlotDetails(plot) {
-        if (!plot) {
-            hidePlotDetails();
-            return;
-        }
-
-        // Update detail values
-        $('#detail-plot-name').text(plot.plot_name || 'Unnamed Plot');
-        
-        // Update status badge
-        const status = plot.status || 'available';
-        const $statusBadge = $('#detail-status');
-        $statusBadge.removeClass('available sold reserved').addClass(status);
-        $statusBadge.text(status.charAt(0).toUpperCase() + status.slice(1));
-        
-        $('#detail-sector').text(plot.sector || '-');
-        $('#detail-block').text(plot.block || '-');
-        $('#detail-street').text(plot.street || '-');
-        $('#detail-price').text(plot.price ? `Rs. ${plot.price}` : '-');
-        $('#detail-area').text(plot.area ? `${plot.area} sq ft` : '-');
-        
-        // Update coordinates
-        if (plot.points && plot.points.length > 0) {
-            const coordsText = plot.points.map(point => 
-                `(${point.x.toFixed(2)}, ${point.y.toFixed(2)})`
-            ).join('\n');
-            $('#detail-coordinates').text(coordsText);
-        } else {
-            $('#detail-coordinates').text('-');
-        }
-
-        // Show the panel
-        $('#plot-details-panel').addClass('show').show();
-    }
-
-    function hidePlotDetails() {
-        $('#plot-details-panel').removeClass('show');
-        setTimeout(() => {
-            $('#plot-details-panel').hide();
-        }, 300);
-    }
+    // (removed) plot details helpers
 
     function updatePlotList() {
         // Update the plot count in the sidebar header
@@ -1494,8 +1419,7 @@
         // Remove selection highlighting
         $('.plot-list-item').removeClass('selected');
         
-        // Hide plot details panel
-        hidePlotDetails();
+        // (removed) hide details panel
 
         // Switch to polygon tool
         selectTool('polygon');

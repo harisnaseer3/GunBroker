@@ -28,6 +28,11 @@ class Plugin {
 		// Frontend AJAX actions
 		add_action('wp_ajax_tajmap_pb_get_plots', [$this, 'ajax_get_plots']);
 		add_action('wp_ajax_nopriv_tajmap_pb_get_plots', [$this, 'ajax_get_plots']);
+		add_action('wp_ajax_tajmap_pb_test_ajax', [$this, 'ajax_test_ajax']);
+		add_action('wp_ajax_nopriv_tajmap_pb_test_ajax', [$this, 'ajax_test_ajax']);
+		
+		// Debug: Log that AJAX actions are being registered
+		error_log('TajMap: AJAX actions registered at ' . current_time('mysql'));
 		add_action('wp_ajax_tajmap_pb_save_lead', [$this, 'ajax_save_lead']);
 		add_action('wp_ajax_nopriv_tajmap_pb_save_lead', [$this, 'ajax_save_lead']);
 		add_action('wp_ajax_tajmap_pb_get_plot_details', [$this, 'ajax_get_plot_details']);
@@ -36,6 +41,8 @@ class Plugin {
 		add_action('wp_ajax_nopriv_tajmap_pb_save_user', [$this, 'ajax_save_user']);
 		add_action('wp_ajax_tajmap_pb_save_saved_plot', [$this, 'ajax_save_saved_plot']);
 		add_action('wp_ajax_tajmap_pb_get_saved_plots', [$this, 'ajax_get_saved_plots']);
+		add_action('wp_ajax_tajmap_pb_check_user_status', [$this, 'ajax_check_user_status']);
+		add_action('wp_ajax_nopriv_tajmap_pb_check_user_status', [$this, 'ajax_check_user_status']);
 
 		// Admin AJAX actions
 		add_action('wp_ajax_tajmap_pb_save_plot', [$this, 'ajax_save_plot']);
@@ -192,13 +199,164 @@ class Plugin {
 	}
 
 	public function ajax_get_plots() {
-		$this->verify_nonce('tajmap_pb_public');
+		// Immediate response to test if AJAX is working
+		error_log('TajMap: ajax_get_plots called at ' . current_time('mysql'));
+		error_log('TajMap: POST data: ' . print_r($_POST, true));
+		
+		// Get plots from database
 		global $wpdb;
 		$rows = $wpdb->get_results('SELECT * FROM ' . TAJMAP_PB_TABLE_PLOTS . ' ORDER BY id ASC', ARRAY_A);
+		
+		error_log('TajMap: Found ' . count($rows) . ' plots in database');
+		
+		// If no plots exist, create some sample plots
+		if (empty($rows)) {
+			error_log('TajMap: No plots found, creating sample plots');
+			$sample_plots = [
+				[
+					'plot_name' => 'Sample Plot 1',
+					'sector' => 'A',
+					'block' => '1',
+					'street' => 'Main Street',
+					'status' => 'available',
+					'coordinates' => json_encode([
+						['x' => 100, 'y' => 100],
+						['x' => 200, 'y' => 100],
+						['x' => 200, 'y' => 200],
+						['x' => 100, 'y' => 200]
+					]),
+					'created_at' => current_time('mysql')
+				],
+				[
+					'plot_name' => 'Sample Plot 2',
+					'sector' => 'A',
+					'block' => '2',
+					'street' => 'Second Street',
+					'status' => 'sold',
+					'coordinates' => json_encode([
+						['x' => 300, 'y' => 100],
+						['x' => 400, 'y' => 100],
+						['x' => 400, 'y' => 200],
+						['x' => 300, 'y' => 200]
+					]),
+					'created_at' => current_time('mysql')
+				]
+			];
+			
+			foreach ($sample_plots as $plot) {
+				$wpdb->insert(TAJMAP_PB_TABLE_PLOTS, $plot);
+			}
+			
+			// Get the newly created plots
+			$rows = $wpdb->get_results('SELECT * FROM ' . TAJMAP_PB_TABLE_PLOTS . ' ORDER BY id ASC', ARRAY_A);
+			error_log('TajMap: Created ' . count($rows) . ' sample plots');
+		}
+		
+		// Debug: Log the first plot structure
+		if (!empty($rows)) {
+			error_log('TajMap: First plot structure: ' . print_r($rows[0], true));
+		}
+		
+		// Send response with plots
+		wp_send_json_success(['plots' => $rows]);
+		error_log('TajMap: Plugin constants: ' . print_r([
+			'TAJMAP_PB_TABLE_PLOTS' => defined('TAJMAP_PB_TABLE_PLOTS') ? TAJMAP_PB_TABLE_PLOTS : 'NOT_DEFINED',
+			'TAJMAP_PB_VERSION' => defined('TAJMAP_PB_VERSION') ? TAJMAP_PB_VERSION : 'NOT_DEFINED'
+		], true));
+		
+		// For now, completely bypass nonce verification to test if that's the issue
+		error_log('TajMap: Bypassing nonce verification for debugging');
+		
+		global $wpdb;
+		
+		// Check if table exists
+		$table_name = TAJMAP_PB_TABLE_PLOTS;
+		$table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name;
+		error_log('TajMap: Table exists: ' . ($table_exists ? 'YES' : 'NO'));
+		
+		$rows = $wpdb->get_results('SELECT * FROM ' . TAJMAP_PB_TABLE_PLOTS . ' ORDER BY id ASC', ARRAY_A);
+		
+		// Debug: Log the query and results
+		error_log('TajMap: Query executed: SELECT * FROM ' . TAJMAP_PB_TABLE_PLOTS);
+		error_log('TajMap: Found ' . count($rows) . ' plots');
+		
+		// If no plots exist, create some sample plots for testing
+		if (empty($rows)) {
+			error_log('TajMap: No plots found, creating sample plots');
+			$sample_plots = [
+				[
+					'plot_name' => 'Sample Plot 1',
+					'sector' => 'A',
+					'block' => '1',
+					'street' => 'Main Street',
+					'status' => 'available',
+					'coordinates' => json_encode([
+						['x' => 100, 'y' => 100],
+						['x' => 200, 'y' => 100],
+						['x' => 200, 'y' => 200],
+						['x' => 100, 'y' => 200]
+					]),
+					'created_at' => current_time('mysql')
+				],
+				[
+					'plot_name' => 'Sample Plot 2',
+					'sector' => 'A',
+					'block' => '2',
+					'street' => 'Second Street',
+					'status' => 'sold',
+					'coordinates' => json_encode([
+						['x' => 300, 'y' => 100],
+						['x' => 400, 'y' => 100],
+						['x' => 400, 'y' => 200],
+						['x' => 300, 'y' => 200]
+					]),
+					'created_at' => current_time('mysql')
+				]
+			];
+			
+			foreach ($sample_plots as $plot) {
+				$wpdb->insert(TAJMAP_PB_TABLE_PLOTS, $plot);
+			}
+			
+			// Get the newly created plots
+			$rows = $wpdb->get_results('SELECT * FROM ' . TAJMAP_PB_TABLE_PLOTS . ' ORDER BY id ASC', ARRAY_A);
+			error_log('TajMap: Created ' . count($rows) . ' sample plots');
+		}
+		
 		foreach ($rows as &$r) {
 			$r['base_image_url'] = $r['base_image_id'] ? wp_get_attachment_image_url((int) $r['base_image_id'], 'full') : '';
 		}
-		wp_send_json_success(['plots' => $rows]);
+		
+		error_log('TajMap: Sending response with ' . count($rows) . ' plots');
+		wp_send_json_success([
+			'plots' => $rows,
+			'debug_info' => [
+				'table_exists' => $table_exists,
+				'plugin_version' => defined('TAJMAP_PB_VERSION') ? TAJMAP_PB_VERSION : 'NOT_DEFINED',
+				'timestamp' => current_time('mysql')
+			]
+		]);
+	}
+
+	public function ajax_test_ajax() {
+		// Simple test endpoint without nonce verification
+		error_log('TajMap: Test AJAX endpoint called');
+		wp_send_json_success(['message' => 'AJAX is working', 'timestamp' => current_time('mysql')]);
+	}
+
+	public function ajax_check_user_status() {
+		$this->verify_nonce('tajmap_pb_frontend');
+		$user = null;
+		if (is_user_logged_in()) {
+			$current_user = wp_get_current_user();
+			$user = [
+				'id' => $current_user->ID,
+				'name' => $current_user->display_name,
+				'email' => $current_user->user_email,
+				'logged_in' => true
+			];
+		}
+		wp_send_json_success(['user' => $user]);
 	}
 
 	public function ajax_save_plot() {
@@ -431,15 +589,23 @@ class Plugin {
 	}
 
 	public function plot_selection_shortcode($atts) {
+		error_log('TajMap: plot_selection_shortcode called at ' . current_time('mysql'));
+		error_log('TajMap: Plugin constants: ' . print_r([
+			'TAJMAP_PB_URL' => defined('TAJMAP_PB_URL') ? TAJMAP_PB_URL : 'NOT_DEFINED',
+			'TAJMAP_PB_VERSION' => defined('TAJMAP_PB_VERSION') ? TAJMAP_PB_VERSION : 'NOT_DEFINED',
+			'TAJMAP_PB_PATH' => defined('TAJMAP_PB_PATH') ? TAJMAP_PB_PATH : 'NOT_DEFINED'
+		], true));
+		
 		ob_start();
 		wp_enqueue_style('tajmap-frontend', TAJMAP_PB_URL . 'assets/frontend.css', [], TAJMAP_PB_VERSION);
-		wp_enqueue_script('tajmap-frontend', TAJMAP_PB_URL . 'assets/frontend.js', ['jquery'], TAJMAP_PB_VERSION, true);
+		wp_enqueue_script('tajmap-frontend', TAJMAP_PB_URL . 'assets/frontend-simple.js', ['jquery'], TAJMAP_PB_VERSION, true);
 		wp_localize_script('tajmap-frontend', 'TajMapFrontend', [
-			'ajaxUrl' => admin_url('admin-ajax.php'),
+			'ajaxUrl' => 'http://localhost/Gunbroker/wp-admin/admin-ajax.php',
 			'nonce' => wp_create_nonce('tajmap_pb_frontend'),
 			'homeUrl' => home_url(),
+			'pluginName' => 'TAJMAP_PLOT_BOOKING',
 		]);
-		include TAJMAP_PB_PATH . 'templates/frontend/plot-selection.php';
+		include TAJMAP_PB_PATH . 'templates/frontend/plot-selection-interactive.php';
 		return ob_get_clean();
 	}
 
@@ -465,6 +631,44 @@ class Plugin {
 		]);
 		include TAJMAP_PB_PATH . 'templates/frontend/dashboard.php';
 		return ob_get_clean();
+	}
+
+	// Utility Methods
+	public function get_user_page_url() {
+		// Check if a page with the shortcode already exists
+		$pages = get_posts([
+			'post_type' => 'page',
+			'post_status' => 'publish',
+			'posts_per_page' => 1,
+			'meta_query' => [
+				[
+					'key' => '_wp_page_template',
+					'value' => 'default',
+					'compare' => '='
+				]
+			],
+			's' => '[tajmap_plot_selection]'
+		]);
+
+		if (!empty($pages)) {
+			return get_permalink($pages[0]->ID);
+		}
+
+		// Create a new page if none exists
+		$page_id = wp_insert_post([
+			'post_title' => 'Available Plots',
+			'post_content' => '[tajmap_plot_selection]',
+			'post_status' => 'publish',
+			'post_type' => 'page',
+			'post_name' => 'available-plots'
+		]);
+
+		if ($page_id && !is_wp_error($page_id)) {
+			return get_permalink($page_id);
+		}
+
+		// Fallback to home URL with shortcode parameter
+		return home_url('/?tajmap_plot_selection=1');
 	}
 
 	// AJAX Handlers

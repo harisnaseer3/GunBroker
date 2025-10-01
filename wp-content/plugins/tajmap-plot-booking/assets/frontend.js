@@ -3,12 +3,24 @@
 (function($) {
     'use strict';
 
+    console.log('TajMap Frontend JS loaded at:', new Date().toISOString());
+    console.log('TajMap Frontend JS VERSION 2.0.3 - CACHE BUST TEST');
+    console.log('If you see this message, the new version is loaded!');
+    console.log('TajMapFrontend object:', typeof TajMapFrontend !== 'undefined' ? TajMapFrontend : 'UNDEFINED');
+
     // Global state
     let plots = [];
     let currentUser = null;
     let selectedPlot = null;
     let inquiryStep = 1;
     let savedPlots = [];
+    
+    // Map state
+    let mapScale = 1;
+    let mapPanX = 0;
+    let mapPanY = 0;
+    let mapWidth = 0;
+    let mapHeight = 0;
 
     // Initialize when DOM is ready
     $(document).ready(function() {
@@ -22,13 +34,21 @@
         // Initialize based on current page
         const path = window.location.pathname;
 
-        if (path.includes('/plots')) {
+        console.log('Current path:', path);
+        console.log('TajMapFrontend.ajaxUrl:', TajMapFrontend.ajaxUrl);
+        console.log('Checking routing...');
+        
+        if (path.includes('/plots') || path.includes('available-plots') || $('#interactive-map').length > 0) {
+            console.log('Initializing Plot Selection page');
             initializePlotSelection();
         } else if (path.includes('/gallery')) {
+            console.log('Initializing Gallery page');
             initializeGallery();
         } else if (path.includes('/dashboard')) {
+            console.log('Initializing Dashboard page');
             initializeDashboard();
         } else {
+            console.log('Initializing Landing page');
             // Landing page
             initializeLandingPage();
         }
@@ -66,16 +86,9 @@
     }
 
     function loadFeaturedPlots() {
-        $.post(TajMapFrontend.ajaxUrl, {
-            action: 'tajmap_pb_get_plots',
-            nonce: TajMapFrontend.nonce,
-            featured: true
-        }, function(response) {
-            if (response.success) {
-                const featuredPlots = response.data.plots.slice(0, 6);
-                renderFeaturedCarousel(featuredPlots);
-            }
-        });
+        console.log('loadFeaturedPlots called but disabled to prevent errors');
+        // Disabled to prevent 403 errors and slice errors
+        return;
     }
 
     function renderFeaturedCarousel(plots) {
@@ -131,17 +144,9 @@
     }
 
     function loadStats() {
-        $.post(TajMapFrontend.ajaxUrl, {
-            action: 'tajmap_pb_get_analytics',
-            nonce: TajMapFrontend.nonce
-        }, function(response) {
-            if (response.success) {
-                const data = response.data;
-                $('#total-plots').text(data.total_plots.toLocaleString());
-                $('#available-plots').text(data.available_plots.toLocaleString());
-                $('#recent-leads').text(data.recent_leads.toLocaleString());
-            }
-        });
+        console.log('loadStats called but disabled to prevent errors');
+        // Disabled to prevent 403 errors
+        return;
     }
 
     function initializeSearch() {
@@ -162,13 +167,114 @@
 
     // Plot Selection Page Functions
     function initializePlotSelection() {
+        console.log('Initializing plot selection...');
+        initializeMap();
+        
+        // Test AJAX connection first
+        testAjaxConnection();
+        
         loadPlots();
         initializeFilters();
         initializeMapControls();
         initializeModals();
+        
+        // Fallback timeout in case AJAX fails
+        setTimeout(function() {
+            if ($('#loading-overlay').is(':visible')) {
+                console.log('AJAX timeout - trying fallback');
+                $('#loading-overlay').html('<p>Loading timeout. Please refresh the page.</p>');
+            }
+        }, 10000);
+    }
+    
+    function testAjaxConnection() {
+        console.log('Testing AJAX connection...');
+        $.post(TajMapFrontend.ajaxUrl, {
+            action: 'tajmap_pb_test_ajax'
+        }, function(response) {
+            console.log('AJAX Test Response:', response);
+        }).fail(function(xhr, status, error) {
+            console.error('AJAX Test Failed:', status, error, xhr.responseText);
+        });
+    }
+
+    function initializeMap() {
+        const mapContainer = $('#interactive-map');
+        
+        // Set up map container dimensions
+        mapWidth = mapContainer.width();
+        mapHeight = mapContainer.height();
+        
+        // Create SVG if it doesn't exist
+        if (mapContainer.find('svg').length === 0) {
+            mapContainer.html(`
+                <svg id="plots-svg" xmlns="http://www.w3.org/2000/svg" 
+                     width="${mapWidth}" height="${mapHeight}" 
+                     viewBox="0 0 ${mapWidth} ${mapHeight}"
+                     style="background: #f8fafc;">
+                </svg>
+            `);
+        }
+        
+        // Add mouse wheel zoom
+        mapContainer.on('wheel', handleMapWheel);
+        
+        // Add pan functionality
+        let isPanning = false;
+        let startX = 0, startY = 0;
+        
+        mapContainer.on('mousedown', function(e) {
+            if (e.target.tagName === 'svg' || e.target.tagName === 'g') {
+                isPanning = true;
+                startX = e.clientX - mapPanX;
+                startY = e.clientY - mapPanY;
+                mapContainer.css('cursor', 'grabbing');
+            }
+        });
+        
+        $(document).on('mousemove', function(e) {
+            if (isPanning) {
+                mapPanX = e.clientX - startX;
+                mapPanY = e.clientY - startY;
+                updateMapTransform();
+            }
+        });
+        
+        $(document).on('mouseup', function() {
+            isPanning = false;
+            mapContainer.css('cursor', 'grab');
+        });
+        
+        // Hide loading overlay
+        $('#loading-overlay').hide();
+        
+        // Handle window resize
+        $(window).on('resize', function() {
+            const mapContainer = $('#interactive-map');
+            mapWidth = mapContainer.width();
+            mapHeight = mapContainer.height();
+            
+            const svg = mapContainer.find('svg');
+            if (svg.length > 0) {
+                svg.attr('width', mapWidth).attr('height', mapHeight);
+            }
+        });
     }
 
     function loadPlots() {
+        // Check if required variables are available
+        if (typeof TajMapFrontend === 'undefined') {
+            console.error('TajMapFrontend not defined');
+            $('#loading-overlay').html('<p>Configuration error. Please refresh the page.</p>');
+            return;
+        }
+        
+        if (!TajMapFrontend.ajaxUrl || !TajMapFrontend.nonce) {
+            console.error('Missing AJAX configuration:', TajMapFrontend);
+            $('#loading-overlay').html('<p>Configuration error. Please refresh the page.</p>');
+            return;
+        }
+
         const params = new URLSearchParams(window.location.search);
         const filters = {
             sector: params.get('sector') || '',
@@ -177,63 +283,175 @@
             search: params.get('search') || ''
         };
 
+        // Show loading overlay
+        $('#loading-overlay').show();
+
+        console.log('Loading plots with filters:', filters);
+        console.log('AJAX URL:', TajMapFrontend.ajaxUrl);
+        console.log('Nonce:', TajMapFrontend.nonce);
+        console.log('Request data:', {
+            action: 'tajmap_pb_get_plots',
+            filters: filters
+        });
+        
+        // URL should now be correct
+        console.log('Using AJAX URL:', TajMapFrontend.ajaxUrl);
+        
         $.post(TajMapFrontend.ajaxUrl, {
             action: 'tajmap_pb_get_plots',
-            nonce: TajMapFrontend.nonce,
             filters: filters
         }, function(response) {
-            if (response.success) {
-                plots = response.data.plots;
+            console.log('AJAX Response:', response);
+            if (response && response.success) {
+                plots = response.data && response.data.plots ? response.data.plots : [];
+                console.log('Plots loaded:', plots.length);
                 renderMap();
                 updateFiltersList();
                 updateResultsCount();
+                $('#loading-overlay').hide();
+            } else {
+                console.error('Failed to load plots:', response);
+                $('#loading-overlay').html('<p>Error loading plots: ' + (response && response.data ? response.data : 'Unknown error') + '</p>');
             }
+        }).fail(function(xhr, status, error) {
+            console.error('AJAX request failed:', status, error);
+            console.error('Response:', xhr.responseText);
+            console.error('Status Code:', xhr.status);
+            console.error('Response Headers:', xhr.getAllResponseHeaders());
+            $('#loading-overlay').html('<p>Network error (Status: ' + xhr.status + '). Please check console for details.</p>');
         });
     }
 
     function renderMap() {
-        const mapContainer = $('#interactive-map');
-        const svg = mapContainer.find('svg');
-
-        if (svg.length === 0) {
-            mapContainer.html('<svg id="plots-svg" xmlns="http://www.w3.org/2000/svg"></svg>');
+        const svgElement = $('#plots-svg');
+        if (svgElement.length === 0) {
+            console.error('SVG element not found');
+            return;
         }
 
-        const svgElement = $('#plots-svg');
-        svgElement.empty();
+        // Clear existing plots
+        svgElement.find('.plot-polygon').remove();
+
+        // Calculate bounds for all plots
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        let hasValidPlots = false;
 
         plots.forEach(plot => {
             if (plot.coordinates) {
                 try {
                     const coordinates = JSON.parse(plot.coordinates);
                     if (coordinates.length >= 3) {
-                        const points = coordinates.map(coord => `${coord.x},${coord.y}`).join(' ');
-                        const polygon = $(`
-                            <polygon
-                                points="${points}"
-                                data-id="${plot.id}"
-                                data-status="${plot.status}"
-                                class="plot-polygon ${plot.status}"
-                                fill-opacity="0.6"
-                                stroke-width="2"
-                            ></polygon>
-                        `);
-
-                        polygon.on('click', function() {
-                            selectPlot(plot.id);
-                        }).on('mouseenter', function() {
-                            showPlotTooltip(plot, $(this));
-                        }).on('mouseleave', function() {
-                            hidePlotTooltip();
+                        hasValidPlots = true;
+                        coordinates.forEach(coord => {
+                            minX = Math.min(minX, coord.x);
+                            maxX = Math.max(maxX, coord.x);
+                            minY = Math.min(minY, coord.y);
+                            maxY = Math.max(maxY, coord.y);
                         });
-
-                        svgElement.append(polygon);
                     }
                 } catch (e) {
                     console.error('Error parsing coordinates for plot:', plot.id);
                 }
             }
         });
+
+        if (!hasValidPlots) {
+            // Show message when no plots
+            svgElement.html(`
+                <text x="50%" y="50%" text-anchor="middle" fill="#64748b" font-size="18">
+                    No plots available
+                </text>
+            `);
+            return;
+        }
+
+        // Add some padding
+        const padding = 50;
+        minX -= padding;
+        maxX += padding;
+        minY -= padding;
+        maxY += padding;
+
+        // Calculate scale to fit all plots
+        const plotWidth = maxX - minX;
+        const plotHeight = maxY - minY;
+        const scaleX = mapWidth / plotWidth;
+        const scaleY = mapHeight / plotHeight;
+        const scale = Math.min(scaleX, scaleY, 1) * 0.8; // 80% of available space
+
+        // Center the plots
+        const centerX = (mapWidth - plotWidth * scale) / 2;
+        const centerY = (mapHeight - plotHeight * scale) / 2;
+
+        // Create a group for all plots with transform
+        const plotGroup = svgElement.find('.plot-group');
+        if (plotGroup.length === 0) {
+            svgElement.append('<g class="plot-group"></g>');
+        }
+
+        const group = svgElement.find('.plot-group');
+        group.attr('transform', `translate(${centerX - minX * scale}, ${centerY - minY * scale}) scale(${scale})`);
+
+        // Render each plot
+        plots.forEach(plot => {
+            if (plot.coordinates) {
+                try {
+                    const coordinates = JSON.parse(plot.coordinates);
+                    if (coordinates.length >= 3) {
+                        const points = coordinates.map(coord => `${coord.x},${coord.y}`).join(' ');
+                        
+                        // Determine colors based on status
+                        let fillColor, strokeColor;
+                        switch (plot.status) {
+                            case 'sold':
+                                fillColor = '#ef4444';
+                                strokeColor = '#dc2626';
+                                break;
+                            case 'available':
+                            default:
+                                fillColor = '#10b981';
+                                strokeColor = '#059669';
+                                break;
+                        }
+
+                        const polygon = $(`
+                            <polygon
+                                points="${points}"
+                                data-id="${plot.id}"
+                                data-status="${plot.status}"
+                                class="plot-polygon ${plot.status}"
+                                fill="${fillColor}"
+                                stroke="${strokeColor}"
+                                fill-opacity="0.6"
+                                stroke-width="2"
+                                stroke-linejoin="round"
+                            ></polygon>
+                        `);
+
+                        polygon.on('click', function(e) {
+                            e.stopPropagation();
+                            selectPlot(plot.id);
+                        }).on('mouseenter', function() {
+                            $(this).attr('fill-opacity', '0.8');
+                            showPlotTooltip(plot, $(this));
+                        }).on('mouseleave', function() {
+                            $(this).attr('fill-opacity', '0.6');
+                            hidePlotTooltip();
+                        });
+
+                        group.append(polygon);
+                    }
+                } catch (e) {
+                    console.error('Error parsing coordinates for plot:', plot.id);
+                }
+            }
+        });
+
+        // Reset map transform
+        mapScale = 1;
+        mapPanX = 0;
+        mapPanY = 0;
+        updateMapTransform();
     }
 
     function selectPlot(plotId) {
@@ -359,15 +577,17 @@
 
     function initializeMapControls() {
         $('#zoom-in').on('click', function() {
-            // Implement zoom in
+            mapScale = Math.min(mapScale * 1.2, 5);
+            updateMapTransform();
         });
 
         $('#zoom-out').on('click', function() {
-            // Implement zoom out
+            mapScale = Math.max(mapScale / 1.2, 0.1);
+            updateMapTransform();
         });
 
         $('#fit-view').on('click', function() {
-            // Implement fit to view
+            fitToView();
         });
 
         $('#view-map').on('click', function() {
@@ -384,6 +604,43 @@
             $(this).addClass('active');
             $('#view-map').removeClass('active');
         });
+    }
+
+    function handleMapWheel(e) {
+        e.preventDefault();
+        const delta = e.originalEvent.deltaY;
+        const zoomFactor = delta > 0 ? 0.9 : 1.1;
+        mapScale = Math.max(0.1, Math.min(5, mapScale * zoomFactor));
+        updateMapTransform();
+    }
+
+    function updateMapTransform() {
+        const group = $('#plots-svg .plot-group');
+        if (group.length > 0) {
+            const currentTransform = group.attr('transform') || '';
+            const translateMatch = currentTransform.match(/translate\(([^,]+),([^)]+)\)/);
+            const scaleMatch = currentTransform.match(/scale\(([^)]+)\)/);
+            
+            let translateX = translateMatch ? parseFloat(translateMatch[1]) : 0;
+            let translateY = translateMatch ? parseFloat(translateMatch[2]) : 0;
+            let baseScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+            
+            // Apply pan
+            translateX += mapPanX;
+            translateY += mapPanY;
+            
+            // Apply zoom
+            const finalScale = baseScale * mapScale;
+            
+            group.attr('transform', `translate(${translateX}, ${translateY}) scale(${finalScale})`);
+        }
+    }
+
+    function fitToView() {
+        mapScale = 1;
+        mapPanX = 0;
+        mapPanY = 0;
+        updateMapTransform();
     }
 
     function renderListView() {

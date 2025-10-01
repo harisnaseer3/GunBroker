@@ -1,3 +1,63 @@
+/* TajMap Frontend Styles - Lightweight Implementation */
+
+/* Plot Details Panel */
+#plot-details {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+#plot-details h3 {
+    margin: 0 0 1rem 0;
+    color: #1f2937;
+    font-size: 1.25rem;
+}
+
+.plot-info p {
+    margin: 0.5rem 0;
+    color: #6b7280;
+}
+
+.status-available {
+    color: #10b981;
+    font-weight: bold;
+}
+
+.status-sold {
+    color: #ef4444;
+    font-weight: bold;
+}
+
+.btn {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn:hover {
+    background: #2563eb;
+}
+
+.btn-primary {
+    background: #10b981;
+}
+
+.btn-primary:hover {
+    background: #059669;
+}
+
+/* Plot Selection */
+.selected {
+    stroke: #fbbf24 !important;
+    stroke-width: 3px !important;
+}
+
 /* TajMap Frontend Styles - Premium Customer Experience */
 
 /* CSS Reset and Base Styles */
@@ -772,6 +832,7 @@ p {
     display: flex;
     max-width: 100%;
     height: calc(100vh - 200px);
+    gap: 0;
 }
 
 /* Filter Sidebar */
@@ -956,13 +1017,22 @@ p {
 .interactive-map {
     flex: 1;
     position: relative;
-    background: #e2e8f0;
+    background: #f8fafc;
     overflow: hidden;
+    min-height: 500px;
+    height: 70vh;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
 }
 
 .interactive-map svg {
     width: 100%;
     height: 100%;
+    cursor: grab;
+}
+
+.interactive-map svg:active {
+    cursor: grabbing;
 }
 
 .interactive-map polygon {

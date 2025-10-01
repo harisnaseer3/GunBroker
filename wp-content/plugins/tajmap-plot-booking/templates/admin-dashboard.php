@@ -32,6 +32,14 @@ $recent_leads_list = $wpdb->get_results($wpdb->prepare(
             <button class="btn secondary" onclick="window.location.href='<?php echo admin_url('admin.php?page=tajmap-plot-leads'); ?>'">
                 View Leads
             </button>
+            <button class="btn success" onclick="window.open('<?php echo $this->get_user_page_url(); ?>', '_blank')" title="Open in new tab">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15,3 21,3 21,9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+                View User Page
+            </button>
         </div>
     </div>
 
@@ -194,6 +202,25 @@ $recent_leads_list = $wpdb->get_results($wpdb->prepare(
                 <div class="action-info">
                     <h3>View Leads</h3>
                     <p>Manage customer inquiries and follow-ups</p>
+                </div>
+                <div class="action-arrow">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9,18 15,12 9,6"></polyline>
+                    </svg>
+                </div>
+            </button>
+
+            <button class="quick-action-btn" onclick="window.open('<?php echo $this->get_user_page_url(); ?>', '_blank')">
+                <div class="action-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                        <polyline points="15,3 21,3 21,9"></polyline>
+                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                    </svg>
+                </div>
+                <div class="action-info">
+                    <h3>View User Page</h3>
+                    <p>See how visitors view and interact with your plots</p>
                 </div>
                 <div class="action-arrow">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

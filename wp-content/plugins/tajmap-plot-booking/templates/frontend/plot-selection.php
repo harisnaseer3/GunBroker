@@ -1,6 +1,7 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
 ?>
+<!-- TajMap Debug: Template loaded at <?php echo current_time('mysql'); ?> -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -145,8 +146,10 @@ if (!defined('ABSPATH')) { exit; }
                 </div>
 
                 <div class="panel-content" id="panel-content">
-                    <div class="plot-placeholder">
-                        <p>Click on any plot on the map to view its details here</p>
+                    <div id="plot-details">
+                        <div class="plot-placeholder">
+                            <p>Click on any plot on the map to view its details here</p>
+                        </div>
                     </div>
                 </div>
             </aside>

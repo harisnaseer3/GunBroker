@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 
 // Constants
 if (!defined('TAJMAP_PB_VERSION')) {
-	define('TAJMAP_PB_VERSION', '2.0.0');
+	define('TAJMAP_PB_VERSION', '2.0.3');
 }
 if (!defined('TAJMAP_PB_PATH')) {
 	define('TAJMAP_PB_PATH', plugin_dir_path(__FILE__));
