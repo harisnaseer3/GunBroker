@@ -64,7 +64,7 @@ if (!defined('ABSPATH')) { exit; }
 
 <style>
 .tajmap-interactive-plot-selection {
-    max-width: 1400px;
+    max-width: 100%;
     margin: 0 auto;
     padding: 20px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -88,7 +88,7 @@ if (!defined('ABSPATH')) { exit; }
 
 .plot-main {
     display: grid;
-    grid-template-columns: 1fr 350px;
+    grid-template-columns: 1fr;
     gap: 20px;
     margin-bottom: 30px;
 }
@@ -148,7 +148,7 @@ if (!defined('ABSPATH')) { exit; }
     position: relative;
     width: 100%;
     height: 600px;
-    background: #f8fafc;
+    background: khaki;
     overflow: hidden;
 }
 
@@ -199,10 +199,26 @@ if (!defined('ABSPATH')) { exit; }
 }
 
 .plot-details-panel {
-    background: white;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    overflow: hidden;
+    display: none;
+}
+
+/* Hide common theme sidebars/widgets on this page */
+body .sidebar,
+body #secondary,
+body .widget-area,
+body .right-sidebar,
+body .site-sidebar {
+    display: none !important;
+}
+
+/* Expand content area if theme uses a grid with sidebar */
+body .content-area,
+body .site-main,
+body .site-content,
+body .container,
+body .wrap {
+    max-width: 100% !important;
+    width: 100% !important;
 }
 
 .panel-header {
@@ -431,21 +447,39 @@ jQuery(document).ready(function($) {
             type: 'POST',
             data: { action: 'tajmap_pb_get_plots' },
             success: function(response) {
-                console.log('Plots loaded:', response);
+                console.log('📡 AJAX Response:', response);
                 
                 if (response.success && response.data && response.data.plots) {
                     plots = response.data.plots;
-                    console.log('Found', plots.length, 'plots');
+                    console.log('📊 Found', plots.length, 'plots');
+                    
+                    // Debug each plot
+                    plots.forEach((plot, i) => {
+                        console.log(`📊 Plot ${i}:`, {
+                            id: plot.id,
+                            name: plot.plot_name,
+                            status: plot.status,
+                            coordinates: plot.coordinates,
+                            coordinatesType: typeof plot.coordinates
+                        });
+                    });
                     
                     // Update plot count
                     $('#plot-count').text(plots.length);
                     
-                    // Render everything
+                    // Render everything and fit to view so plots are visible
                     renderPlotList();
+                    fitToView();
                     drawAll();
-                    showLoading(false);
+                    
+                    // Force hide loading overlay after a small delay to ensure drawing completes
+                    setTimeout(() => {
+                        showLoading(false);
+                        console.log('🔄 Loading overlay should be hidden now');
+                    }, 100);
                 } else {
-                    console.error('No plots found in response');
+                    console.error('❌ No plots found in response');
+                    console.error('Response structure:', response);
                     showError('No plots found');
                 }
             },
@@ -458,10 +492,15 @@ jQuery(document).ready(function($) {
     
     // Show/hide loading
     function showLoading(show) {
+        console.log('🔄 Loading overlay:', show ? 'SHOW' : 'HIDE');
+        const overlay = $('#loading-overlay');
         if (show) {
-            $('#loading-overlay').show();
+            overlay.show();
         } else {
-            $('#loading-overlay').hide();
+            overlay.hide();
+            // Force remove from DOM to ensure it's gone
+            overlay.remove();
+            console.log('🔄 Loading overlay removed from DOM');
         }
     }
     
@@ -483,37 +522,104 @@ jQuery(document).ready(function($) {
         `);
     }
     
+    // Robustly parse coordinates from various formats
+    function parseCoordinates(raw) {
+        if (!raw) return [];
+        try {
+            const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            if (Array.isArray(parsed) && parsed.length) {
+                // If array of objects with x,y
+                if (typeof parsed[0] === 'object' && parsed[0] !== null && 'x' in parsed[0] && 'y' in parsed[0]) {
+                    return parsed.map(p => ({ x: Number(p.x), y: Number(p.y) }));
+                }
+                // If array of arrays like [[x,y], [x,y]]
+                if (Array.isArray(parsed[0]) && parsed[0].length >= 2) {
+                    return parsed.map(p => ({ x: Number(p[0]), y: Number(p[1]) }));
+                }
+            }
+        } catch (e) {
+            // Try simple delimiter format: "x,y|x,y|x,y"
+            if (typeof raw === 'string' && raw.includes(',')) {
+                const parts = raw.split('|').map(pair => pair.trim());
+                const coords = parts.map(pair => {
+                    const [px, py] = pair.split(',');
+                    return { x: Number(px), y: Number(py) };
+                }).filter(p => !Number.isNaN(p.x) && !Number.isNaN(p.y));
+                if (coords.length) return coords;
+            }
+        }
+        return [];
+    }
+
     // Draw all plots
     function drawAll() {
-        if (!ctx || plots.length === 0) return;
+        console.log('🎨 drawAll called - plots:', plots.length, 'canvas:', canvasWidth, 'x', canvasHeight);
         
-        // Clear canvas
+        if (!ctx) {
+            console.error('❌ No canvas context');
+            return;
+        }
+        
+        if (plots.length === 0) {
+            console.log('⚠️ No plots to draw');
+            // Still draw background
+            ctx.fillStyle = 'khaki';
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+            return;
+        }
+        
+        // Clear and paint background
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        ctx.fillStyle = 'khaki';
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        
+        console.log('🎨 Background painted khaki');
+        
+        // Draw a test rectangle to verify canvas works
+        ctx.fillStyle = 'red';
+        ctx.fillRect(50, 50, 100, 100);
+        console.log('🎨 Test red rectangle drawn at 50,50');
         
         // Apply transformations
         ctx.save();
         ctx.translate(panX, panY);
         ctx.scale(scale, scale);
         
+        console.log('🎨 Transform applied - panX:', panX, 'panY:', panY, 'scale:', scale);
+        
         // Draw plots
         plots.forEach((plot, index) => {
+            console.log(`🎨 Drawing plot ${index}:`, plot);
             drawPlot(plot, index);
         });
         
         ctx.restore();
+        console.log('🎨 drawAll completed');
     }
     
     // Draw individual plot
     function drawPlot(plot, index) {
-        if (!plot.coordinates) return;
+        console.log(`🎨 drawPlot ${index} - raw coordinates:`, plot.coordinates);
+        
+        if (!plot.coordinates) {
+            console.log(`⚠️ Plot ${index} has no coordinates`);
+            return;
+        }
         
         try {
-            const coords = JSON.parse(plot.coordinates);
-            if (coords.length < 3) return;
+            const coords = parseCoordinates(plot.coordinates);
+            console.log(`🎨 Plot ${index} parsed coords:`, coords);
+            
+            if (coords.length < 3) {
+                console.log(`⚠️ Plot ${index} has only ${coords.length} coordinates, need at least 3`);
+                return;
+            }
             
             // Set plot style
             const color = plot.status === 'available' ? '#10b981' : '#ef4444';
             const opacity = plot.status === 'available' ? 0.7 : 0.5;
+            
+            console.log(`🎨 Plot ${index} style - color: ${color}, opacity: ${opacity}`);
             
             ctx.fillStyle = color;
             ctx.strokeStyle = '#374151';
@@ -523,12 +629,17 @@ jQuery(document).ready(function($) {
             // Draw polygon
             ctx.beginPath();
             ctx.moveTo(coords[0].x, coords[0].y);
+            console.log(`🎨 Plot ${index} starting at:`, coords[0]);
+            
             for (let i = 1; i < coords.length; i++) {
                 ctx.lineTo(coords[i].x, coords[i].y);
+                console.log(`🎨 Plot ${index} line to:`, coords[i]);
             }
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
+            
+            console.log(`🎨 Plot ${index} polygon drawn`);
             
             // Draw plot name
             if (scale > 0.5) {
@@ -541,11 +652,12 @@ jQuery(document).ready(function($) {
                 ctx.textBaseline = 'middle';
                 ctx.globalAlpha = 1;
                 ctx.fillText(plot.plot_name || `Plot ${index + 1}`, centerX, centerY);
+                console.log(`🎨 Plot ${index} text drawn at:`, centerX, centerY);
             }
             
             ctx.globalAlpha = 1;
         } catch (e) {
-            console.error('Error drawing plot:', plot, e);
+            console.error(`❌ Error drawing plot ${index}:`, plot, e);
         }
     }
     
@@ -663,7 +775,7 @@ jQuery(document).ready(function($) {
         plots.forEach(plot => {
             if (plot.coordinates) {
                 try {
-                    const coords = JSON.parse(plot.coordinates);
+                    const coords = parseCoordinates(plot.coordinates);
                     coords.forEach(point => {
                         minX = Math.min(minX, point.x);
                         maxX = Math.max(maxX, point.x);

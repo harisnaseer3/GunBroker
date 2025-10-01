@@ -598,13 +598,14 @@ class Plugin {
 		
 		ob_start();
 		wp_enqueue_style('tajmap-frontend', TAJMAP_PB_URL . 'assets/frontend.css', [], TAJMAP_PB_VERSION);
-		wp_enqueue_script('tajmap-frontend', TAJMAP_PB_URL . 'assets/frontend-simple.js', ['jquery'], TAJMAP_PB_VERSION, true);
-		wp_localize_script('tajmap-frontend', 'TajMapFrontend', [
+		// Do NOT enqueue the simple frontend script here; the interactive template contains its own JS.
+		// Instead, inject the TajMapFrontend config inline for the template to consume.
+		echo '<script>window.TajMapFrontend = ' . wp_json_encode([
 			'ajaxUrl' => 'http://localhost/Gunbroker/wp-admin/admin-ajax.php',
 			'nonce' => wp_create_nonce('tajmap_pb_frontend'),
 			'homeUrl' => home_url(),
 			'pluginName' => 'TAJMAP_PLOT_BOOKING',
-		]);
+		]) . ';</script>';
 		include TAJMAP_PB_PATH . 'templates/frontend/plot-selection-interactive.php';
 		return ob_get_clean();
 	}
