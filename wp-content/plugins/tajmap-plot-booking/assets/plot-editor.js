@@ -270,7 +270,26 @@
         currentTool = tool;
         $('.tool-btn').removeClass('active');
         $(`.tool-btn[data-tool="${tool}"]`).addClass('active');
-        $('#editor-status').text(`Tool: ${tool.charAt(0).toUpperCase() + tool.slice(1)}`);
+        
+        // Provide specific instructions for each tool
+        let statusText = `Tool: ${tool.charAt(0).toUpperCase() + tool.slice(1)}`;
+        if (tool === 'vertex' && selectedPlot) {
+            statusText += ' - Click and drag vertices to edit';
+        } else if (tool === 'vertex' && !selectedPlot) {
+            statusText += ' - Select a plot first to edit vertices';
+        } else if (tool === 'move' && selectedPlot) {
+            statusText += ' - Click and drag to move the entire plot';
+        } else if (tool === 'move' && !selectedPlot) {
+            statusText += ' - Select a plot first to move it';
+        } else if (tool === 'select') {
+            statusText += ' - Click on plots to select them';
+        } else if (tool === 'polygon') {
+            statusText += ' - Click to add points, double-click to finish';
+        } else if (tool === 'rectangle') {
+            statusText += ' - Click and drag to create rectangle';
+        }
+        
+        $('#editor-status').text(statusText);
     }
 
     function handleMouseDown(e) {
@@ -563,7 +582,7 @@
     }
 
     function editVertices() {
-        if (!selectedPlot) return;
+        if (!selectedPlot || !selectedPlot.points) return;
 
         // Find closest vertex
         let closestVertex = null;
@@ -580,8 +599,10 @@
         if (closestVertex) {
             // Start dragging vertex
             isDragging = true;
-            dragOffsetX = closestVertex.point.x - mouseX;
-            dragOffsetY = closestVertex.point.y - mouseY;
+            dragOffsetX = closestVertex.index; // Store the vertex index
+            dragOffsetY = 0; // Not used for vertex editing
+            startX = mouseX;
+            startY = mouseY;
         }
     }
 
@@ -596,14 +617,17 @@
     function updateDrag() {
         if (!isDragging) return;
 
-        if (currentTool === 'vertex' && selectedPlot) {
+        if (currentTool === 'vertex' && selectedPlot && selectedPlot.points) {
             // Update vertex position
-            const vertexIndex = Math.floor(dragOffsetX);
+            const vertexIndex = dragOffsetX;
             if (selectedPlot.points[vertexIndex]) {
                 selectedPlot.points[vertexIndex].x = mouseX;
                 selectedPlot.points[vertexIndex].y = mouseY;
+                
+                // Update coordinates field in real-time
+                updateCoordinatesField();
             }
-        } else if (currentTool === 'move' && selectedPlot) {
+        } else if (currentTool === 'move' && selectedPlot && selectedPlot.points) {
             // Move entire shape
             const deltaX = mouseX - startX;
             const deltaY = mouseY - startY;
@@ -615,6 +639,9 @@
 
             startX = mouseX;
             startY = mouseY;
+            
+            // Update coordinates field in real-time
+            updateCoordinatesField();
         }
     }
 
@@ -1206,12 +1233,23 @@
 
         // Draw vertices if selected or hovered
         if (selectedPlot === plot || plot === currentShape) {
-            ctx.fillStyle = '#3b82f6';
             if (plot.points) {
-                plot.points.forEach(point => {
+                plot.points.forEach((point, index) => {
+                    // Different colors for different states
+                    if (currentTool === 'vertex') {
+                        ctx.fillStyle = '#ef4444'; // Red for vertex editing mode
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 2 / scale;
+                    } else {
+                        ctx.fillStyle = '#3b82f6'; // Blue for normal selection
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 1 / scale;
+                    }
+                    
                     ctx.beginPath();
-                    ctx.arc(point.x, point.y, 4 / scale, 0, 2 * Math.PI);
+                    ctx.arc(point.x, point.y, 6 / scale, 0, 2 * Math.PI);
                     ctx.fill();
+                    ctx.stroke();
                 });
             }
         }

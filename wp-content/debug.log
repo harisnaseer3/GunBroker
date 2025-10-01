@@ -47215,3 +47215,3956 @@ Content-Disposition: form-data; name="data"
 [01-Oct-2025 07:27:19 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
 [01-Oct-2025 07:27:20 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
 [01-Oct-2025 07:27:20 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:43:06 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:43:07 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:43:07 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:43:08 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:43:10 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:43:10 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:43:10 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:43:47 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:43:49 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:43:49 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:43:49 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:43:50 UTC] GunBroker: Starting bulk inventory sync
+[01-Oct-2025 07:43:50 UTC] GunBroker: Found 40 products to sync
+[01-Oct-2025 07:43:51 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:43:51 UTC] Description length: 0
+[01-Oct-2025 07:43:51 UTC] Description preview: "..."
+[01-Oct-2025 07:43:51 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:43:51 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:43:51 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:43:51 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:43:51 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:43:51 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:43:51 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:43:51 UTC] Final auto relist: "4"
+[01-Oct-2025 07:43:51 UTC] Final quantity: "4"
+[01-Oct-2025 07:43:51 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:43:51 UTC] SKU: "706397970222"
+[01-Oct-2025 07:43:51 UTC] UPC: "706397970222"
+[01-Oct-2025 07:43:51 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:43:51 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:43:51 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:43:51 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:43:51 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:43:51 UTC] Description in listing_data: ""
+[01-Oct-2025 07:43:51 UTC] Description length: 0
+[01-Oct-2025 07:43:51 UTC] Description is empty: YES
+[01-Oct-2025 07:43:51 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:43:51 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:43:51 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:43:51 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:43:51 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:43:51 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:43:51 UTC] IsFixedPrice: true
+[01-Oct-2025 07:43:51 UTC] FixedPrice field: 549
+[01-Oct-2025 07:43:51 UTC] Full API payload: {
+    "Title": "akkt gun",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 4,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:43:51 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:43:51 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:43:51 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:43:52 UTC] GunBroker API: PUT Items/15101736
+[01-Oct-2025 07:43:54 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:43:54 UTC] GunBroker API Response Body: {"userMessage":"Item 15101736 updated","developerMessage":"Item 15101736 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101736","verb":"GET","title":"15101736"}]}
+[01-Oct-2025 07:43:54 UTC] GunBroker: API Response for product 333: Array
+(
+    [userMessage] => Item 15101736 updated
+    [developerMessage] => Item 15101736 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101736
+                    [verb] => GET
+                    [title] => 15101736
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:43:56 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:43:56 UTC] Description length: 0
+[01-Oct-2025 07:43:56 UTC] Description preview: "..."
+[01-Oct-2025 07:43:56 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:43:56 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:43:56 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:43:56 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:43:56 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:43:56 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:43:56 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:43:56 UTC] Final auto relist: "4"
+[01-Oct-2025 07:43:56 UTC] Final quantity: "4"
+[01-Oct-2025 07:43:56 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:43:56 UTC] SKU: "706397970222"
+[01-Oct-2025 07:43:56 UTC] UPC: "706397970222"
+[01-Oct-2025 07:43:56 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:43:56 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:43:56 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:43:56 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:43:56 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:43:56 UTC] Description in listing_data: ""
+[01-Oct-2025 07:43:56 UTC] Description length: 0
+[01-Oct-2025 07:43:56 UTC] Description is empty: YES
+[01-Oct-2025 07:43:56 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:43:56 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:43:56 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:43:56 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:43:56 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:43:56 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:43:56 UTC] IsFixedPrice: true
+[01-Oct-2025 07:43:56 UTC] FixedPrice field: 549
+[01-Oct-2025 07:43:56 UTC] Full API payload: {
+    "Title": "alt guns",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 4,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:43:56 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:43:56 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:43:56 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:43:57 UTC] GunBroker API: PUT Items/15101699
+[01-Oct-2025 07:43:59 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:43:59 UTC] GunBroker API Response Body: {"userMessage":"Item 15101699 updated","developerMessage":"Item 15101699 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101699","verb":"GET","title":"15101699"}]}
+[01-Oct-2025 07:43:59 UTC] GunBroker: API Response for product 331: Array
+(
+    [userMessage] => Item 15101699 updated
+    [developerMessage] => Item 15101699 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101699
+                    [verb] => GET
+                    [title] => 15101699
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:44:01 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:44:01 UTC] Description length: 0
+[01-Oct-2025 07:44:01 UTC] Description preview: "..."
+[01-Oct-2025 07:44:01 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:44:01 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:44:01 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:44:01 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:44:01 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:44:01 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:44:01 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:44:01 UTC] Final auto relist: "4"
+[01-Oct-2025 07:44:01 UTC] Final quantity: "4"
+[01-Oct-2025 07:44:01 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:44:01 UTC] SKU: "706397970222"
+[01-Oct-2025 07:44:01 UTC] UPC: "706397970222"
+[01-Oct-2025 07:44:01 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:44:01 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:44:01 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:44:01 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:44:01 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:44:01 UTC] Description in listing_data: ""
+[01-Oct-2025 07:44:01 UTC] Description length: 0
+[01-Oct-2025 07:44:01 UTC] Description is empty: YES
+[01-Oct-2025 07:44:01 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:44:01 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:44:01 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:44:01 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:44:01 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:01 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:44:01 UTC] IsFixedPrice: true
+[01-Oct-2025 07:44:01 UTC] FixedPrice field: 549
+[01-Oct-2025 07:44:01 UTC] Full API payload: {
+    "Title": "akg gun",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 4,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:44:01 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:01 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:44:01 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:44:02 UTC] GunBroker API: PUT Items/15101700
+[01-Oct-2025 07:44:04 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:44:04 UTC] GunBroker API Response Body: {"userMessage":"Item 15101700 updated","developerMessage":"Item 15101700 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101700","verb":"GET","title":"15101700"}]}
+[01-Oct-2025 07:44:04 UTC] GunBroker: API Response for product 330: Array
+(
+    [userMessage] => Item 15101700 updated
+    [developerMessage] => Item 15101700 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101700
+                    [verb] => GET
+                    [title] => 15101700
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:44:06 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:44:06 UTC] Description length: 0
+[01-Oct-2025 07:44:06 UTC] Description preview: "..."
+[01-Oct-2025 07:44:06 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:44:06 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:44:06 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:44:06 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:44:06 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:44:06 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:44:06 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:44:06 UTC] Final auto relist: "4"
+[01-Oct-2025 07:44:06 UTC] Final quantity: "4"
+[01-Oct-2025 07:44:06 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:44:06 UTC] SKU: "706397970222"
+[01-Oct-2025 07:44:06 UTC] UPC: "706397970222"
+[01-Oct-2025 07:44:06 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:44:06 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:44:06 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:44:06 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:44:06 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:44:06 UTC] Description in listing_data: ""
+[01-Oct-2025 07:44:06 UTC] Description length: 0
+[01-Oct-2025 07:44:06 UTC] Description is empty: YES
+[01-Oct-2025 07:44:06 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:44:06 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:44:06 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:44:06 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:44:06 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:06 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:44:06 UTC] IsFixedPrice: true
+[01-Oct-2025 07:44:06 UTC] FixedPrice field: 549
+[01-Oct-2025 07:44:06 UTC] Full API payload: {
+    "Title": "knn guns",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 4,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:44:06 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:06 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:44:06 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:44:07 UTC] GunBroker API: PUT Items/15101701
+[01-Oct-2025 07:44:08 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:44:08 UTC] GunBroker API Response Body: {"userMessage":"Item 15101701 updated","developerMessage":"Item 15101701 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101701","verb":"GET","title":"15101701"}]}
+[01-Oct-2025 07:44:08 UTC] GunBroker: API Response for product 329: Array
+(
+    [userMessage] => Item 15101701 updated
+    [developerMessage] => Item 15101701 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101701
+                    [verb] => GET
+                    [title] => 15101701
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:44:10 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:44:10 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:44:10 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:44:10 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:44:10 UTC] Description length: 0
+[01-Oct-2025 07:44:10 UTC] Description preview: "..."
+[01-Oct-2025 07:44:10 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:44:10 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:44:10 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:44:10 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:44:10 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:44:10 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:44:10 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:44:10 UTC] Final auto relist: "4"
+[01-Oct-2025 07:44:10 UTC] Final quantity: "4"
+[01-Oct-2025 07:44:10 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:44:10 UTC] SKU: "706397970222"
+[01-Oct-2025 07:44:10 UTC] UPC: "706397970222"
+[01-Oct-2025 07:44:10 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:44:10 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:44:10 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:44:10 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:44:10 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:44:10 UTC] Description in listing_data: ""
+[01-Oct-2025 07:44:10 UTC] Description length: 0
+[01-Oct-2025 07:44:10 UTC] Description is empty: YES
+[01-Oct-2025 07:44:10 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:44:10 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:44:10 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:44:10 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:44:10 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:10 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:44:10 UTC] IsFixedPrice: true
+[01-Oct-2025 07:44:10 UTC] FixedPrice field: 549
+[01-Oct-2025 07:44:10 UTC] Full API payload: {
+    "Title": "Springfield Armory Echelon 9mm Optics Ready U-Notch Night Sights EC9459B-U",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 4,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:44:10 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:10 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:44:10 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:44:11 UTC] GunBroker API: PUT Items/15101702
+[01-Oct-2025 07:44:12 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:44:13 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:44:13 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:44:13 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:44:13 UTC] GunBroker API Response Body: {"userMessage":"Item 15101702 updated","developerMessage":"Item 15101702 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101702","verb":"GET","title":"15101702"}]}
+[01-Oct-2025 07:44:13 UTC] GunBroker: API Response for product 328: Array
+(
+    [userMessage] => Item 15101702 updated
+    [developerMessage] => Item 15101702 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101702
+                    [verb] => GET
+                    [title] => 15101702
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:44:15 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:44:15 UTC] Description length: 0
+[01-Oct-2025 07:44:15 UTC] Description preview: "..."
+[01-Oct-2025 07:44:15 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:44:15 UTC] Listing Profile: "StartingBid"
+[01-Oct-2025 07:44:15 UTC] Inner Listing Type: "StartingBid"
+[01-Oct-2025 07:44:15 UTC] AutoRelist Raw: "2"
+[01-Oct-2025 07:44:15 UTC] Forcing listing type to StartingBid based on profile selection
+[01-Oct-2025 07:44:15 UTC] Processing as AUCTION listing
+[01-Oct-2025 07:44:15 UTC] Final listing type: "StartingBid"
+[01-Oct-2025 07:44:15 UTC] Final auto relist: "2"
+[01-Oct-2025 07:44:15 UTC] Final quantity: "1"
+[01-Oct-2025 07:44:15 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:44:15 UTC] SKU: "706397970222"
+[01-Oct-2025 07:44:15 UTC] UPC: "706397970222"
+[01-Oct-2025 07:44:15 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:44:15 UTC] === BUILDING AUCTION LISTING ===
+[01-Oct-2025 07:44:15 UTC] === AUCTION LISTING === Using StartingBid: 549
+[01-Oct-2025 07:44:15 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:44:15 UTC] Description in listing_data: ""
+[01-Oct-2025 07:44:15 UTC] Description length: 0
+[01-Oct-2025 07:44:15 UTC] Description is empty: YES
+[01-Oct-2025 07:44:15 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:44:15 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:44:15 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:44:15 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:44:15 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:15 UTC] Listing Type: StartingBid
+[01-Oct-2025 07:44:15 UTC] IsFixedPrice: false
+[01-Oct-2025 07:44:15 UTC] StartingBid field: 549 *** ERROR: Should not be present for Fixed Price ***
+[01-Oct-2025 07:44:15 UTC] Full API payload: {
+    "Title": "kgg guns",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "StartingBid": 549,
+    "IsFixedPrice": false,
+    "Quantity": 1,
+    "ListingDuration": 7,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 3,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "MinBidIncrement": 0.5,
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 2,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:44:15 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:15 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:44:15 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:44:16 UTC] GunBroker API: PUT Items/15101703
+[01-Oct-2025 07:44:18 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:44:18 UTC] GunBroker API Response Body: {"userMessage":"Item 15101703 updated","developerMessage":"Item 15101703 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101703","verb":"GET","title":"15101703"}]}
+[01-Oct-2025 07:44:18 UTC] GunBroker: API Response for product 327: Array
+(
+    [userMessage] => Item 15101703 updated
+    [developerMessage] => Item 15101703 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101703
+                    [verb] => GET
+                    [title] => 15101703
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:44:20 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:44:20 UTC] Description length: 0
+[01-Oct-2025 07:44:20 UTC] Description preview: "..."
+[01-Oct-2025 07:44:20 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:44:20 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:44:20 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:44:20 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:44:20 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:44:20 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:44:20 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:44:20 UTC] Final auto relist: "4"
+[01-Oct-2025 07:44:20 UTC] Final quantity: "4"
+[01-Oct-2025 07:44:20 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:44:20 UTC] SKU: "706397970222"
+[01-Oct-2025 07:44:20 UTC] UPC: "706397970222"
+[01-Oct-2025 07:44:20 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:44:20 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:44:20 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:44:20 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:44:20 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:44:20 UTC] Description in listing_data: ""
+[01-Oct-2025 07:44:20 UTC] Description length: 0
+[01-Oct-2025 07:44:20 UTC] Description is empty: YES
+[01-Oct-2025 07:44:20 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:44:20 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:44:20 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:44:20 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:44:20 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:20 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:44:20 UTC] IsFixedPrice: true
+[01-Oct-2025 07:44:20 UTC] FixedPrice field: 549
+[01-Oct-2025 07:44:20 UTC] Full API payload: {
+    "Title": "Springfield Armory Echelon 9mm Optics Ready U-Notch Night Sights EC9459B-U",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 4,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:44:20 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:20 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:44:20 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:44:21 UTC] GunBroker API: PUT Items/15101704
+[01-Oct-2025 07:44:22 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:44:22 UTC] GunBroker API Response Body: {"userMessage":"Item 15101704 updated","developerMessage":"Item 15101704 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101704","verb":"GET","title":"15101704"}]}
+[01-Oct-2025 07:44:22 UTC] GunBroker: API Response for product 326: Array
+(
+    [userMessage] => Item 15101704 updated
+    [developerMessage] => Item 15101704 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101704
+                    [verb] => GET
+                    [title] => 15101704
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:44:24 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:44:24 UTC] Description length: 2768
+[01-Oct-2025 07:44:24 UTC] Description preview: "<h2>Springfield Armory Echelon 9mm 4.5&#8243; Black 17+1/20+1 EC9459B-U</h2>
+<h3>Echelon</h3>
+<p>The..."
+[01-Oct-2025 07:44:24 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:44:24 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:44:24 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:44:24 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:44:24 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:44:24 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:44:24 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:44:24 UTC] Final auto relist: "4"
+[01-Oct-2025 07:44:24 UTC] Final quantity: "4"
+[01-Oct-2025 07:44:24 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:44:24 UTC] SKU: "706397970222"
+[01-Oct-2025 07:44:24 UTC] UPC: "706397970222"
+[01-Oct-2025 07:44:24 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:44:24 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:44:24 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:44:24 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:44:24 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:44:24 UTC] Description in listing_data: "<h2>Springfield Armory Echelon 9mm 4.5&#8243; Black 17+1/20+1 EC9459B-U</h2>
+<h3>Echelon</h3>
+<p>The Springfield Armory Echelon sets a new benchmark in modern striker-fired duty pistols, featuring a modular design built around a robust stainless steel chassis and an innovative optics mounting system. This 9mm handgun combines superior ergonomics with exceptional durability to handle the toughest conditions, making it a standout choice for reliable performance. With its ambidextrous controls and included high-capacity magazines, the Echelon offers versatility and adaptability for a wide range of users.</p>
+<p>At the core of the Echelon is its patent-pending Variable Interface System, which allows direct mounting of various red dot sights without adapter plates, enhancing quick target acquisition alongside the tritium U-Dot iron sights. The 4.5-inch hammer-forged barrel with Melonite finish ensures accuracy and longevity, while the captive recoil system provides smooth operation. The pistol&#8217;s black polymer frame and 1.2-inch grip width deliver comfortable handling, and it comes with one 17-round flush magazine and one 20-round extended magazine for flexible carry options.</p>
+<p>Ideal for law enforcement, self-defense, and everyday carry, the Echelon excels in tactical scenarios where reliability and modularity are paramount. Its innovative design, inspired by historical military tactics, positions it as a forward-thinking solution for professionals and enthusiasts seeking unparalleled performance in a compact, high-capacity package.</p>
+<h3>Specifications</h3>
+<table class="widefat striped" style="max-width: 720px">
+<tbody>
+<tr>
+<td><strong>Manufacturer</strong></td>
+<td>Springfield Armory</td>
+</tr>
+<tr>
+<td><strong>Model</strong></td>
+<td>Echelon</td>
+</tr>
+<tr>
+<td><strong>Action</strong></td>
+<td>Striker Fired</td>
+</tr>
+<tr>
+<td><strong>Caliber</strong></td>
+<td>9mm</td>
+</tr>
+<tr>
+<td><strong>Barrel Length</strong></td>
+<td>4.5&#8243;</td>
+</tr>
+<tr>
+<td><strong>Overall Length</strong></td>
+<td>8&#8243;</td>
+</tr>
+<tr>
+<td><strong>Weight</strong></td>
+<td>23.9 oz</td>
+</tr>
+<tr>
+<td><strong>Capacity</strong></td>
+<td>17+1 / 20+1</td>
+</tr>
+<tr>
+<td><strong>Sights</strong></td>
+<td>Tritium / Luminescent Front, Tactical Rack U-Dot™ Rear</td>
+</tr>
+<tr>
+<td><strong>Finish</strong></td>
+<td>Melonite</td>
+</tr>
+<tr>
+<td><strong>Stock</strong></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><strong>Trigger</strong></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><strong>Magazine</strong></td>
+<td>(1) 17-Round, (1) 20-Round Detachable</td>
+</tr>
+<tr>
+<td><strong>UPC</strong></td>
+<td>706397970222</td>
+</tr>
+<tr>
+<td><strong>MPN</strong></td>
+<td>EC9459B-U</td>
+</tr>
+<tr>
+<td><strong>Condition</strong></td>
+<td>New</td>
+</tr>
+</tbody>
+</table>"
+[01-Oct-2025 07:44:24 UTC] Description length: 2768
+[01-Oct-2025 07:44:24 UTC] Description is empty: NO
+[01-Oct-2025 07:44:24 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:24 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:44:24 UTC] IsFixedPrice: true
+[01-Oct-2025 07:44:24 UTC] FixedPrice field: 549
+[01-Oct-2025 07:44:24 UTC] Full API payload: {
+    "Title": "ssg gun",
+    "Description": "<h2>Springfield Armory Echelon 9mm 4.5&#8243; Black 17+1\/20+1 EC9459B-U<\/h2>\n<h3>Echelon<\/h3>\n<p>The Springfield Armory Echelon sets a new benchmark in modern striker-fired duty pistols, featuring a modular design built around a robust stainless steel chassis and an innovative optics mounting system. This 9mm handgun combines superior ergonomics with exceptional durability to handle the toughest conditions, making it a standout choice for reliable performance. With its ambidextrous controls and included high-capacity magazines, the Echelon offers versatility and adaptability for a wide range of users.<\/p>\n<p>At the core of the Echelon is its patent-pending Variable Interface System, which allows direct mounting of various red dot sights without adapter plates, enhancing quick target acquisition alongside the tritium U-Dot iron sights. The 4.5-inch hammer-forged barrel with Melonite finish ensures accuracy and longevity, while the captive recoil system provides smooth operation. The pistol&#8217;s black polymer frame and 1.2-inch grip width deliver comfortable handling, and it comes with one 17-round flush magazine and one 20-round extended magazine for flexible carry options.<\/p>\n<p>Ideal for law enforcement, self-defense, and everyday carry, the Echelon excels in tactical scenarios where reliability and modularity are paramount. Its innovative design, inspired by historical military tactics, positions it as a forward-thinking solution for professionals and enthusiasts seeking unparalleled performance in a compact, high-capacity package.<\/p>\n<h3>Specifications<\/h3>\n<table class=\"widefat striped\" style=\"max-width: 720px\">\n<tbody>\n<tr>\n<td><strong>Manufacturer<\/strong><\/td>\n<td>Springfield Armory<\/td>\n<\/tr>\n<tr>\n<td><strong>Model<\/strong><\/td>\n<td>Echelon<\/td>\n<\/tr>\n<tr>\n<td><strong>Action<\/strong><\/td>\n<td>Striker Fired<\/td>\n<\/tr>\n<tr>\n<td><strong>Caliber<\/strong><\/td>\n<td>9mm<\/td>\n<\/tr>\n<tr>\n<td><strong>Barrel Length<\/strong><\/td>\n<td>4.5&#8243;<\/td>\n<\/tr>\n<tr>\n<td><strong>Overall Length<\/strong><\/td>\n<td>8&#8243;<\/td>\n<\/tr>\n<tr>\n<td><strong>Weight<\/strong><\/td>\n<td>23.9 oz<\/td>\n<\/tr>\n<tr>\n<td><strong>Capacity<\/strong><\/td>\n<td>17+1 \/ 20+1<\/td>\n<\/tr>\n<tr>\n<td><strong>Sights<\/strong><\/td>\n<td>Tritium \/ Luminescent Front, Tactical Rack U-Dot\u2122 Rear<\/td>\n<\/tr>\n<tr>\n<td><strong>Finish<\/strong><\/td>\n<td>Melonite<\/td>\n<\/tr>\n<tr>\n<td><strong>Stock<\/strong><\/td>\n<td>N\/A<\/td>\n<\/tr>\n<tr>\n<td><strong>Trigger<\/strong><\/td>\n<td>N\/A<\/td>\n<\/tr>\n<tr>\n<td><strong>Magazine<\/strong><\/td>\n<td>(1) 17-Round, (1) 20-Round Detachable<\/td>\n<\/tr>\n<tr>\n<td><strong>UPC<\/strong><\/td>\n<td>706397970222<\/td>\n<\/tr>\n<tr>\n<td><strong>MPN<\/strong><\/td>\n<td>EC9459B-U<\/td>\n<\/tr>\n<tr>\n<td><strong>Condition<\/strong><\/td>\n<td>New<\/td>\n<\/tr>\n<\/tbody>\n<\/table>",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 4,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:44:24 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:24 UTC] GunBroker: Prepared listing data for product: Springfield Armory Echelon 9mm Optics Ready U-Notch Night Sights EC9459B-U
+[01-Oct-2025 07:44:24 UTC] GunBroker: No images found for product: Springfield Armory Echelon 9mm Optics Ready U-Notch Night Sights EC9459B-U
+[01-Oct-2025 07:44:25 UTC] GunBroker API: PUT Items/15101705
+[01-Oct-2025 07:44:27 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:44:27 UTC] GunBroker API Response Body: {"userMessage":"Item 15101705 updated","developerMessage":"Item 15101705 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101705","verb":"GET","title":"15101705"}]}
+[01-Oct-2025 07:44:27 UTC] GunBroker: API Response for product 325: Array
+(
+    [userMessage] => Item 15101705 updated
+    [developerMessage] => Item 15101705 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101705
+                    [verb] => GET
+                    [title] => 15101705
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:44:29 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:44:29 UTC] Description length: 0
+[01-Oct-2025 07:44:29 UTC] Description preview: "..."
+[01-Oct-2025 07:44:29 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:44:29 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:44:29 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:44:29 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:44:29 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:44:29 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:44:29 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:44:29 UTC] Final auto relist: "4"
+[01-Oct-2025 07:44:29 UTC] Final quantity: "4"
+[01-Oct-2025 07:44:29 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:44:29 UTC] SKU: "706397970222"
+[01-Oct-2025 07:44:29 UTC] UPC: "706397970222"
+[01-Oct-2025 07:44:29 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:44:29 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:44:29 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:44:29 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:44:29 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:44:29 UTC] Description in listing_data: ""
+[01-Oct-2025 07:44:29 UTC] Description length: 0
+[01-Oct-2025 07:44:29 UTC] Description is empty: YES
+[01-Oct-2025 07:44:29 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:44:29 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:44:29 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:44:29 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:44:29 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:29 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:44:29 UTC] IsFixedPrice: true
+[01-Oct-2025 07:44:29 UTC] FixedPrice field: 549
+[01-Oct-2025 07:44:29 UTC] Full API payload: {
+    "Title": "kgs guns",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 4,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:44:29 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:29 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:44:29 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:44:30 UTC] GunBroker API: PUT Items/15101706
+[01-Oct-2025 07:44:31 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:44:31 UTC] GunBroker API Response Body: {"userMessage":"Item 15101706 updated","developerMessage":"Item 15101706 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101706","verb":"GET","title":"15101706"}]}
+[01-Oct-2025 07:44:31 UTC] GunBroker: API Response for product 324: Array
+(
+    [userMessage] => Item 15101706 updated
+    [developerMessage] => Item 15101706 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101706
+                    [verb] => GET
+                    [title] => 15101706
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:44:34 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:44:34 UTC] Description length: 0
+[01-Oct-2025 07:44:34 UTC] Description preview: "..."
+[01-Oct-2025 07:44:34 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:44:34 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:44:34 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:44:34 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:44:34 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:44:34 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:44:34 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:44:34 UTC] Final auto relist: "4"
+[01-Oct-2025 07:44:34 UTC] Final quantity: "4"
+[01-Oct-2025 07:44:34 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:44:34 UTC] SKU: "706397970222"
+[01-Oct-2025 07:44:34 UTC] UPC: "706397970222"
+[01-Oct-2025 07:44:34 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:44:34 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:44:34 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:44:34 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:44:34 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:44:34 UTC] Description in listing_data: ""
+[01-Oct-2025 07:44:34 UTC] Description length: 0
+[01-Oct-2025 07:44:34 UTC] Description is empty: YES
+[01-Oct-2025 07:44:34 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:44:34 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:44:34 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:44:34 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:44:34 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:34 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:44:34 UTC] IsFixedPrice: true
+[01-Oct-2025 07:44:34 UTC] FixedPrice field: 549
+[01-Oct-2025 07:44:34 UTC] Full API payload: {
+    "Title": "kg guns",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 4,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:44:34 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:34 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:44:34 UTC] GunBroker: Processing 1 images for product: AUTO-DRAFT
+[01-Oct-2025 07:44:34 UTC] GunBroker: Skipping non-public image URL (configure gunbroker_public_domain setting): https://localhost/Gunbroker/wp-content/uploads/2025/09/screencapture-api-sandbox-gunbroker-User-Help-Categories-2025-09-20-09_56_22.png
+[01-Oct-2025 07:44:34 UTC] GunBroker: Final description length: 141
+[01-Oct-2025 07:44:35 UTC] GunBroker API: PUT Items/15101707
+[01-Oct-2025 07:44:36 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:44:36 UTC] GunBroker API Response Body: {"userMessage":"Item 15101707 updated","developerMessage":"Item 15101707 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101707","verb":"GET","title":"15101707"}]}
+[01-Oct-2025 07:44:36 UTC] GunBroker: API Response for product 322: Array
+(
+    [userMessage] => Item 15101707 updated
+    [developerMessage] => Item 15101707 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101707
+                    [verb] => GET
+                    [title] => 15101707
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:44:38 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:44:38 UTC] Description length: 0
+[01-Oct-2025 07:44:38 UTC] Description preview: "..."
+[01-Oct-2025 07:44:38 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:44:38 UTC] Listing Profile: "StartingBid"
+[01-Oct-2025 07:44:38 UTC] Inner Listing Type: "StartingBid"
+[01-Oct-2025 07:44:38 UTC] AutoRelist Raw: "2"
+[01-Oct-2025 07:44:38 UTC] Forcing listing type to StartingBid based on profile selection
+[01-Oct-2025 07:44:38 UTC] Processing as AUCTION listing
+[01-Oct-2025 07:44:38 UTC] Final listing type: "StartingBid"
+[01-Oct-2025 07:44:38 UTC] Final auto relist: "2"
+[01-Oct-2025 07:44:38 UTC] Final quantity: "1"
+[01-Oct-2025 07:44:38 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:44:38 UTC] SKU: "706397970222"
+[01-Oct-2025 07:44:38 UTC] UPC: "706397970222"
+[01-Oct-2025 07:44:38 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:44:38 UTC] === BUILDING AUCTION LISTING ===
+[01-Oct-2025 07:44:38 UTC] === AUCTION LISTING === Using StartingBid: 549
+[01-Oct-2025 07:44:38 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:44:38 UTC] Description in listing_data: ""
+[01-Oct-2025 07:44:38 UTC] Description length: 0
+[01-Oct-2025 07:44:38 UTC] Description is empty: YES
+[01-Oct-2025 07:44:38 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:44:38 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:44:38 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:44:38 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:44:38 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:38 UTC] Listing Type: StartingBid
+[01-Oct-2025 07:44:38 UTC] IsFixedPrice: false
+[01-Oct-2025 07:44:38 UTC] StartingBid field: 549 *** ERROR: Should not be present for Fixed Price ***
+[01-Oct-2025 07:44:38 UTC] Full API payload: {
+    "Title": "Springfield Armory Echelon 9mm Optics Ready U-Notch Night Sights EC9459B-U",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "StartingBid": 549,
+    "IsFixedPrice": false,
+    "Quantity": 1,
+    "ListingDuration": 7,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "MinBidIncrement": 0.5,
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 2,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:44:38 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:38 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:44:38 UTC] GunBroker: Processing 1 images for product: AUTO-DRAFT
+[01-Oct-2025 07:44:38 UTC] GunBroker: Skipping non-public image URL (configure gunbroker_public_domain setting): https://localhost/Gunbroker/wp-content/uploads/2025/09/screencapture-sandbox-gunbroker-item-15098258-2025-09-22-18_00_24-scaled.png
+[01-Oct-2025 07:44:38 UTC] GunBroker: Final description length: 141
+[01-Oct-2025 07:44:39 UTC] GunBroker API: PUT Items/15101708
+[01-Oct-2025 07:44:41 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:44:41 UTC] GunBroker API Response Body: {"userMessage":"Item 15101708 updated","developerMessage":"Item 15101708 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101708","verb":"GET","title":"15101708"}]}
+[01-Oct-2025 07:44:41 UTC] GunBroker: API Response for product 320: Array
+(
+    [userMessage] => Item 15101708 updated
+    [developerMessage] => Item 15101708 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101708
+                    [verb] => GET
+                    [title] => 15101708
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:44:43 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:44:43 UTC] Description length: 0
+[01-Oct-2025 07:44:43 UTC] Description preview: "..."
+[01-Oct-2025 07:44:43 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:44:43 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:44:43 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:44:43 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:44:43 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:44:43 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:44:43 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:44:43 UTC] Final auto relist: "4"
+[01-Oct-2025 07:44:43 UTC] Final quantity: "3"
+[01-Oct-2025 07:44:43 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:44:43 UTC] SKU: "706397970222"
+[01-Oct-2025 07:44:43 UTC] UPC: "706397970222"
+[01-Oct-2025 07:44:43 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:44:43 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:44:43 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:44:43 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:44:43 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:44:43 UTC] Description in listing_data: ""
+[01-Oct-2025 07:44:43 UTC] Description length: 0
+[01-Oct-2025 07:44:43 UTC] Description is empty: YES
+[01-Oct-2025 07:44:43 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:44:43 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:44:43 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:44:43 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:44:43 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:43 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:44:43 UTC] IsFixedPrice: true
+[01-Oct-2025 07:44:43 UTC] FixedPrice field: 549
+[01-Oct-2025 07:44:43 UTC] Full API payload: {
+    "Title": "hsn gun",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 3,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:44:43 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:43 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:44:43 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:44:44 UTC] GunBroker API: PUT Items/15101709
+[01-Oct-2025 07:44:46 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:44:46 UTC] GunBroker API Response Body: {"userMessage":"Item 15101709 updated","developerMessage":"Item 15101709 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101709","verb":"GET","title":"15101709"}]}
+[01-Oct-2025 07:44:46 UTC] GunBroker: API Response for product 319: Array
+(
+    [userMessage] => Item 15101709 updated
+    [developerMessage] => Item 15101709 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101709
+                    [verb] => GET
+                    [title] => 15101709
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:44:48 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:44:48 UTC] Description length: 0
+[01-Oct-2025 07:44:48 UTC] Description preview: "..."
+[01-Oct-2025 07:44:48 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:44:48 UTC] Listing Profile: "StartingBid"
+[01-Oct-2025 07:44:48 UTC] Inner Listing Type: "StartingBid"
+[01-Oct-2025 07:44:48 UTC] AutoRelist Raw: "2"
+[01-Oct-2025 07:44:48 UTC] Forcing listing type to StartingBid based on profile selection
+[01-Oct-2025 07:44:48 UTC] Processing as AUCTION listing
+[01-Oct-2025 07:44:48 UTC] Final listing type: "StartingBid"
+[01-Oct-2025 07:44:48 UTC] Final auto relist: "2"
+[01-Oct-2025 07:44:48 UTC] Final quantity: "1"
+[01-Oct-2025 07:44:48 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:44:48 UTC] SKU: "706397970222"
+[01-Oct-2025 07:44:48 UTC] UPC: "706397970222"
+[01-Oct-2025 07:44:48 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:44:48 UTC] === BUILDING AUCTION LISTING ===
+[01-Oct-2025 07:44:48 UTC] === AUCTION LISTING === Using StartingBid: 549
+[01-Oct-2025 07:44:48 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:44:48 UTC] Description in listing_data: ""
+[01-Oct-2025 07:44:48 UTC] Description length: 0
+[01-Oct-2025 07:44:48 UTC] Description is empty: YES
+[01-Oct-2025 07:44:48 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:44:48 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:44:48 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:44:48 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:44:48 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:48 UTC] Listing Type: StartingBid
+[01-Oct-2025 07:44:48 UTC] IsFixedPrice: false
+[01-Oct-2025 07:44:48 UTC] StartingBid field: 549 *** ERROR: Should not be present for Fixed Price ***
+[01-Oct-2025 07:44:48 UTC] ReservePrice field: 550 *** ERROR: Should not be present for Fixed Price ***
+[01-Oct-2025 07:44:48 UTC] Full API payload: {
+    "Title": "Springfield haris gun",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "StartingBid": 549,
+    "IsFixedPrice": false,
+    "Quantity": 1,
+    "ListingDuration": 7,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "MinBidIncrement": 0.5,
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 2,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "ReservePrice": 550,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:44:48 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:48 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:44:48 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:44:49 UTC] GunBroker API: PUT Items/15101710
+[01-Oct-2025 07:44:50 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:44:50 UTC] GunBroker API Response Body: {"userMessage":"Item 15101710 updated","developerMessage":"Item 15101710 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101710","verb":"GET","title":"15101710"}]}
+[01-Oct-2025 07:44:50 UTC] GunBroker: API Response for product 314: Array
+(
+    [userMessage] => Item 15101710 updated
+    [developerMessage] => Item 15101710 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101710
+                    [verb] => GET
+                    [title] => 15101710
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:44:52 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:44:52 UTC] Description length: 0
+[01-Oct-2025 07:44:52 UTC] Description preview: "..."
+[01-Oct-2025 07:44:52 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:44:52 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:44:52 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:44:52 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:44:52 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:44:52 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:44:52 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:44:52 UTC] Final auto relist: "4"
+[01-Oct-2025 07:44:52 UTC] Final quantity: "4"
+[01-Oct-2025 07:44:52 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:44:52 UTC] SKU: "706397970222"
+[01-Oct-2025 07:44:52 UTC] UPC: "706397970222"
+[01-Oct-2025 07:44:52 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:44:52 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:44:52 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:44:52 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:44:52 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:44:52 UTC] Description in listing_data: ""
+[01-Oct-2025 07:44:52 UTC] Description length: 0
+[01-Oct-2025 07:44:52 UTC] Description is empty: YES
+[01-Oct-2025 07:44:52 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:44:52 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:44:52 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:44:52 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:44:52 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:52 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:44:52 UTC] IsFixedPrice: true
+[01-Oct-2025 07:44:52 UTC] FixedPrice field: 549
+[01-Oct-2025 07:44:52 UTC] Full API payload: {
+    "Title": "Springfield Armory Echelon 9mm Optics Ready U-Notch Night Sights EC9459B-U",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 4,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:44:52 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:52 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:44:52 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:44:53 UTC] GunBroker API: PUT Items/15101711
+[01-Oct-2025 07:44:55 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:44:55 UTC] GunBroker API Response Body: {"userMessage":"Item 15101711 updated","developerMessage":"Item 15101711 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101711","verb":"GET","title":"15101711"}]}
+[01-Oct-2025 07:44:55 UTC] GunBroker: API Response for product 313: Array
+(
+    [userMessage] => Item 15101711 updated
+    [developerMessage] => Item 15101711 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101711
+                    [verb] => GET
+                    [title] => 15101711
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:44:57 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:44:57 UTC] Description length: 0
+[01-Oct-2025 07:44:57 UTC] Description preview: "..."
+[01-Oct-2025 07:44:57 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:44:57 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:44:57 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:44:57 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:44:57 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:44:57 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:44:57 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:44:57 UTC] Final auto relist: "4"
+[01-Oct-2025 07:44:57 UTC] Final quantity: "4"
+[01-Oct-2025 07:44:57 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:44:57 UTC] SKU: "706397970222"
+[01-Oct-2025 07:44:57 UTC] UPC: "706397970222"
+[01-Oct-2025 07:44:57 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:44:57 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:44:57 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:44:57 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:44:57 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:44:57 UTC] Description in listing_data: ""
+[01-Oct-2025 07:44:57 UTC] Description length: 0
+[01-Oct-2025 07:44:57 UTC] Description is empty: YES
+[01-Oct-2025 07:44:57 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:44:57 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:44:57 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:44:57 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:44:57 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:57 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:44:57 UTC] IsFixedPrice: true
+[01-Oct-2025 07:44:57 UTC] FixedPrice field: 549
+[01-Oct-2025 07:44:57 UTC] Full API payload: {
+    "Title": "xt gun",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 4,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:44:57 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:44:57 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:44:57 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:44:58 UTC] GunBroker API: PUT Items/15101712
+[01-Oct-2025 07:45:00 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:45:00 UTC] GunBroker API Response Body: {"userMessage":"Item 15101712 updated","developerMessage":"Item 15101712 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101712","verb":"GET","title":"15101712"}]}
+[01-Oct-2025 07:45:00 UTC] GunBroker: API Response for product 310: Array
+(
+    [userMessage] => Item 15101712 updated
+    [developerMessage] => Item 15101712 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101712
+                    [verb] => GET
+                    [title] => 15101712
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:45:02 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:45:02 UTC] Description length: 0
+[01-Oct-2025 07:45:02 UTC] Description preview: "..."
+[01-Oct-2025 07:45:02 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:45:02 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:45:02 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:45:02 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:45:02 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:45:02 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:45:02 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:45:02 UTC] Final auto relist: "4"
+[01-Oct-2025 07:45:02 UTC] Final quantity: "4"
+[01-Oct-2025 07:45:02 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:45:02 UTC] SKU: "706397970222"
+[01-Oct-2025 07:45:02 UTC] UPC: "706397970222"
+[01-Oct-2025 07:45:02 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:45:02 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:45:02 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:45:02 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:45:02 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:45:02 UTC] Description in listing_data: ""
+[01-Oct-2025 07:45:02 UTC] Description length: 0
+[01-Oct-2025 07:45:02 UTC] Description is empty: YES
+[01-Oct-2025 07:45:02 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:45:02 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:45:02 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:45:02 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:45:02 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:02 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:45:02 UTC] IsFixedPrice: true
+[01-Oct-2025 07:45:02 UTC] FixedPrice field: 549
+[01-Oct-2025 07:45:02 UTC] Full API payload: {
+    "Title": "Springfield Armory Echelon 9mm Optics Ready U-Notch Night Sights EC9459B-U",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 4,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:45:02 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:02 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:45:02 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:45:03 UTC] GunBroker API: PUT Items/15101713
+[01-Oct-2025 07:45:06 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:45:06 UTC] GunBroker API Response Body: {"userMessage":"Item 15101713 updated","developerMessage":"Item 15101713 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101713","verb":"GET","title":"15101713"}]}
+[01-Oct-2025 07:45:06 UTC] GunBroker: API Response for product 309: Array
+(
+    [userMessage] => Item 15101713 updated
+    [developerMessage] => Item 15101713 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101713
+                    [verb] => GET
+                    [title] => 15101713
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:45:08 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:45:08 UTC] Description length: 0
+[01-Oct-2025 07:45:08 UTC] Description preview: "..."
+[01-Oct-2025 07:45:08 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:45:08 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:45:08 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:45:08 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:45:08 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:45:08 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:45:08 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:45:08 UTC] Final auto relist: "4"
+[01-Oct-2025 07:45:08 UTC] Final quantity: "4"
+[01-Oct-2025 07:45:08 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:45:08 UTC] SKU: "706397970222"
+[01-Oct-2025 07:45:08 UTC] UPC: "706397970222"
+[01-Oct-2025 07:45:08 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:45:08 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:45:08 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:45:08 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:45:08 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:45:08 UTC] Description in listing_data: ""
+[01-Oct-2025 07:45:08 UTC] Description length: 0
+[01-Oct-2025 07:45:08 UTC] Description is empty: YES
+[01-Oct-2025 07:45:08 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:45:08 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:45:08 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:45:08 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:45:08 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:08 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:45:08 UTC] IsFixedPrice: true
+[01-Oct-2025 07:45:08 UTC] FixedPrice field: 549
+[01-Oct-2025 07:45:08 UTC] Full API payload: {
+    "Title": "kt gun",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 4,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:45:08 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:08 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:45:08 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:45:09 UTC] GunBroker API: PUT Items/15101714
+[01-Oct-2025 07:45:11 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:45:11 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:45:11 UTC] GunBroker API Response Body: {"userMessage":"Item 15101714 updated","developerMessage":"Item 15101714 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101714","verb":"GET","title":"15101714"}]}
+[01-Oct-2025 07:45:11 UTC] GunBroker: API Response for product 306: Array
+(
+    [userMessage] => Item 15101714 updated
+    [developerMessage] => Item 15101714 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101714
+                    [verb] => GET
+                    [title] => 15101714
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:45:12 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:45:12 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:45:13 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:45:13 UTC] Description length: 0
+[01-Oct-2025 07:45:13 UTC] Description preview: "..."
+[01-Oct-2025 07:45:13 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:45:13 UTC] Listing Profile: "StartingBid"
+[01-Oct-2025 07:45:13 UTC] Inner Listing Type: "StartingBid"
+[01-Oct-2025 07:45:13 UTC] AutoRelist Raw: "2"
+[01-Oct-2025 07:45:13 UTC] Forcing listing type to StartingBid based on profile selection
+[01-Oct-2025 07:45:13 UTC] Processing as AUCTION listing
+[01-Oct-2025 07:45:13 UTC] Final listing type: "StartingBid"
+[01-Oct-2025 07:45:13 UTC] Final auto relist: "2"
+[01-Oct-2025 07:45:13 UTC] Final quantity: "1"
+[01-Oct-2025 07:45:13 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:45:13 UTC] SKU: "706397970222"
+[01-Oct-2025 07:45:13 UTC] UPC: "706397970222"
+[01-Oct-2025 07:45:13 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:45:13 UTC] === BUILDING AUCTION LISTING ===
+[01-Oct-2025 07:45:13 UTC] === AUCTION LISTING === Using StartingBid: 549
+[01-Oct-2025 07:45:13 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:45:13 UTC] Description in listing_data: ""
+[01-Oct-2025 07:45:13 UTC] Description length: 0
+[01-Oct-2025 07:45:13 UTC] Description is empty: YES
+[01-Oct-2025 07:45:13 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:45:13 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:45:13 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:45:13 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:45:13 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:13 UTC] Listing Type: StartingBid
+[01-Oct-2025 07:45:13 UTC] IsFixedPrice: false
+[01-Oct-2025 07:45:13 UTC] StartingBid field: 549 *** ERROR: Should not be present for Fixed Price ***
+[01-Oct-2025 07:45:13 UTC] Full API payload: {
+    "Title": "adamm gun",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "StartingBid": 549,
+    "IsFixedPrice": false,
+    "Quantity": 1,
+    "ListingDuration": 7,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "MinBidIncrement": 0.5,
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 2,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:45:13 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:13 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:45:13 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:45:14 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:45:15 UTC] GunBroker API: PUT Items/15101715
+[01-Oct-2025 07:45:16 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:45:16 UTC] GunBroker API Response Body: {"userMessage":"Item 15101715 updated","developerMessage":"Item 15101715 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101715","verb":"GET","title":"15101715"}]}
+[01-Oct-2025 07:45:16 UTC] GunBroker: API Response for product 304: Array
+(
+    [userMessage] => Item 15101715 updated
+    [developerMessage] => Item 15101715 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101715
+                    [verb] => GET
+                    [title] => 15101715
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:45:18 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:45:18 UTC] Description length: 0
+[01-Oct-2025 07:45:18 UTC] Description preview: "..."
+[01-Oct-2025 07:45:18 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:45:18 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:45:18 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:45:18 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:45:18 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:45:18 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:45:18 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:45:18 UTC] Final auto relist: "4"
+[01-Oct-2025 07:45:18 UTC] Final quantity: "4"
+[01-Oct-2025 07:45:18 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:45:18 UTC] SKU: "706397970222"
+[01-Oct-2025 07:45:18 UTC] UPC: "706397970222"
+[01-Oct-2025 07:45:18 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:45:18 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:45:18 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:45:18 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:45:18 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:45:18 UTC] Description in listing_data: ""
+[01-Oct-2025 07:45:18 UTC] Description length: 0
+[01-Oct-2025 07:45:18 UTC] Description is empty: YES
+[01-Oct-2025 07:45:18 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:45:18 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:45:18 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:45:18 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:45:18 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:18 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:45:18 UTC] IsFixedPrice: true
+[01-Oct-2025 07:45:18 UTC] FixedPrice field: 549
+[01-Oct-2025 07:45:18 UTC] Full API payload: {
+    "Title": "chuchu gun",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 4,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:45:18 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:18 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:45:18 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:45:20 UTC] GunBroker API: PUT Items/15101716
+[01-Oct-2025 07:45:21 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:45:21 UTC] GunBroker API Response Body: {"userMessage":"Item 15101716 updated","developerMessage":"Item 15101716 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101716","verb":"GET","title":"15101716"}]}
+[01-Oct-2025 07:45:21 UTC] GunBroker: API Response for product 302: Array
+(
+    [userMessage] => Item 15101716 updated
+    [developerMessage] => Item 15101716 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101716
+                    [verb] => GET
+                    [title] => 15101716
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:45:23 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:45:23 UTC] Description length: 0
+[01-Oct-2025 07:45:23 UTC] Description preview: "..."
+[01-Oct-2025 07:45:23 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:45:23 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:45:23 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:45:23 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:45:23 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:45:23 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:45:23 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:45:23 UTC] Final auto relist: "4"
+[01-Oct-2025 07:45:23 UTC] Final quantity: "4"
+[01-Oct-2025 07:45:23 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:45:23 UTC] SKU: "706397970222"
+[01-Oct-2025 07:45:23 UTC] UPC: "706397970222"
+[01-Oct-2025 07:45:23 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:45:23 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:45:23 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:45:23 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:45:23 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:45:23 UTC] Description in listing_data: ""
+[01-Oct-2025 07:45:23 UTC] Description length: 0
+[01-Oct-2025 07:45:23 UTC] Description is empty: YES
+[01-Oct-2025 07:45:23 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:45:23 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:45:23 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:45:23 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:45:23 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:23 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:45:23 UTC] IsFixedPrice: true
+[01-Oct-2025 07:45:23 UTC] FixedPrice field: 549
+[01-Oct-2025 07:45:23 UTC] Full API payload: {
+    "Title": "Springfield Armory Echelon 9mm Optics Ready U-Notch Night Sights EC9459B-U",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 4,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:45:23 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:23 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:45:23 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:45:25 UTC] GunBroker API: PUT Items/15101717
+[01-Oct-2025 07:45:26 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:45:26 UTC] GunBroker API Response Body: {"userMessage":"Item 15101717 updated","developerMessage":"Item 15101717 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101717","verb":"GET","title":"15101717"}]}
+[01-Oct-2025 07:45:26 UTC] GunBroker: API Response for product 301: Array
+(
+    [userMessage] => Item 15101717 updated
+    [developerMessage] => Item 15101717 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101717
+                    [verb] => GET
+                    [title] => 15101717
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:45:29 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:45:29 UTC] Description length: 0
+[01-Oct-2025 07:45:29 UTC] Description preview: "..."
+[01-Oct-2025 07:45:29 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:45:29 UTC] Listing Profile: "StartingBid"
+[01-Oct-2025 07:45:29 UTC] Inner Listing Type: "StartingBid"
+[01-Oct-2025 07:45:29 UTC] AutoRelist Raw: "2"
+[01-Oct-2025 07:45:29 UTC] Forcing listing type to StartingBid based on profile selection
+[01-Oct-2025 07:45:29 UTC] Processing as AUCTION listing
+[01-Oct-2025 07:45:29 UTC] Final listing type: "StartingBid"
+[01-Oct-2025 07:45:29 UTC] Final auto relist: "2"
+[01-Oct-2025 07:45:29 UTC] Final quantity: "1"
+[01-Oct-2025 07:45:29 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:45:29 UTC] SKU: "706397970222"
+[01-Oct-2025 07:45:29 UTC] UPC: "706397970222"
+[01-Oct-2025 07:45:29 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:45:29 UTC] === BUILDING AUCTION LISTING ===
+[01-Oct-2025 07:45:29 UTC] === AUCTION LISTING === Using StartingBid: 549
+[01-Oct-2025 07:45:29 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:45:29 UTC] Description in listing_data: ""
+[01-Oct-2025 07:45:29 UTC] Description length: 0
+[01-Oct-2025 07:45:29 UTC] Description is empty: YES
+[01-Oct-2025 07:45:29 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:45:29 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:45:29 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:45:29 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:45:29 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:29 UTC] Listing Type: StartingBid
+[01-Oct-2025 07:45:29 UTC] IsFixedPrice: false
+[01-Oct-2025 07:45:29 UTC] StartingBid field: 549 *** ERROR: Should not be present for Fixed Price ***
+[01-Oct-2025 07:45:29 UTC] Full API payload: {
+    "Title": "mani gun qrt",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "StartingBid": 549,
+    "IsFixedPrice": false,
+    "Quantity": 1,
+    "ListingDuration": 7,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "MinBidIncrement": 0.5,
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 2,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:45:29 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:29 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:45:29 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:45:30 UTC] GunBroker API: PUT Items/15101718
+[01-Oct-2025 07:45:31 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:45:31 UTC] GunBroker API Response Body: {"userMessage":"Item 15101718 updated","developerMessage":"Item 15101718 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101718","verb":"GET","title":"15101718"}]}
+[01-Oct-2025 07:45:31 UTC] GunBroker: API Response for product 299: Array
+(
+    [userMessage] => Item 15101718 updated
+    [developerMessage] => Item 15101718 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101718
+                    [verb] => GET
+                    [title] => 15101718
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:45:33 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:45:33 UTC] Description length: 0
+[01-Oct-2025 07:45:33 UTC] Description preview: "..."
+[01-Oct-2025 07:45:33 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:45:33 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:45:33 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:45:33 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:45:33 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:45:33 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:45:33 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:45:33 UTC] Final auto relist: "4"
+[01-Oct-2025 07:45:33 UTC] Final quantity: "4"
+[01-Oct-2025 07:45:33 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:45:33 UTC] SKU: "706397970222"
+[01-Oct-2025 07:45:33 UTC] UPC: "706397970222"
+[01-Oct-2025 07:45:33 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:45:33 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:45:33 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:45:33 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:45:33 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:45:33 UTC] Description in listing_data: ""
+[01-Oct-2025 07:45:33 UTC] Description length: 0
+[01-Oct-2025 07:45:33 UTC] Description is empty: YES
+[01-Oct-2025 07:45:33 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:45:33 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:45:33 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:45:33 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:45:33 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:33 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:45:33 UTC] IsFixedPrice: true
+[01-Oct-2025 07:45:33 UTC] FixedPrice field: 549
+[01-Oct-2025 07:45:33 UTC] Full API payload: {
+    "Title": "mani gun qr",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 4,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:45:33 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:33 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:45:33 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:45:35 UTC] GunBroker API: PUT Items/15101719
+[01-Oct-2025 07:45:36 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:45:36 UTC] GunBroker API Response Body: {"userMessage":"Item 15101719 updated","developerMessage":"Item 15101719 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101719","verb":"GET","title":"15101719"}]}
+[01-Oct-2025 07:45:36 UTC] GunBroker: API Response for product 298: Array
+(
+    [userMessage] => Item 15101719 updated
+    [developerMessage] => Item 15101719 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101719
+                    [verb] => GET
+                    [title] => 15101719
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:45:38 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:45:38 UTC] Description length: 0
+[01-Oct-2025 07:45:38 UTC] Description preview: "..."
+[01-Oct-2025 07:45:38 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:45:38 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:45:38 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:45:38 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:45:38 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:45:38 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:45:38 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:45:38 UTC] Final auto relist: "4"
+[01-Oct-2025 07:45:38 UTC] Final quantity: "7"
+[01-Oct-2025 07:45:38 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:45:38 UTC] SKU: "706397970222"
+[01-Oct-2025 07:45:38 UTC] UPC: "706397970222"
+[01-Oct-2025 07:45:38 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:45:38 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:45:38 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:45:38 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:45:38 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:45:38 UTC] Description in listing_data: ""
+[01-Oct-2025 07:45:38 UTC] Description length: 0
+[01-Oct-2025 07:45:39 UTC] Description is empty: YES
+[01-Oct-2025 07:45:39 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:45:39 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:45:39 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:45:39 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:45:39 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:39 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:45:39 UTC] IsFixedPrice: true
+[01-Oct-2025 07:45:39 UTC] FixedPrice field: 549
+[01-Oct-2025 07:45:39 UTC] Full API payload: {
+    "Title": "Springfield gun gand",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 7,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:45:39 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:39 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:45:39 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:45:40 UTC] GunBroker API: PUT Items/15101720
+[01-Oct-2025 07:45:41 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:45:41 UTC] GunBroker API Response Body: {"userMessage":"Item 15101720 updated","developerMessage":"Item 15101720 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101720","verb":"GET","title":"15101720"}]}
+[01-Oct-2025 07:45:41 UTC] GunBroker: API Response for product 290: Array
+(
+    [userMessage] => Item 15101720 updated
+    [developerMessage] => Item 15101720 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101720
+                    [verb] => GET
+                    [title] => 15101720
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:45:43 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:45:43 UTC] Description length: 0
+[01-Oct-2025 07:45:43 UTC] Description preview: "..."
+[01-Oct-2025 07:45:43 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:45:43 UTC] Listing Profile: "FixedPrice"
+[01-Oct-2025 07:45:43 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:45:43 UTC] AutoRelist Raw: "4"
+[01-Oct-2025 07:45:43 UTC] Forcing listing type to FixedPrice based on profile selection
+[01-Oct-2025 07:45:43 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:45:43 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:45:43 UTC] Final auto relist: "4"
+[01-Oct-2025 07:45:43 UTC] Final quantity: "4"
+[01-Oct-2025 07:45:43 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:45:43 UTC] SKU: "706397970222"
+[01-Oct-2025 07:45:43 UTC] UPC: "706397970222"
+[01-Oct-2025 07:45:43 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:45:43 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:45:43 UTC] === FIXED PRICE LISTING === Using FixedPrice: 549
+[01-Oct-2025 07:45:43 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:45:43 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:45:43 UTC] Description in listing_data: ""
+[01-Oct-2025 07:45:43 UTC] Description length: 0
+[01-Oct-2025 07:45:43 UTC] Description is empty: YES
+[01-Oct-2025 07:45:43 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:45:43 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:45:43 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:45:43 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:45:43 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:43 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:45:43 UTC] IsFixedPrice: true
+[01-Oct-2025 07:45:43 UTC] FixedPrice field: 549
+[01-Oct-2025 07:45:43 UTC] Full API payload: {
+    "Title": "Springfield Armory Echelon 9mm Optics Ready U-Notch Night Sights EC9459B-U",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "FixedPrice": 549,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 4,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:45:43 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:43 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:45:43 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:45:45 UTC] GunBroker API: PUT Items/15101721
+[01-Oct-2025 07:45:46 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:45:46 UTC] GunBroker API Response Body: {"userMessage":"Item 15101721 updated","developerMessage":"Item 15101721 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101721","verb":"GET","title":"15101721"}]}
+[01-Oct-2025 07:45:46 UTC] GunBroker: API Response for product 289: Array
+(
+    [userMessage] => Item 15101721 updated
+    [developerMessage] => Item 15101721 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101721
+                    [verb] => GET
+                    [title] => 15101721
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:45:47 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:45:47 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:45:47 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:45:49 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:45:49 UTC] Description length: 0
+[01-Oct-2025 07:45:49 UTC] Description preview: "..."
+[01-Oct-2025 07:45:49 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:45:49 UTC] Listing Profile: "StartingBid"
+[01-Oct-2025 07:45:49 UTC] Inner Listing Type: "StartingBid"
+[01-Oct-2025 07:45:49 UTC] AutoRelist Raw: "2"
+[01-Oct-2025 07:45:49 UTC] Forcing listing type to StartingBid based on profile selection
+[01-Oct-2025 07:45:49 UTC] Processing as AUCTION listing
+[01-Oct-2025 07:45:49 UTC] Final listing type: "StartingBid"
+[01-Oct-2025 07:45:49 UTC] Final auto relist: "2"
+[01-Oct-2025 07:45:49 UTC] Final quantity: "1"
+[01-Oct-2025 07:45:49 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:45:49 UTC] SKU: "706397970222"
+[01-Oct-2025 07:45:49 UTC] UPC: "706397970222"
+[01-Oct-2025 07:45:49 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:45:49 UTC] === BUILDING AUCTION LISTING ===
+[01-Oct-2025 07:45:49 UTC] === AUCTION LISTING === Using StartingBid: 549
+[01-Oct-2025 07:45:49 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:45:49 UTC] Description in listing_data: ""
+[01-Oct-2025 07:45:49 UTC] Description length: 0
+[01-Oct-2025 07:45:49 UTC] Description is empty: YES
+[01-Oct-2025 07:45:49 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:45:49 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:45:49 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:45:49 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:45:49 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:49 UTC] Listing Type: StartingBid
+[01-Oct-2025 07:45:49 UTC] IsFixedPrice: false
+[01-Oct-2025 07:45:49 UTC] StartingBid field: 549 *** ERROR: Should not be present for Fixed Price ***
+[01-Oct-2025 07:45:49 UTC] Full API payload: {
+    "Title": "Springfield Armory Echelon 9mm Optics Ready U-Notch Night Sights EC9459B-U",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "StartingBid": 549,
+    "IsFixedPrice": false,
+    "Quantity": 1,
+    "ListingDuration": 7,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "MinBidIncrement": 0.5,
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 2,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:45:49 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:49 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:45:49 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:45:50 UTC] GunBroker API: PUT Items/15101722
+[01-Oct-2025 07:45:50 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:45:51 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:45:51 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:45:51 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:45:51 UTC] GunBroker API Response Body: {"userMessage":"Item 15101722 updated","developerMessage":"Item 15101722 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101722","verb":"GET","title":"15101722"}]}
+[01-Oct-2025 07:45:51 UTC] GunBroker: API Response for product 280: Array
+(
+    [userMessage] => Item 15101722 updated
+    [developerMessage] => Item 15101722 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101722
+                    [verb] => GET
+                    [title] => 15101722
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:45:53 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:45:53 UTC] Description length: 0
+[01-Oct-2025 07:45:53 UTC] Description preview: "..."
+[01-Oct-2025 07:45:53 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:45:53 UTC] Listing Profile: "StartingBid"
+[01-Oct-2025 07:45:53 UTC] Inner Listing Type: "StartingBid"
+[01-Oct-2025 07:45:53 UTC] AutoRelist Raw: "2"
+[01-Oct-2025 07:45:53 UTC] Forcing listing type to StartingBid based on profile selection
+[01-Oct-2025 07:45:53 UTC] Processing as AUCTION listing
+[01-Oct-2025 07:45:53 UTC] Final listing type: "StartingBid"
+[01-Oct-2025 07:45:53 UTC] Final auto relist: "2"
+[01-Oct-2025 07:45:53 UTC] Final quantity: "1"
+[01-Oct-2025 07:45:53 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:45:53 UTC] SKU: "706397970222"
+[01-Oct-2025 07:45:53 UTC] UPC: "706397970222"
+[01-Oct-2025 07:45:53 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:45:53 UTC] === BUILDING AUCTION LISTING ===
+[01-Oct-2025 07:45:53 UTC] === AUCTION LISTING === Using StartingBid: 549
+[01-Oct-2025 07:45:53 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:45:53 UTC] Description in listing_data: ""
+[01-Oct-2025 07:45:53 UTC] Description length: 0
+[01-Oct-2025 07:45:53 UTC] Description is empty: YES
+[01-Oct-2025 07:45:53 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:45:53 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:45:53 UTC] GunBroker: FORCED description to: "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:45:53 UTC] GunBroker: FORCED description length: 99
+[01-Oct-2025 07:45:53 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:53 UTC] Listing Type: StartingBid
+[01-Oct-2025 07:45:53 UTC] IsFixedPrice: false
+[01-Oct-2025 07:45:53 UTC] StartingBid field: 549 *** ERROR: Should not be present for Fixed Price ***
+[01-Oct-2025 07:45:53 UTC] Full API payload: {
+    "Title": "Springfield Armory Echelon 9mm Optics Ready U-Notch Night Sights EC9459B-U",
+    "Description": "High-quality AUTO-DRAFT available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3024,
+    "StartingBid": 549,
+    "IsFixedPrice": false,
+    "Quantity": 1,
+    "ListingDuration": 7,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 14,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "MinBidIncrement": 0.5,
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 2,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": true
+}
+[01-Oct-2025 07:45:53 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:45:53 UTC] GunBroker: Prepared listing data for product: AUTO-DRAFT
+[01-Oct-2025 07:45:53 UTC] GunBroker: No images found for product: AUTO-DRAFT
+[01-Oct-2025 07:45:55 UTC] GunBroker API: PUT Items/15101723
+[01-Oct-2025 07:45:56 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:45:56 UTC] GunBroker API Response Body: {"userMessage":"Item 15101723 updated","developerMessage":"Item 15101723 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101723","verb":"GET","title":"15101723"}]}
+[01-Oct-2025 07:45:56 UTC] GunBroker: API Response for product 278: Array
+(
+    [userMessage] => Item 15101723 updated
+    [developerMessage] => Item 15101723 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101723
+                    [verb] => GET
+                    [title] => 15101723
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:45:58 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:45:58 UTC] Description length: 0
+[01-Oct-2025 07:45:58 UTC] Description preview: "..."
+[01-Oct-2025 07:45:58 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:45:58 UTC] Listing Profile: "fixed"
+[01-Oct-2025 07:45:58 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:45:58 UTC] AutoRelist Raw: "1"
+[01-Oct-2025 07:45:58 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:45:58 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:45:58 UTC] Final auto relist: "1"
+[01-Oct-2025 07:45:58 UTC] Final quantity: "17"
+[01-Oct-2025 07:45:58 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:45:58 UTC] SKU: "706397970222"
+[01-Oct-2025 07:45:58 UTC] UPC: "706397970222"
+[01-Oct-2025 07:45:58 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:45:58 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:45:58 UTC] === FIXED PRICE LISTING === Using FixedPrice: 660
+[01-Oct-2025 07:45:58 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:45:58 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:45:58 UTC] Description in listing_data: ""
+[01-Oct-2025 07:45:58 UTC] Description length: 0
+[01-Oct-2025 07:45:58 UTC] Description is empty: YES
+[01-Oct-2025 07:45:58 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:45:58 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:45:58 UTC] GunBroker: FORCED description to: "High-quality Rosalyn Nielsen available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:45:58 UTC] GunBroker: FORCED description length: 104
+[01-Oct-2025 07:45:58 UTC] GunBroker: ERROR - CategoryID invalid: 0
+[01-Oct-2025 07:45:58 UTC] GunBroker: prepare_listing_data failed: CategoryID must be 1-999999
+[01-Oct-2025 07:45:58 UTC] GunBroker: Bulk sync error for product 128: CategoryID must be 1-999999
+[01-Oct-2025 07:46:00 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:46:00 UTC] Description length: 20
+[01-Oct-2025 07:46:00 UTC] Description preview: "<p>sultan airgun</p>..."
+[01-Oct-2025 07:46:00 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:46:00 UTC] Listing Profile: "fixed"
+[01-Oct-2025 07:46:00 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:46:00 UTC] AutoRelist Raw: "2"
+[01-Oct-2025 07:46:00 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:46:00 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:46:00 UTC] Final auto relist: "4"
+[01-Oct-2025 07:46:00 UTC] Final quantity: "1"
+[01-Oct-2025 07:46:00 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:46:00 UTC] SKU: "sultan airgun"
+[01-Oct-2025 07:46:00 UTC] UPC: "706397970222"
+[01-Oct-2025 07:46:00 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:46:00 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:46:00 UTC] === FIXED PRICE LISTING === Using FixedPrice: 100
+[01-Oct-2025 07:46:00 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:46:00 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:46:00 UTC] Description in listing_data: "<p>sultan airgun</p>"
+[01-Oct-2025 07:46:00 UTC] Description length: 20
+[01-Oct-2025 07:46:00 UTC] Description is empty: NO
+[01-Oct-2025 07:46:00 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:00 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:46:00 UTC] IsFixedPrice: true
+[01-Oct-2025 07:46:00 UTC] FixedPrice field: 100
+[01-Oct-2025 07:46:00 UTC] Full API payload: {
+    "Title": "sultan airgun",
+    "Description": "<p>sultan airgun<\/p>",
+    "CategoryID": 3051,
+    "FixedPrice": 100,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 1,
+    "ListingDuration": 10,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 7,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "47260",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "sultan airgun",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 1,
+    "WillShipInternational": true,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": false
+}
+[01-Oct-2025 07:46:00 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:00 UTC] GunBroker: Prepared listing data for product: sultan airgun
+[01-Oct-2025 07:46:00 UTC] GunBroker: Processing 1 images for product: sultan airgun
+[01-Oct-2025 07:46:00 UTC] GunBroker: Skipping non-public image URL (configure gunbroker_public_domain setting): https://localhost/Gunbroker/wp-content/uploads/2025/09/Glock-pistol.webp
+[01-Oct-2025 07:46:00 UTC] GunBroker: Final description length: 62
+[01-Oct-2025 07:46:02 UTC] GunBroker API: PUT Items/15091829
+[01-Oct-2025 07:46:02 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:46:03 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:46:03 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:46:03 UTC] GunBroker API Response: 400
+[01-Oct-2025 07:46:03 UTC] GunBroker API Response Body: {"userMessage":"Fixed Price must = 0 for Auction Items\r\nYou may not specify Starting Bid, Reserve Price or BuyNow Price if the Fixed price is present.\r\nStarting Bid must = 0 for Fixed Price Items","developerMessage":"Fixed Price must = 0 for Auction Items\r\nYou may not specify Starting Bid, Reserve Price or BuyNow Price if the Fixed price is present.\r\nStarting Bid must = 0 for Fixed Price Items","gbStatusCode":0,"links":[]}
+[01-Oct-2025 07:46:03 UTC] GunBroker API 400 Error Details:
+[01-Oct-2025 07:46:03 UTC] Request URL: https://api.sandbox.gunbroker.com/v1/Items/15091829
+[01-Oct-2025 07:46:03 UTC] Request Method: PUT
+[01-Oct-2025 07:46:03 UTC] Request Headers: {
+    "X-DevKey": "e003ec8d-fc5e-400c-9b4b-ce9a47bb06c9",
+    "X-AccessToken": "1af1ab6a5f644d849b7ad179dd823e33",
+    "Content-Type": "application\/json",
+    "User-Agent": "WordPress-GunBroker-Integration\/1.0.1"
+}
+[01-Oct-2025 07:46:03 UTC] Request Body: {"Title":"sultan airgun","Description":"<p>sultan airgun<\/p>\n\n<p><strong>Product Images:<\/strong><\/p>\n","CategoryID":3051,"FixedPrice":"100.00","IsFixedPrice":true,"StartingBid":null,"Quantity":1,"ListingDuration":10,"PaymentMethods":{"VisaMastercard":true,"Check":true,"Amex":true,"SeeItemDesc":true,"CertifiedCheck":true,"USPSMoneyOrder":true,"MoneyOrder":true},"ShippingMethods":{"StandardShipping":true,"UPSGround":true},"InspectionPeriod":7,"ReturnsAccepted":true,"ReturnPolicy":14,"Condition":1,"CountryCode":"US","State":"alabama","City":"taxes","PostalCode":"47260","MfgPartNumber":"EC9459B-U","SKU":"sultan airgun","UPC":"706397970222","ShippingCost":"0.00","ShippingInsurance":"0.00","ShippingTerms":"Buyer pays shipping","SellerContactEmail":"harisnaseer3@gmail.com","SellerContactPhone":"205-000-0000","SerialNumber":null,"IsFeatured":false,"IsBold":false,"IsHighlight":false,"AutoRelist":4,"WhoPaysForShipping":1,"WillShipInternational":true,"ShippingClassesSupported":{"Ground":true,"TwoDay":true},"UseDefaultTaxes":true,"IsFFLRequired":false}
+[01-Oct-2025 07:46:03 UTC] Response Code: 400
+[01-Oct-2025 07:46:03 UTC] Response Body: {"userMessage":"Fixed Price must = 0 for Auction Items\r\nYou may not specify Starting Bid, Reserve Price or BuyNow Price if the Fixed price is present.\r\nStarting Bid must = 0 for Fixed Price Items","developerMessage":"Fixed Price must = 0 for Auction Items\r\nYou may not specify Starting Bid, Reserve Price or BuyNow Price if the Fixed price is present.\r\nStarting Bid must = 0 for Fixed Price Items","gbStatusCode":0,"links":[]}
+[01-Oct-2025 07:46:03 UTC] GunBroker: API call failed: GunBroker API Error (HTTP 400 - Bad Request): {"userMessage":"Fixed Price must = 0 for Auction Items\r\nYou may not specify Starting Bid, Reserve Price or BuyNow Price if the Fixed price is present.\r\nStarting Bid must = 0 for Fixed Price Items","developerMessage":"Fixed Price must = 0 for Auction Items\r\nYou may not specify Starting Bid, Reserve Price or BuyNow Price if the Fixed price is present.\r\nStarting Bid must = 0 for Fixed Price Items","gbStatusCode":0,"links":[]}
+[01-Oct-2025 07:46:03 UTC] GunBroker: Bulk sync error for product 127: GunBroker API Error (HTTP 400 - Bad Request): {"userMessage":"Fixed Price must = 0 for Auction Items\r\nYou may not specify Starting Bid, Reserve Price or BuyNow Price if the Fixed price is present.\r\nStarting Bid must = 0 for Fixed Price Items","developerMessage":"Fixed Price must = 0 for Auction Items\r\nYou may not specify Starting Bid, Reserve Price or BuyNow Price if the Fixed price is present.\r\nStarting Bid must = 0 for Fixed Price Items","gbStatusCode":0,"links":[]}
+[01-Oct-2025 07:46:05 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:46:05 UTC] Description length: 23
+[01-Oct-2025 07:46:05 UTC] Description preview: "<p>haris sultan gun</p>..."
+[01-Oct-2025 07:46:05 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:46:05 UTC] Listing Profile: ""
+[01-Oct-2025 07:46:05 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:46:05 UTC] AutoRelist Raw: "2"
+[01-Oct-2025 07:46:05 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:46:05 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:46:05 UTC] Final auto relist: "4"
+[01-Oct-2025 07:46:05 UTC] Final quantity: "1"
+[01-Oct-2025 07:46:05 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:46:05 UTC] SKU: "haris sultan gun"
+[01-Oct-2025 07:46:05 UTC] UPC: "706397970222"
+[01-Oct-2025 07:46:05 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:46:05 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:46:05 UTC] === FIXED PRICE LISTING === Using FixedPrice: 600
+[01-Oct-2025 07:46:05 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:46:05 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:46:05 UTC] Description in listing_data: "<p>haris sultan gun</p>"
+[01-Oct-2025 07:46:05 UTC] Description length: 23
+[01-Oct-2025 07:46:05 UTC] Description is empty: NO
+[01-Oct-2025 07:46:05 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:05 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:46:05 UTC] IsFixedPrice: true
+[01-Oct-2025 07:46:05 UTC] FixedPrice field: 600
+[01-Oct-2025 07:46:05 UTC] Full API payload: {
+    "Title": "haris sultan guns",
+    "Description": "<p>haris sultan gun<\/p>",
+    "CategoryID": 3013,
+    "FixedPrice": 600,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 1,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 0,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 3,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "Alexander City",
+    "PostalCode": "47260",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "haris sultan gun",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": true,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": false,
+    "Weight": 790,
+    "WeightUnit": 1,
+    "IsFFLRequired": false
+}
+[01-Oct-2025 07:46:05 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:05 UTC] GunBroker: Prepared listing data for product: haris sultan gun
+[01-Oct-2025 07:46:05 UTC] GunBroker: Processing 1 images for product: haris sultan gun
+[01-Oct-2025 07:46:05 UTC] GunBroker: Skipping non-public image URL (configure gunbroker_public_domain setting): https://localhost/Gunbroker/wp-content/uploads/2025/09/images-1.jpeg
+[01-Oct-2025 07:46:05 UTC] GunBroker: Final description length: 65
+[01-Oct-2025 07:46:06 UTC] GunBroker API: PUT Items/15091412
+[01-Oct-2025 07:46:07 UTC] GunBroker API Response: 403
+[01-Oct-2025 07:46:07 UTC] GunBroker API Response Body: {"userMessage":"This item has ended.  You may not make changes to this item.","developerMessage":"This item has ended.  You may not make changes to this item.","gbStatusCode":0,"links":[]}
+[01-Oct-2025 07:46:07 UTC] GunBroker API Error: GunBroker API Error (HTTP 403)
+[01-Oct-2025 07:46:07 UTC] GunBroker: API call failed: GunBroker API Error (HTTP 403)
+[01-Oct-2025 07:46:07 UTC] GunBroker: Bulk sync error for product 115: GunBroker API Error (HTTP 403)
+[01-Oct-2025 07:46:08 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:46:10 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:46:10 UTC] Description length: 15
+[01-Oct-2025 07:46:10 UTC] Description preview: "<p>ak52 gun</p>..."
+[01-Oct-2025 07:46:10 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:46:10 UTC] Listing Profile: ""
+[01-Oct-2025 07:46:10 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:46:10 UTC] AutoRelist Raw: "2"
+[01-Oct-2025 07:46:10 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:46:10 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:46:10 UTC] Final auto relist: "4"
+[01-Oct-2025 07:46:10 UTC] Final quantity: "1"
+[01-Oct-2025 07:46:10 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:46:10 UTC] SKU: "706397970222"
+[01-Oct-2025 07:46:10 UTC] UPC: "706397970222"
+[01-Oct-2025 07:46:10 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:46:10 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:46:10 UTC] === FIXED PRICE LISTING === Using FixedPrice: 500
+[01-Oct-2025 07:46:10 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:46:10 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:46:10 UTC] Description in listing_data: "<p>ak52 gun</p>"
+[01-Oct-2025 07:46:10 UTC] Description length: 15
+[01-Oct-2025 07:46:10 UTC] Description is empty: NO
+[01-Oct-2025 07:46:10 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:10 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:46:10 UTC] IsFixedPrice: true
+[01-Oct-2025 07:46:10 UTC] FixedPrice field: 500
+[01-Oct-2025 07:46:10 UTC] Full API payload: {
+    "Title": "ak52 gun",
+    "Description": "<p>ak52 gun<\/p>",
+    "CategoryID": 3013,
+    "FixedPrice": 500,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 1,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 0,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": false
+}
+[01-Oct-2025 07:46:10 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:10 UTC] GunBroker: Prepared listing data for product: ak52 gun
+[01-Oct-2025 07:46:10 UTC] GunBroker: Processing 1 images for product: ak52 gun
+[01-Oct-2025 07:46:10 UTC] GunBroker: Skipping non-public image URL (configure gunbroker_public_domain setting): https://localhost/Gunbroker/wp-content/uploads/2025/09/Glock-pistol.webp
+[01-Oct-2025 07:46:10 UTC] GunBroker: Final description length: 57
+[01-Oct-2025 07:46:10 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:46:10 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:46:10 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:46:10 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:46:10 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:46:11 UTC] GunBroker API: PUT Items/15101724
+[01-Oct-2025 07:46:11 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:46:12 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:46:12 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:46:12 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:46:12 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:46:12 UTC] GunBroker API Response Body: {"userMessage":"Item 15101724 updated","developerMessage":"Item 15101724 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101724","verb":"GET","title":"15101724"}]}
+[01-Oct-2025 07:46:12 UTC] GunBroker: API Response for product 111: Array
+(
+    [userMessage] => Item 15101724 updated
+    [developerMessage] => Item 15101724 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101724
+                    [verb] => GET
+                    [title] => 15101724
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:46:14 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:46:14 UTC] Description length: 15
+[01-Oct-2025 07:46:14 UTC] Description preview: "<p>ak51 gun</p>..."
+[01-Oct-2025 07:46:14 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:46:14 UTC] Listing Profile: ""
+[01-Oct-2025 07:46:14 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:46:14 UTC] AutoRelist Raw: "2"
+[01-Oct-2025 07:46:14 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:46:14 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:46:14 UTC] Final auto relist: "4"
+[01-Oct-2025 07:46:14 UTC] Final quantity: "1"
+[01-Oct-2025 07:46:14 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:46:14 UTC] SKU: "handgun"
+[01-Oct-2025 07:46:14 UTC] UPC: "706397970222"
+[01-Oct-2025 07:46:14 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:46:14 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:46:14 UTC] === FIXED PRICE LISTING === Using FixedPrice: 500
+[01-Oct-2025 07:46:14 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:46:14 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:46:14 UTC] Description in listing_data: "<p>ak51 gun</p>"
+[01-Oct-2025 07:46:14 UTC] Description length: 15
+[01-Oct-2025 07:46:14 UTC] Description is empty: NO
+[01-Oct-2025 07:46:14 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:14 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:46:14 UTC] IsFixedPrice: true
+[01-Oct-2025 07:46:14 UTC] FixedPrice field: 500
+[01-Oct-2025 07:46:14 UTC] Full API payload: {
+    "Title": "ak51 gun",
+    "Description": "<p>ak51 gun<\/p>",
+    "CategoryID": 3052,
+    "FixedPrice": 500,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 1,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 0,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "handgun",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": false
+}
+[01-Oct-2025 07:46:14 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:14 UTC] GunBroker: Prepared listing data for product: ak51 gun
+[01-Oct-2025 07:46:14 UTC] GunBroker: Processing 1 images for product: ak51 gun
+[01-Oct-2025 07:46:14 UTC] GunBroker: Skipping non-public image URL (configure gunbroker_public_domain setting): https://localhost/Gunbroker/wp-content/uploads/2025/09/download.jpeg
+[01-Oct-2025 07:46:14 UTC] GunBroker: Final description length: 57
+[01-Oct-2025 07:46:15 UTC] GunBroker API: PUT Items/15088655
+[01-Oct-2025 07:46:16 UTC] GunBroker API Response: 403
+[01-Oct-2025 07:46:16 UTC] GunBroker API Response Body: {"userMessage":"This item has ended.  You may not make changes to this item.","developerMessage":"This item has ended.  You may not make changes to this item.","gbStatusCode":0,"links":[]}
+[01-Oct-2025 07:46:16 UTC] GunBroker API Error: GunBroker API Error (HTTP 403)
+[01-Oct-2025 07:46:16 UTC] GunBroker: API call failed: GunBroker API Error (HTTP 403)
+[01-Oct-2025 07:46:16 UTC] GunBroker: Bulk sync error for product 110: GunBroker API Error (HTTP 403)
+[01-Oct-2025 07:46:19 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:46:19 UTC] Description length: 181
+[01-Oct-2025 07:46:19 UTC] Description preview: "<p>ak50 gun<img loading="lazy" class="alignnone size-full wp-image-71" src="http://localhost/Gunbrok..."
+[01-Oct-2025 07:46:19 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:46:19 UTC] Listing Profile: ""
+[01-Oct-2025 07:46:19 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:46:19 UTC] AutoRelist Raw: "2"
+[01-Oct-2025 07:46:19 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:46:19 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:46:19 UTC] Final auto relist: "4"
+[01-Oct-2025 07:46:19 UTC] Final quantity: "1"
+[01-Oct-2025 07:46:19 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:46:19 UTC] SKU: "706397970222"
+[01-Oct-2025 07:46:19 UTC] UPC: "706397970222"
+[01-Oct-2025 07:46:19 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:46:19 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:46:19 UTC] === FIXED PRICE LISTING === Using FixedPrice: 300
+[01-Oct-2025 07:46:19 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:46:19 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:46:19 UTC] Description in listing_data: "<p>ak50 gun<img loading="lazy" class="alignnone size-full wp-image-71" src="http://localhost/Gunbroker/wp-content/uploads/2025/09/images.jpeg" alt="" width="301" height="167" /></p>"
+[01-Oct-2025 07:46:19 UTC] Description length: 181
+[01-Oct-2025 07:46:19 UTC] Description is empty: NO
+[01-Oct-2025 07:46:19 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:19 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:46:19 UTC] IsFixedPrice: true
+[01-Oct-2025 07:46:19 UTC] FixedPrice field: 300
+[01-Oct-2025 07:46:19 UTC] Full API payload: {
+    "Title": "ak50 gun",
+    "Description": "<p>ak50 gun<img loading=\"lazy\" class=\"alignnone size-full wp-image-71\" src=\"http:\/\/localhost\/Gunbroker\/wp-content\/uploads\/2025\/09\/images.jpeg\" alt=\"\" width=\"301\" height=\"167\" \/><\/p>",
+    "CategoryID": 3052,
+    "FixedPrice": 300,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 1,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 0,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": false
+}
+[01-Oct-2025 07:46:19 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:19 UTC] GunBroker: Prepared listing data for product: ak50 gun
+[01-Oct-2025 07:46:19 UTC] GunBroker: Processing 1 images for product: ak50 gun
+[01-Oct-2025 07:46:19 UTC] GunBroker: Skipping non-public image URL (configure gunbroker_public_domain setting): https://localhost/Gunbroker/wp-content/uploads/2025/09/download.jpeg
+[01-Oct-2025 07:46:19 UTC] GunBroker: Final description length: 223
+[01-Oct-2025 07:46:20 UTC] === VALIDATION === Detected FIXED PRICE listing from payload (requires FixedPrice field)
+[01-Oct-2025 07:46:20 UTC] === VALIDATION DEBUG === Required fields: Title, Description, CategoryID, Quantity, ListingDuration, PaymentMethods, ShippingMethods, ReturnsAccepted, Condition, CountryCode, State, City, PostalCode, WillShipInternational, IsFFLRequired, FixedPrice
+[01-Oct-2025 07:46:20 UTC] GunBroker API: POST Items
+[01-Oct-2025 07:46:21 UTC] GunBroker API Response: 400
+[01-Oct-2025 07:46:21 UTC] GunBroker API Response Body: {"userMessage":"Description cannot contain non-secure links or images (http://).  All links and images must be secure (https://).","developerMessage":"Description cannot contain non-secure links or images (http://).  All links and images must be secure (https://).","gbStatusCode":0,"links":[]}
+[01-Oct-2025 07:46:21 UTC] GunBroker API 400 Error Details:
+[01-Oct-2025 07:46:21 UTC] Request URL: https://api.sandbox.gunbroker.com/v1/Items
+[01-Oct-2025 07:46:21 UTC] Request Method: POST
+[01-Oct-2025 07:46:21 UTC] Request Headers: {
+    "X-DevKey": "e003ec8d-fc5e-400c-9b4b-ce9a47bb06c9",
+    "X-AccessToken": "fb292b315d6441fb9d31192cfc57c22f",
+    "User-Agent": "WordPress-GunBroker-Integration\/1.0.1",
+    "Content-Type": "multipart\/form-data; boundary=BvvUqZCsQko9wbKa"
+}
+[01-Oct-2025 07:46:21 UTC] Request Body: --BvvUqZCsQko9wbKa
+Content-Disposition: form-data; name="data"
+
+{"Title":"ak50 gun","Description":"<p>ak50 gun<img loading=\"lazy\" class=\"alignnone size-full wp-image-71\" src=\"http:\/\/localhost\/Gunbroker\/wp-content\/uploads\/2025\/09\/images.jpeg\" alt=\"\" width=\"301\" height=\"167\" \/><\/p>\n\n<p><strong>Product Images:<\/strong><\/p>\n","CategoryID":3052,"FixedPrice":"300.00","IsFixedPrice":true,"StartingBid":null,"Quantity":1,"ListingDuration":90,"PaymentMethods":{"VisaMastercard":true,"Check":true,"Amex":true,"SeeItemDesc":true,"CertifiedCheck":true,"USPSMoneyOrder":true,"MoneyOrder":true},"ShippingMethods":{"StandardShipping":true,"UPSGround":true},"InspectionPeriod":0,"ReturnsAccepted":true,"ReturnPolicy":14,"Condition":1,"CountryCode":"US","State":"alabama","City":"taxes","PostalCode":"35137","MfgPartNumber":"EC9459B-U","SKU":"706397970222","UPC":"706397970222","ShippingCost":"0.00","ShippingInsurance":"0.00","ShippingTerms":"Buyer pays shipping","SellerContactEmail":"harisnaseer3@gmail.com","SellerContactPhone":"205-000-0000","SerialNumber":null,"IsFeatured":false,"IsBold":false,"IsHighlight":false,"AutoRelist":4,"WhoPaysForShipping":4,"WillShipInternational":false,"ShippingClassesSupported":{"Ground":true,"TwoDay":true},"UseDefaultTaxes":true,"IsFFLRequired":false}
+--BvvUqZCsQko9wbKa--
+
+[01-Oct-2025 07:46:21 UTC] Response Code: 400
+[01-Oct-2025 07:46:21 UTC] Response Body: {"userMessage":"Description cannot contain non-secure links or images (http://).  All links and images must be secure (https://).","developerMessage":"Description cannot contain non-secure links or images (http://).  All links and images must be secure (https://).","gbStatusCode":0,"links":[]}
+[01-Oct-2025 07:46:21 UTC] GunBroker: API call failed: GunBroker API Error (HTTP 400 - Bad Request): {"userMessage":"Description cannot contain non-secure links or images (http://).  All links and images must be secure (https://).","developerMessage":"Description cannot contain non-secure links or images (http://).  All links and images must be secure (https://).","gbStatusCode":0,"links":[]}
+[01-Oct-2025 07:46:21 UTC] GunBroker: Bulk sync error for product 109: GunBroker API Error (HTTP 400 - Bad Request): {"userMessage":"Description cannot contain non-secure links or images (http://).  All links and images must be secure (https://).","developerMessage":"Description cannot contain non-secure links or images (http://).  All links and images must be secure (https://).","gbStatusCode":0,"links":[]}
+[01-Oct-2025 07:46:23 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:46:23 UTC] Description length: 0
+[01-Oct-2025 07:46:23 UTC] Description preview: "..."
+[01-Oct-2025 07:46:23 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:46:23 UTC] Listing Profile: ""
+[01-Oct-2025 07:46:23 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:46:23 UTC] AutoRelist Raw: "2"
+[01-Oct-2025 07:46:23 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:46:23 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:46:23 UTC] Final auto relist: "4"
+[01-Oct-2025 07:46:23 UTC] Final quantity: "1"
+[01-Oct-2025 07:46:23 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:46:23 UTC] SKU: "706397970222"
+[01-Oct-2025 07:46:23 UTC] UPC: "706397970222"
+[01-Oct-2025 07:46:23 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:46:23 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:46:23 UTC] === FIXED PRICE LISTING === Using FixedPrice: 200
+[01-Oct-2025 07:46:23 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:46:23 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:46:23 UTC] Description in listing_data: ""
+[01-Oct-2025 07:46:23 UTC] Description length: 0
+[01-Oct-2025 07:46:23 UTC] Description is empty: YES
+[01-Oct-2025 07:46:23 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:46:23 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:46:23 UTC] GunBroker: FORCED description to: "High-quality ak49 gun available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:46:23 UTC] GunBroker: FORCED description length: 97
+[01-Oct-2025 07:46:23 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:23 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:46:23 UTC] IsFixedPrice: true
+[01-Oct-2025 07:46:23 UTC] FixedPrice field: 200
+[01-Oct-2025 07:46:23 UTC] Full API payload: {
+    "Title": "ak49 gun",
+    "Description": "High-quality ak49 gun available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3049,
+    "FixedPrice": 200,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 1,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 0,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": false
+}
+[01-Oct-2025 07:46:23 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:23 UTC] GunBroker: Prepared listing data for product: ak49 gun
+[01-Oct-2025 07:46:23 UTC] GunBroker: Processing 1 images for product: ak49 gun
+[01-Oct-2025 07:46:23 UTC] GunBroker: Skipping non-public image URL (configure gunbroker_public_domain setting): https://localhost/Gunbroker/wp-content/uploads/2025/09/CDX-R7-SHP-thum-new.webp
+[01-Oct-2025 07:46:23 UTC] GunBroker: Final description length: 139
+[01-Oct-2025 07:46:24 UTC] GunBroker API: PUT Items/15101725
+[01-Oct-2025 07:46:26 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:46:26 UTC] GunBroker API Response Body: {"userMessage":"Item 15101725 updated","developerMessage":"Item 15101725 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101725","verb":"GET","title":"15101725"}]}
+[01-Oct-2025 07:46:26 UTC] GunBroker: API Response for product 108: Array
+(
+    [userMessage] => Item 15101725 updated
+    [developerMessage] => Item 15101725 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101725
+                    [verb] => GET
+                    [title] => 15101725
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:46:28 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:46:28 UTC] Description length: 32
+[01-Oct-2025 07:46:28 UTC] Description preview: "<p><strong>ak48 gun</strong></p>..."
+[01-Oct-2025 07:46:28 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:46:28 UTC] Listing Profile: ""
+[01-Oct-2025 07:46:28 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:46:28 UTC] AutoRelist Raw: "2"
+[01-Oct-2025 07:46:28 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:46:28 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:46:28 UTC] Final auto relist: "4"
+[01-Oct-2025 07:46:28 UTC] Final quantity: "1"
+[01-Oct-2025 07:46:28 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:46:28 UTC] SKU: "706397970222"
+[01-Oct-2025 07:46:28 UTC] UPC: "706397970222"
+[01-Oct-2025 07:46:28 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:46:28 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:46:28 UTC] === FIXED PRICE LISTING === Using FixedPrice: 100
+[01-Oct-2025 07:46:28 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:46:28 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:46:28 UTC] Description in listing_data: "<p><strong>ak48 gun</strong></p>"
+[01-Oct-2025 07:46:28 UTC] Description length: 32
+[01-Oct-2025 07:46:28 UTC] Description is empty: NO
+[01-Oct-2025 07:46:28 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:28 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:46:28 UTC] IsFixedPrice: true
+[01-Oct-2025 07:46:28 UTC] FixedPrice field: 100
+[01-Oct-2025 07:46:28 UTC] Full API payload: {
+    "Title": "ak48 gun",
+    "Description": "<p><strong>ak48 gun<\/strong><\/p>",
+    "CategoryID": 3049,
+    "FixedPrice": 100,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 1,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 0,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": false
+}
+[01-Oct-2025 07:46:28 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:28 UTC] GunBroker: Prepared listing data for product: ak48 gun
+[01-Oct-2025 07:46:28 UTC] GunBroker: Processing 1 images for product: ak48 gun
+[01-Oct-2025 07:46:28 UTC] GunBroker: Skipping non-public image URL (configure gunbroker_public_domain setting): https://localhost/Gunbroker/wp-content/uploads/2025/09/images-1.jpeg
+[01-Oct-2025 07:46:28 UTC] GunBroker: Final description length: 74
+[01-Oct-2025 07:46:29 UTC] GunBroker API: PUT Items/15101726
+[01-Oct-2025 07:46:31 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:46:31 UTC] GunBroker API Response Body: {"userMessage":"Item 15101726 updated","developerMessage":"Item 15101726 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101726","verb":"GET","title":"15101726"}]}
+[01-Oct-2025 07:46:31 UTC] GunBroker: API Response for product 107: Array
+(
+    [userMessage] => Item 15101726 updated
+    [developerMessage] => Item 15101726 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101726
+                    [verb] => GET
+                    [title] => 15101726
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:46:33 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:46:33 UTC] Description length: 18
+[01-Oct-2025 07:46:33 UTC] Description preview: "<p>test gun123</p>..."
+[01-Oct-2025 07:46:33 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:46:33 UTC] Listing Profile: ""
+[01-Oct-2025 07:46:33 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:46:33 UTC] AutoRelist Raw: "2"
+[01-Oct-2025 07:46:33 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:46:33 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:46:33 UTC] Final auto relist: "4"
+[01-Oct-2025 07:46:33 UTC] Final quantity: "1"
+[01-Oct-2025 07:46:33 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:46:33 UTC] SKU: "706397970222"
+[01-Oct-2025 07:46:33 UTC] UPC: "706397970222"
+[01-Oct-2025 07:46:33 UTC] MPN: "gun123"
+[01-Oct-2025 07:46:33 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:46:33 UTC] === FIXED PRICE LISTING === Using FixedPrice: 500
+[01-Oct-2025 07:46:33 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:46:33 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:46:33 UTC] Description in listing_data: "<p>test gun123</p>"
+[01-Oct-2025 07:46:33 UTC] Description length: 18
+[01-Oct-2025 07:46:33 UTC] Description is empty: NO
+[01-Oct-2025 07:46:33 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:33 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:46:33 UTC] IsFixedPrice: true
+[01-Oct-2025 07:46:33 UTC] FixedPrice field: 500
+[01-Oct-2025 07:46:33 UTC] Full API payload: {
+    "Title": "test gun123",
+    "Description": "<p>test gun123<\/p>",
+    "CategoryID": 3098,
+    "FixedPrice": 500,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 1,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 0,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "gun123",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": false
+}
+[01-Oct-2025 07:46:33 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:33 UTC] GunBroker: Prepared listing data for product: test gun123
+[01-Oct-2025 07:46:33 UTC] GunBroker: Processing 1 images for product: test gun123
+[01-Oct-2025 07:46:33 UTC] GunBroker: Skipping non-public image URL (configure gunbroker_public_domain setting): https://localhost/Gunbroker/wp-content/uploads/2025/09/download-1.jpeg
+[01-Oct-2025 07:46:33 UTC] GunBroker: Final description length: 60
+[01-Oct-2025 07:46:34 UTC] GunBroker API: PUT Items/15101727
+[01-Oct-2025 07:46:35 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:46:35 UTC] GunBroker API Response Body: {"userMessage":"Item 15101727 updated","developerMessage":"Item 15101727 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101727","verb":"GET","title":"15101727"}]}
+[01-Oct-2025 07:46:35 UTC] GunBroker: API Response for product 106: Array
+(
+    [userMessage] => Item 15101727 updated
+    [developerMessage] => Item 15101727 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101727
+                    [verb] => GET
+                    [title] => 15101727
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:46:37 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:46:37 UTC] Description length: 0
+[01-Oct-2025 07:46:37 UTC] Description preview: "..."
+[01-Oct-2025 07:46:37 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:46:37 UTC] Listing Profile: ""
+[01-Oct-2025 07:46:37 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:46:37 UTC] AutoRelist Raw: "2"
+[01-Oct-2025 07:46:37 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:46:37 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:46:37 UTC] Final auto relist: "4"
+[01-Oct-2025 07:46:37 UTC] Final quantity: "1"
+[01-Oct-2025 07:46:37 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:46:37 UTC] SKU: "706397970222"
+[01-Oct-2025 07:46:37 UTC] UPC: "706397970222"
+[01-Oct-2025 07:46:37 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:46:37 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:46:37 UTC] === FIXED PRICE LISTING === Using FixedPrice: 500
+[01-Oct-2025 07:46:37 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:46:37 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:46:37 UTC] Description in listing_data: ""
+[01-Oct-2025 07:46:37 UTC] Description length: 0
+[01-Oct-2025 07:46:37 UTC] Description is empty: YES
+[01-Oct-2025 07:46:37 UTC] GunBroker: ERROR - Description length invalid: 0
+[01-Oct-2025 07:46:37 UTC] GunBroker: ERROR - Description content: ""
+[01-Oct-2025 07:46:37 UTC] GunBroker: FORCED description to: "High-quality ak47 gun available for sale. Please contact seller for more details about this item."
+[01-Oct-2025 07:46:37 UTC] GunBroker: FORCED description length: 97
+[01-Oct-2025 07:46:37 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:37 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:46:37 UTC] IsFixedPrice: true
+[01-Oct-2025 07:46:37 UTC] FixedPrice field: 500
+[01-Oct-2025 07:46:37 UTC] Full API payload: {
+    "Title": "ak47 gun",
+    "Description": "High-quality ak47 gun available for sale. Please contact seller for more details about this item.",
+    "CategoryID": 3013,
+    "FixedPrice": 500,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 1,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 0,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": false
+}
+[01-Oct-2025 07:46:37 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:37 UTC] GunBroker: Prepared listing data for product: ak47 gun
+[01-Oct-2025 07:46:37 UTC] GunBroker: Processing 1 images for product: ak47 gun
+[01-Oct-2025 07:46:37 UTC] GunBroker: Skipping non-public image URL (configure gunbroker_public_domain setting): https://localhost/Gunbroker/wp-content/uploads/2025/09/download-1.jpeg
+[01-Oct-2025 07:46:37 UTC] GunBroker: Final description length: 139
+[01-Oct-2025 07:46:39 UTC] GunBroker API: PUT Items/15101728
+[01-Oct-2025 07:46:40 UTC] GunBroker API Response: 200
+[01-Oct-2025 07:46:40 UTC] GunBroker API Response Body: {"userMessage":"Item 15101728 updated","developerMessage":"Item 15101728 updated","gbStatusCode":0,"links":[{"rel":"self","href":"https://api.sandbox.gunbroker.com/v1/items/15101728","verb":"GET","title":"15101728"}]}
+[01-Oct-2025 07:46:40 UTC] GunBroker: API Response for product 105: Array
+(
+    [userMessage] => Item 15101728 updated
+    [developerMessage] => Item 15101728 updated
+    [gbStatusCode] => 0
+    [links] => Array
+        (
+            [0] => Array
+                (
+                    [rel] => self
+                    [href] => https://api.sandbox.gunbroker.com/v1/items/15101728
+                    [verb] => GET
+                    [title] => 15101728
+                )
+
+        )
+
+)
+
+[01-Oct-2025 07:46:42 UTC] === GunBroker DESCRIPTION DEBUG ===
+[01-Oct-2025 07:46:42 UTC] Description length: 17
+[01-Oct-2025 07:46:42 UTC] Description preview: "<p>new gun 11</p>..."
+[01-Oct-2025 07:46:42 UTC] === GunBroker LISTING TYPE DEBUG ===
+[01-Oct-2025 07:46:42 UTC] Listing Profile: ""
+[01-Oct-2025 07:46:42 UTC] Inner Listing Type: "FixedPrice"
+[01-Oct-2025 07:46:42 UTC] AutoRelist Raw: "2"
+[01-Oct-2025 07:46:42 UTC] Processing as FIXED PRICE listing
+[01-Oct-2025 07:46:42 UTC] Final listing type: "FixedPrice"
+[01-Oct-2025 07:46:42 UTC] Final auto relist: "4"
+[01-Oct-2025 07:46:42 UTC] Final quantity: "1"
+[01-Oct-2025 07:46:42 UTC] === GunBroker IDENTIFIERS FINAL ===
+[01-Oct-2025 07:46:42 UTC] SKU: "706397970222"
+[01-Oct-2025 07:46:42 UTC] UPC: "706397970222"
+[01-Oct-2025 07:46:42 UTC] MPN: "EC9459B-U"
+[01-Oct-2025 07:46:42 UTC] === BUILDING FIXED PRICE LISTING ===
+[01-Oct-2025 07:46:42 UTC] === FIXED PRICE LISTING === Using FixedPrice: 500
+[01-Oct-2025 07:46:42 UTC] === FIXED PRICE LISTING === IsFixedPrice: true
+[01-Oct-2025 07:46:42 UTC] === DESCRIPTION VALIDATION DEBUG ===
+[01-Oct-2025 07:46:42 UTC] Description in listing_data: "<p>new gun 11</p>"
+[01-Oct-2025 07:46:42 UTC] Description length: 17
+[01-Oct-2025 07:46:42 UTC] Description is empty: NO
+[01-Oct-2025 07:46:42 UTC] === GunBroker API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:42 UTC] Listing Type: FixedPrice
+[01-Oct-2025 07:46:42 UTC] IsFixedPrice: true
+[01-Oct-2025 07:46:42 UTC] FixedPrice field: 500
+[01-Oct-2025 07:46:42 UTC] Full API payload: {
+    "Title": "new gun 11",
+    "Description": "<p>new gun 11<\/p>",
+    "CategoryID": 3013,
+    "FixedPrice": 500,
+    "IsFixedPrice": true,
+    "StartingBid": null,
+    "Quantity": 1,
+    "ListingDuration": 90,
+    "PaymentMethods": {
+        "VisaMastercard": true,
+        "Check": true,
+        "Amex": true,
+        "SeeItemDesc": true,
+        "CertifiedCheck": true,
+        "USPSMoneyOrder": true,
+        "MoneyOrder": true
+    },
+    "ShippingMethods": {
+        "StandardShipping": true,
+        "UPSGround": true
+    },
+    "InspectionPeriod": 0,
+    "ReturnsAccepted": true,
+    "ReturnPolicy": 14,
+    "Condition": 1,
+    "CountryCode": "US",
+    "State": "alabama",
+    "City": "taxes",
+    "PostalCode": "35137",
+    "MfgPartNumber": "EC9459B-U",
+    "SKU": "706397970222",
+    "UPC": "706397970222",
+    "ShippingCost": 0,
+    "ShippingInsurance": 0,
+    "ShippingTerms": "Buyer pays shipping",
+    "SellerContactEmail": "harisnaseer3@gmail.com",
+    "SellerContactPhone": "205-000-0000",
+    "SerialNumber": null,
+    "IsFeatured": false,
+    "IsBold": false,
+    "IsHighlight": false,
+    "AutoRelist": 4,
+    "WhoPaysForShipping": 4,
+    "WillShipInternational": false,
+    "ShippingClassesSupported": {
+        "Ground": true,
+        "TwoDay": true
+    },
+    "UseDefaultTaxes": true,
+    "IsFFLRequired": false
+}
+[01-Oct-2025 07:46:42 UTC] === END API PAYLOAD DEBUG ===
+[01-Oct-2025 07:46:42 UTC] GunBroker: Prepared listing data for product: new gun 11
+[01-Oct-2025 07:46:42 UTC] GunBroker: Processing 1 images for product: new gun 11
+[01-Oct-2025 07:46:42 UTC] GunBroker: Skipping non-public image URL (configure gunbroker_public_domain setting): https://localhost/Gunbroker/wp-content/uploads/2025/09/images-1.jpeg
+[01-Oct-2025 07:46:42 UTC] GunBroker: Final description length: 59
+[01-Oct-2025 07:46:43 UTC] GunBroker API: PUT Items/15101729
