@@ -211,7 +211,7 @@
         $('#duplicate-plot').on('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            duplicatePlot();
+            duplicateSelectedPlot();
         });
         $('#upload-base-image').on('click', function(e) {
             e.preventDefault();
@@ -318,6 +318,14 @@
             statusText += ' - Click to add points, double-click to finish';
         } else if (tool === 'rectangle') {
             statusText += ' - Click and drag to create rectangle';
+        } else if (tool === 'rotate' && selectedPlot) {
+            statusText += ' - Click and drag to rotate the selected plot';
+        } else if (tool === 'rotate' && !selectedPlot) {
+            statusText += ' - Select a plot first to rotate it';
+        } else if (tool === 'duplicate-selected' && selectedPlot) {
+            statusText += ' - Click to duplicate the selected plot';
+        } else if (tool === 'duplicate-selected' && !selectedPlot) {
+            statusText += ' - Select a plot first to duplicate it';
         }
         
         $('#editor-status').text(statusText);
@@ -355,6 +363,12 @@
                 break;
             case 'move':
                 startMove();
+                break;
+            case 'rotate':
+                startRotate();
+                break;
+            case 'duplicate-selected':
+                duplicateSelectedPlot();
                 break;
         }
     }
@@ -654,6 +668,64 @@
         dragOffsetY = mouseY - selectedPlot.points[0].y;
     }
 
+    function startRotate() {
+        if (!selectedPlot || !selectedPlot.points) return;
+
+        isDragging = true;
+        startX = mouseX;
+        startY = mouseY;
+    }
+
+    function duplicateSelectedPlot() {
+        if (!selectedPlot) {
+            alert('Please select a plot to duplicate.');
+            return;
+        }
+
+        // Create a copy of the selected plot
+        const duplicatedPlot = JSON.parse(JSON.stringify(selectedPlot));
+
+        // Generate a new name
+        const baseName = duplicatedPlot.plot_name || 'Plot';
+        let counter = 1;
+        let newName = `${baseName} Copy`;
+
+        while (plots.some(p => p.plot_name === newName)) {
+            counter++;
+            newName = `${baseName} Copy ${counter}`;
+        }
+
+        duplicatedPlot.plot_name = newName;
+        duplicatedPlot.id = null; // Mark as new plot
+
+        // Offset the position slightly so it's visible
+        if (duplicatedPlot.points) {
+            duplicatedPlot.points.forEach(point => {
+                point.x += 20;
+                point.y += 20;
+            });
+        }
+
+        // Add to plots array
+        plots.push(duplicatedPlot);
+
+        // Select the duplicated plot
+        selectedPlot = duplicatedPlot;
+        loadPlotIntoForm(duplicatedPlot);
+        showPlotDetails(duplicatedPlot);
+
+        // Update the plot list
+        updatePlotList();
+
+        // Update coordinates field
+        updateCoordinatesField();
+
+        // Redraw canvas
+        drawAll();
+
+        $('#editor-status').text(`Created duplicate: ${newName}`);
+    }
+
     function updateDrag() {
         if (!isDragging) return;
 
@@ -677,6 +749,28 @@
                 point.y += deltaY;
             });
 
+            startX = mouseX;
+            startY = mouseY;
+            
+            // Update coordinates field in real-time
+            updateCoordinatesField();
+        } else if (currentTool === 'rotate' && selectedPlot && selectedPlot.points) {
+            // Rotate shape around its center
+            const centerX = selectedPlot.points.reduce((sum, p) => sum + p.x, 0) / selectedPlot.points.length;
+            const centerY = selectedPlot.points.reduce((sum, p) => sum + p.y, 0) / selectedPlot.points.length;
+            
+            const angle = Math.atan2(mouseY - centerY, mouseX - centerX) - Math.atan2(startY - centerY, startX - centerX);
+            
+            selectedPlot.points.forEach(point => {
+                const dx = point.x - centerX;
+                const dy = point.y - centerY;
+                const cos = Math.cos(angle);
+                const sin = Math.sin(angle);
+                
+                point.x = centerX + dx * cos - dy * sin;
+                point.y = centerY + dx * sin + dy * cos;
+            });
+            
             startX = mouseX;
             startY = mouseY;
             
@@ -1084,54 +1178,6 @@
         }
     }
 
-    function duplicatePlot() {
-        if (!selectedPlot) {
-            alert('Please select a plot to duplicate.');
-            return;
-        }
-
-        // Create a copy of the selected plot
-        const duplicatedPlot = JSON.parse(JSON.stringify(selectedPlot));
-
-        // Generate a new name
-        const baseName = duplicatedPlot.plot_name || 'Plot';
-        let counter = 1;
-        let newName = `${baseName} Copy`;
-
-        while (plots.some(p => p.plot_name === newName)) {
-            counter++;
-            newName = `${baseName} Copy ${counter}`;
-        }
-
-        duplicatedPlot.plot_name = newName;
-        duplicatedPlot.id = null; // Mark as new plot
-
-        // Offset the position slightly so it's visible
-        if (duplicatedPlot.points) {
-            duplicatedPlot.points.forEach(point => {
-                point.x += 20;
-                point.y += 20;
-            });
-        }
-
-        // Add to plots array
-        plots.push(duplicatedPlot);
-
-        // Select the duplicated plot
-        selectedPlot = duplicatedPlot;
-        loadPlotIntoForm(duplicatedPlot);
-
-        // Update the plot list
-        updatePlotList();
-
-        // Update coordinates field
-        updateCoordinatesField();
-
-        // Redraw canvas
-        drawAll();
-
-        $('#editor-status').text(`Created duplicate: ${newName}`);
-    }
 
     function showPlotDetails(plot) {
         if (!plot) {
