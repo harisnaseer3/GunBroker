@@ -266,8 +266,14 @@ $plots = $wpdb->get_results('SELECT * FROM ' . TAJMAP_PB_TABLE_PLOTS . ' ORDER B
                     </div>
 
                     <div class="form-actions">
-                        <button type="button" id="save-plot" class="btn primary">Save Plot</button>
-                        <button type="button" id="delete-plot" class="btn danger">Delete Plot</button>
+                        <button type="button" id="save-plot" class="btn primary">
+                            <span class="btn-text">Save Plot</span>
+                            <div class="spinner" style="display: none;"></div>
+                        </button>
+                        <button type="button" id="delete-plot" class="btn danger">
+                            <span class="btn-text">Delete Plot</span>
+                            <div class="spinner" style="display: none;"></div>
+                        </button>
                         <button type="button" id="duplicate-plot" class="btn secondary">Duplicate</button>
                     </div>
                 </form>
@@ -326,6 +332,59 @@ $plots = $wpdb->get_results('SELECT * FROM ' . TAJMAP_PB_TABLE_PLOTS . ' ORDER B
                     <button class="btn primary" onclick="selectTool('polygon')">Create First Plot</button>
                 </div>
             <?php endif; ?>
+        </div>
+        
+        <!-- Plot Details Panel -->
+        <div class="plot-details-panel" id="plot-details-panel" style="display: none;">
+            <div class="panel-header">
+                <h4>Plot Details</h4>
+                <button class="btn-icon close" id="close-plot-details" title="Close Details">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="panel-content">
+                <div class="detail-group">
+                    <label>Plot Name</label>
+                    <div class="detail-value" id="detail-plot-name">-</div>
+                </div>
+                <div class="detail-group">
+                    <label>Status</label>
+                    <div class="detail-value">
+                        <span class="status-badge" id="detail-status">-</span>
+                    </div>
+                </div>
+                <div class="detail-group">
+                    <label>Sector</label>
+                    <div class="detail-value" id="detail-sector">-</div>
+                </div>
+                <div class="detail-group">
+                    <label>Block</label>
+                    <div class="detail-value" id="detail-block">-</div>
+                </div>
+                <div class="detail-group">
+                    <label>Street</label>
+                    <div class="detail-value" id="detail-street">-</div>
+                </div>
+                <div class="detail-group">
+                    <label>Price</label>
+                    <div class="detail-value" id="detail-price">-</div>
+                </div>
+                <div class="detail-group">
+                    <label>Area</label>
+                    <div class="detail-value" id="detail-area">-</div>
+                </div>
+                <div class="detail-group">
+                    <label>Coordinates</label>
+                    <div class="detail-value coordinates" id="detail-coordinates">-</div>
+                </div>
+                <div class="detail-actions">
+                    <button class="btn primary" id="edit-plot-from-details">Edit Plot</button>
+                    <button class="btn danger" id="delete-plot-from-details">Delete Plot</button>
+                </div>
+            </div>
         </div>
     </div>
 

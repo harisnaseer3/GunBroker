@@ -245,6 +245,37 @@
             }
         });
 
+        // Plot details panel events
+        $('#close-plot-details').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            hidePlotDetails();
+        });
+
+        $('#edit-plot-from-details').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (selectedPlot) {
+                // Switch to select tool and focus on the plot
+                selectTool('select');
+                $('#editor-status').text(`Editing: ${selectedPlot.plot_name || 'Unnamed Plot'}`);
+            }
+        });
+
+        $('#delete-plot-from-details').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (selectedPlot) {
+                const plotId = selectedPlot.id;
+                if (plotId) {
+                    deletePlot(plotId);
+                } else {
+                    deletePlot(null);
+                }
+                hidePlotDetails();
+            }
+        });
+
         // Window resize
         $(window).on('resize', resizeCanvas);
         
@@ -578,6 +609,15 @@
 
         if (selectedPlot) {
             loadPlotIntoForm(selectedPlot);
+            showPlotDetails(selectedPlot);
+            
+            // Update plot list selection
+            $('.plot-list-item').removeClass('selected');
+            if (selectedPlot.id) {
+                $(`.plot-list-item[data-id="${selectedPlot.id}"]`).addClass('selected');
+            }
+        } else {
+            hidePlotDetails();
         }
     }
 
@@ -858,6 +898,7 @@
 
         selectedPlot = plot;
         loadPlotIntoForm(plot);
+        showPlotDetails(plot);
 
         // Visual feedback
         $('.plot-list-item').removeClass('selected');
@@ -924,6 +965,11 @@
             return;
         }
 
+        // Show loading spinner
+        const $saveBtn = $('#save-plot');
+        $saveBtn.addClass('loading');
+        $saveBtn.find('.spinner').show();
+
         // Save via AJAX
         $.post(TajMapPB.ajaxUrl, {
             action: 'tajmap_pb_save_plot',
@@ -964,6 +1010,10 @@
             }
         }).fail(function() {
             alert('Network error. Please try again.');
+        }).always(function() {
+            // Hide loading spinner
+            $saveBtn.removeClass('loading');
+            $saveBtn.find('.spinner').hide();
         });
     }
 
@@ -991,6 +1041,11 @@
         // Handle saved plots (plotId is a valid ID)
         if (!confirm('Are you sure you want to delete this plot?')) return;
 
+        // Show loading spinner
+        const $deleteBtn = $('#delete-plot');
+        $deleteBtn.addClass('loading');
+        $deleteBtn.find('.spinner').show();
+
         $.post(TajMapPB.ajaxUrl, {
             action: 'tajmap_pb_delete_plot',
             nonce: TajMapPB.nonce,
@@ -1016,6 +1071,10 @@
             }
         }).fail(function() {
             alert('Network error. Please try again.');
+        }).always(function() {
+            // Hide loading spinner
+            $deleteBtn.removeClass('loading');
+            $deleteBtn.find('.spinner').hide();
         });
     }
 
@@ -1072,6 +1131,48 @@
         drawAll();
 
         $('#editor-status').text(`Created duplicate: ${newName}`);
+    }
+
+    function showPlotDetails(plot) {
+        if (!plot) {
+            hidePlotDetails();
+            return;
+        }
+
+        // Update detail values
+        $('#detail-plot-name').text(plot.plot_name || 'Unnamed Plot');
+        
+        // Update status badge
+        const status = plot.status || 'available';
+        const $statusBadge = $('#detail-status');
+        $statusBadge.removeClass('available sold reserved').addClass(status);
+        $statusBadge.text(status.charAt(0).toUpperCase() + status.slice(1));
+        
+        $('#detail-sector').text(plot.sector || '-');
+        $('#detail-block').text(plot.block || '-');
+        $('#detail-street').text(plot.street || '-');
+        $('#detail-price').text(plot.price ? `Rs. ${plot.price}` : '-');
+        $('#detail-area').text(plot.area ? `${plot.area} sq ft` : '-');
+        
+        // Update coordinates
+        if (plot.points && plot.points.length > 0) {
+            const coordsText = plot.points.map(point => 
+                `(${point.x.toFixed(2)}, ${point.y.toFixed(2)})`
+            ).join('\n');
+            $('#detail-coordinates').text(coordsText);
+        } else {
+            $('#detail-coordinates').text('-');
+        }
+
+        // Show the panel
+        $('#plot-details-panel').addClass('show').show();
+    }
+
+    function hidePlotDetails() {
+        $('#plot-details-panel').removeClass('show');
+        setTimeout(() => {
+            $('#plot-details-panel').hide();
+        }, 300);
     }
 
     function updatePlotList() {
@@ -1346,6 +1447,9 @@
 
         // Remove selection highlighting
         $('.plot-list-item').removeClass('selected');
+        
+        // Hide plot details panel
+        hidePlotDetails();
 
         // Switch to polygon tool
         selectTool('polygon');
