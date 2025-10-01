@@ -342,8 +342,77 @@
 
     function handleMouseWheel(e) {
         e.preventDefault();
-        const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
-        zoom(zoomFactor);
+        
+        // Get mouse position relative to canvas
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        // Use originalEvent to get the actual wheel event properties
+        const originalEvent = e.originalEvent || e;
+        
+        // Debug: Log all available properties
+        console.log('Wheel event properties:', {
+            deltaY: originalEvent.deltaY,
+            deltaX: originalEvent.deltaX,
+            deltaZ: originalEvent.deltaZ,
+            deltaMode: originalEvent.deltaMode,
+            wheelDelta: originalEvent.wheelDelta,
+            detail: originalEvent.detail,
+            type: originalEvent.type
+        });
+        
+        // Try to detect scroll direction using multiple methods
+        let scrollUp = false;
+        
+        // Method 1: Check deltaY (modern browsers)
+        if (originalEvent.deltaY !== undefined && originalEvent.deltaY !== 0) {
+            scrollUp = originalEvent.deltaY < 0;
+        }
+        // Method 2: Check wheelDelta (older browsers)
+        else if (originalEvent.wheelDelta !== undefined) {
+            scrollUp = originalEvent.wheelDelta > 0;
+        }
+        // Method 3: Check detail (Firefox)
+        else if (originalEvent.detail !== undefined) {
+            scrollUp = originalEvent.detail < 0;
+        }
+        // Method 4: Check deltaX (horizontal scroll)
+        else if (originalEvent.deltaX !== undefined && originalEvent.deltaX !== 0) {
+            scrollUp = originalEvent.deltaX < 0;
+        }
+        // Method 5: Use a simple toggle for testing
+        else {
+            // If we can't detect direction, use a simple toggle
+            scrollUp = Math.random() > 0.5; // This is just for testing
+        }
+        
+        const zoomFactor = scrollUp ? 1.1 : 0.9;
+        console.log('Scroll up:', scrollUp, 'Zoom factor:', zoomFactor);
+        
+        const oldScale = scale;
+        
+        // Calculate new scale with limits
+        const newScale = Math.max(0.1, Math.min(5, scale * zoomFactor));
+        
+        if (newScale !== oldScale) {
+            // Calculate zoom point in world coordinates
+            const worldX = (mouseX - panX) / oldScale;
+            const worldY = (mouseY - panY) / oldScale;
+            
+            // Update scale
+            scale = newScale;
+            
+            // Adjust pan to zoom towards mouse cursor
+            panX = mouseX - worldX * scale;
+            panY = mouseY - worldY * scale;
+            
+            // Update zoom level display
+            $('#zoom-level').text(Math.round(scale * 100) + '%');
+            
+            // Redraw
+            drawAll();
+        }
     }
 
     function handleDoubleClick(e) {
