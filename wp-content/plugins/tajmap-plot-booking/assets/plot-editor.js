@@ -143,7 +143,10 @@
             e.preventDefault();
             e.stopPropagation();
             const tool = $(this).data('tool');
-            selectTool(tool);
+            // Only handle tool selection for buttons with data-tool attribute
+            if (tool) {
+                selectTool(tool);
+            }
         });
 
         // Control events
@@ -590,7 +593,15 @@
     }
 
     function fitToView() {
-        if (plots.length === 0) return;
+        if (plots.length === 0) {
+            // If no plots, reset to default view
+            scale = 1;
+            panX = 0;
+            panY = 0;
+            $('#zoom-level').text(Math.round(scale * 100) + '%');
+            drawAll();
+            return;
+        }
 
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
 
@@ -606,15 +617,16 @@
         });
 
         const padding = 50;
-        const canvasWidth = canvas.width / scale;
-        const canvasHeight = canvas.height / scale;
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
 
         const scaleX = (canvasWidth - padding * 2) / (maxX - minX);
         const scaleY = (canvasHeight - padding * 2) / (maxY - minY);
-        scale = Math.min(scaleX, scaleY);
+        scale = Math.min(scaleX, scaleY, 5); // Limit max zoom
+        scale = Math.max(scale, 0.1); // Limit min zoom
 
-        panX = -(minX * scale - padding);
-        panY = -(minY * scale - padding);
+        panX = (canvasWidth - (maxX + minX) * scale) / 2;
+        panY = (canvasHeight - (maxY + minY) * scale) / 2;
 
         $('#zoom-level').text(Math.round(scale * 100) + '%');
         drawAll();

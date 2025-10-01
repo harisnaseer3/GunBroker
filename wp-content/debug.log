@@ -47108,3 +47108,33 @@ Content-Disposition: form-data; name="data"
 [01-Oct-2025 07:12:30 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
 [01-Oct-2025 07:12:30 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
 [01-Oct-2025 07:12:31 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:12:55 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:12:55 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:12:55 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:13:54 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:13:56 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:13:56 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:13:57 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:13:58 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:13:59 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:13:59 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:14:58 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:15:01 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:15:01 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:15:05 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:15:37 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:15:38 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:15:38 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:15:46 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:15:47 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:15:47 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:15:58 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:15:59 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:15:59 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:16:42 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:16:44 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:16:44 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[01-Oct-2025 07:16:45 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:16:46 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[01-Oct-2025 07:16:47 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[01-Oct-2025 07:16:47 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
