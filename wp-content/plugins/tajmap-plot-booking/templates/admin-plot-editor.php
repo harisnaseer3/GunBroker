@@ -341,14 +341,6 @@ $plots = $wpdb->get_results('SELECT * FROM ' . TAJMAP_PB_TABLE_PLOTS . ' ORDER B
 </div>
 
 <script type="text/javascript">
-(function($) {
-    $(document).ready(function() {
-        // Load the plot editor JavaScript
-        if (typeof initializePlotEditor === 'function') {
-            initializePlotEditor();
-        } else {
-            console.error('Plot editor JavaScript not loaded');
-        }
-    });
-})(jQuery);
+// Plot editor is automatically initialized when the JavaScript file loads
+// No need to call initializePlotEditor() again here
 </script>

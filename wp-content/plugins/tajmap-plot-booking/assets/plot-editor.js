@@ -16,6 +16,7 @@
     let gridSize = 20;
     let history = [];
     let historyIndex = -1;
+    let isInitialized = false;
 
     // Mouse state
     let mouseX = 0, mouseY = 0;
@@ -28,11 +29,22 @@
     });
 
     function initializePlotEditor() {
+        // Prevent multiple initializations
+        if (isInitialized) {
+            return;
+        }
+
         canvas = $('#plot-editor-canvas')[0];
+        
+        if (!canvas) {
+            console.error('Canvas element not found');
+            return;
+        }
+        
         ctx = canvas.getContext('2d');
 
-        if (!canvas || !ctx) {
-            console.error('Canvas not found or context not available');
+        if (!ctx) {
+            console.error('Canvas context not available');
             return;
         }
 
@@ -48,10 +60,11 @@
         // Initialize tool palette
         initializeToolPalette();
 
+        // Mark as initialized
+        isInitialized = true;
+
         // Draw everything
         drawAll();
-
-        console.log('Advanced Plot Editor initialized');
     }
 
     function loadPlotsData() {
@@ -93,27 +106,87 @@
     }
 
     function bindEvents() {
+        // Unbind existing events to prevent duplicates
+        if (canvas) {
+            $(canvas).off('mousedown mousemove mouseup wheel');
+        }
+        $('.tool-btn').off('click');
+        $('#fullscreen-toggle').off('click');
+        $('#zoom-in').off('click');
+        $('#zoom-out').off('click');
+        $('#fit-view').off('click');
+        $('#snap-grid-toggle').off('click');
+        $('#show-grid-toggle').off('click');
+        $('#undo-btn').off('click');
+        $('#clear-btn').off('click');
+        $('#save-plot').off('click');
+        $('#delete-plot').off('click');
+        $('#duplicate-plot').off('click');
+        $('#upload-base-image').off('click');
+        $('#upload-plot-image').off('click');
+        $('#plots-list').off('click');
+        $(window).off('resize');
+
         // Canvas events
-        $(canvas).on('mousedown', handleMouseDown);
-        $(canvas).on('mousemove', handleMouseMove);
-        $(canvas).on('mouseup', handleMouseUp);
-        $(canvas).on('wheel', handleMouseWheel);
+        if (canvas) {
+            $(canvas).on('mousedown', handleMouseDown);
+            $(canvas).on('mousemove', handleMouseMove);
+            $(canvas).on('mouseup', handleMouseUp);
+            $(canvas).on('dblclick', handleDoubleClick);
+            $(canvas).on('wheel', handleMouseWheel);
+        } else {
+            console.error('Canvas not available for event binding');
+        }
 
         // Tool palette events
-        $('.tool-btn').on('click', function() {
+        $('.tool-btn').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             const tool = $(this).data('tool');
             selectTool(tool);
         });
 
         // Control events
-        $('#fullscreen-toggle').on('click', toggleFullscreen);
-        $('#zoom-in').on('click', () => zoom(1.2));
-        $('#zoom-out').on('click', () => zoom(0.8));
-        $('#fit-view').on('click', fitToView);
-        $('#snap-grid-toggle').on('click', toggleSnapToGrid);
-        $('#show-grid-toggle').on('click', toggleShowGrid);
-        $('#undo-btn').on('click', undo);
-        $('#clear-btn').on('click', clearAll);
+        $('#fullscreen-toggle').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleFullscreen();
+        });
+        $('#zoom-in').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            zoom(1.2);
+        });
+        $('#zoom-out').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            zoom(0.8);
+        });
+        $('#fit-view').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            fitToView();
+        });
+        $('#snap-grid-toggle').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleSnapToGrid();
+        });
+        $('#show-grid-toggle').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleShowGrid();
+        });
+        $('#undo-btn').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            undo();
+        });
+        $('#clear-btn').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            clearAll();
+        });
 
         // Form and button events - ensure single execution per action
         $('#save-plot').on('click', function(e) {
@@ -171,6 +244,13 @@
 
         // Window resize
         $(window).on('resize', resizeCanvas);
+        
+        // Keyboard events
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' && drawing) {
+                cancelDrawing();
+            }
+        });
     }
 
     function initializeToolPalette() {
@@ -179,6 +259,11 @@
     }
 
     function selectTool(tool) {
+        // Cancel any active drawing when switching tools
+        if (drawing && currentShape) {
+            finishCurrentShape();
+        }
+        
         currentTool = tool;
         $('.tool-btn').removeClass('active');
         $(`.tool-btn[data-tool="${tool}"]`).addClass('active');
@@ -200,7 +285,11 @@
 
         switch (currentTool) {
             case 'polygon':
-                startPolygon();
+                if (!drawing) {
+                    startPolygon();
+                } else {
+                    addPolygonPoint();
+                }
                 break;
             case 'rectangle':
                 startRectangle();
@@ -238,7 +327,11 @@
 
     function handleMouseUp(e) {
         if (drawing && currentShape) {
-            finishCurrentShape();
+            if (currentShape.type === 'polygon') {
+                // For polygons, don't finish on mouse up - let user click to add points
+            } else {
+                finishCurrentShape();
+            }
         } else if (isDragging) {
             finishDrag();
         }
@@ -250,9 +343,17 @@
         zoom(zoomFactor);
     }
 
+    function handleDoubleClick(e) {
+        if (drawing && currentShape && currentShape.type === 'polygon') {
+            finishCurrentShape();
+        }
+    }
+
     // Drawing functions
     function startPolygon() {
-        if (drawing) return;
+        if (drawing) {
+            return;
+        }
 
         drawing = true;
         currentShape = {
@@ -264,8 +365,16 @@
         addToHistory();
     }
 
+    function addPolygonPoint() {
+        if (!currentShape || currentShape.type !== 'polygon') return;
+        
+        currentShape.points.push({x: mouseX, y: mouseY});
+    }
+
     function startRectangle() {
-        if (drawing) return;
+        if (drawing) {
+            return;
+        }
 
         drawing = true;
         currentShape = {
@@ -281,10 +390,16 @@
     }
 
     function updateCurrentShape() {
-        if (!currentShape) return;
+        if (!currentShape) {
+            return;
+        }
 
         if (currentShape.type === 'polygon') {
-            currentShape.points[currentShape.points.length - 1] = {x: mouseX, y: mouseY};
+            // For polygon, only update the last point to show preview
+            // Don't add new points on mouse move - only on mouse clicks
+            if (currentShape.points.length > 0) {
+                currentShape.points[currentShape.points.length - 1] = {x: mouseX, y: mouseY};
+            }
         } else if (currentShape.type === 'rectangle') {
             currentShape.endX = mouseX;
             currentShape.endY = mouseY;
@@ -351,6 +466,12 @@
             }
         }
 
+        drawAll();
+    }
+
+    function cancelDrawing() {
+        drawing = false;
+        currentShape = null;
         drawAll();
     }
 
@@ -899,7 +1020,9 @@
 
     // Drawing functions
     function drawAll() {
-        if (!ctx || !canvas) return;
+        if (!ctx || !canvas) {
+            return;
+        }
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -971,8 +1094,6 @@
     }
 
     function drawPlot(plot) {
-        if (!plot.points || plot.points.length < 3) return;
-
         ctx.save();
 
         // Fill color based on status
@@ -990,35 +1111,76 @@
 
         ctx.lineWidth = 2 / scale;
 
-        // Draw polygon
-        drawPolygon(plot.points);
+        // Handle different shape types
+        if (plot.type === 'rectangle') {
+            drawRectangle(plot);
+        } else if (plot.points && plot.points.length >= 1) {
+            // For polygons, draw even with 1 point (during drawing)
+            drawPolygon(plot.points);
+        } else {
+            // Not enough points to draw anything
+            ctx.restore();
+            return;
+        }
 
         // Draw vertices if selected or hovered
         if (selectedPlot === plot || plot === currentShape) {
             ctx.fillStyle = '#3b82f6';
-            plot.points.forEach(point => {
-                ctx.beginPath();
-                ctx.arc(point.x, point.y, 4 / scale, 0, 2 * Math.PI);
-                ctx.fill();
-            });
+            if (plot.points) {
+                plot.points.forEach(point => {
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, 4 / scale, 0, 2 * Math.PI);
+                    ctx.fill();
+                });
+            }
         }
 
         ctx.restore();
     }
 
-    function drawPolygon(points) {
-        if (!points || points.length < 3) return;
-
-        ctx.beginPath();
-        ctx.moveTo(points[0].x, points[0].y);
-
-        for (let i = 1; i < points.length; i++) {
-            ctx.lineTo(points[i].x, points[i].y);
+    function drawRectangle(plot) {
+        if (!plot.startX || !plot.startY || !plot.endX || !plot.endY) {
+            return;
         }
 
-        ctx.closePath();
+        const x = Math.min(plot.startX, plot.endX);
+        const y = Math.min(plot.startY, plot.endY);
+        const width = Math.abs(plot.endX - plot.startX);
+        const height = Math.abs(plot.endY - plot.startY);
+
+        ctx.beginPath();
+        ctx.rect(x, y, width, height);
         ctx.fill();
         ctx.stroke();
+    }
+
+    function drawPolygon(points) {
+        if (!points || points.length < 1) {
+            return;
+        }
+
+        if (points.length === 1) {
+            // Draw a dot for single point
+            ctx.beginPath();
+            ctx.arc(points[0].x, points[0].y, 3, 0, 2 * Math.PI);
+            ctx.fill();
+        } else {
+            // Draw polygon with multiple points
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+
+            for (let i = 1; i < points.length; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
+            }
+
+            // Only close path if we have 3 or more points (complete polygon)
+            if (points.length >= 3) {
+                ctx.closePath();
+            }
+
+            ctx.fill();
+            ctx.stroke();
+        }
     }
 
     // Utility functions
