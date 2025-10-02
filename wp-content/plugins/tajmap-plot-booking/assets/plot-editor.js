@@ -17,12 +17,27 @@
     let history = [];
     let historyIndex = -1;
     let isInitialized = false;
+    
+    // Global base map image state (for canvas background)
+    let globalBaseMapImage = null;
+    let globalBaseMapTransform = {
+        x: 0,
+        y: 0,
+        scale: 1,
+        rotation: 0,
+        width: 0,
+        height: 0
+    };
+    let isTransformingGlobalBaseMap = false;
+    let transformHandle = null;
+    let globalBaseMapImageId = null;
 
     // Mouse state
     let mouseX = 0, mouseY = 0;
     let startX = 0, startY = 0;
     let isDragging = false;
     let dragOffsetX = 0, dragOffsetY = 0;
+    let dragStartX = 0, dragStartY = 0;
 
     $(document).ready(function() {
         initializePlotEditor();
@@ -50,6 +65,9 @@
 
         // Set canvas size
         resizeCanvas();
+
+        // Load global base map image first
+        loadGlobalBaseMapImage();
 
         // Load existing plots from the page data
         loadPlotsData();
@@ -286,6 +304,25 @@
         // Plot details panel events
         // (removed) plot details panel events
 
+        // Image upload events
+        $('#upload-base-image').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadBaseImage();
+        });
+
+        $('#upload-plot-image').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadPlotImage();
+        });
+
+        $('#transform-base-image').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleBaseImageTransform();
+        });
+
         // Window resize
         $(window).on('resize', resizeCanvas);
         
@@ -354,6 +391,29 @@
         startX = mouseX;
         startY = mouseY;
 
+        // Check for global base map interaction first (use screen coordinates)
+        if (globalBaseMapImage && isTransformingGlobalBaseMap) {
+            const screenX = e.clientX - rect.left;
+            const screenY = e.clientY - rect.top;
+            
+            const handle = getGlobalBaseMapTransformHandle(screenX, screenY);
+            if (handle) {
+                isTransformingGlobalBaseMap = true;
+                transformHandle = handle;
+                isDragging = true;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                return;
+            } else if (isPointInGlobalBaseMap(screenX, screenY)) {
+                isTransformingGlobalBaseMap = true;
+                transformHandle = 'move';
+                isDragging = true;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                return;
+            }
+        }
+
         switch (currentTool) {
             case 'polygon':
                 if (!drawing) {
@@ -393,6 +453,54 @@
             mouseY = Math.round(mouseY / gridSize) * gridSize;
         }
 
+        // Handle global base map transformation
+        if (isTransformingGlobalBaseMap && transformHandle) {
+            const deltaX = e.clientX - dragStartX;
+            const deltaY = e.clientY - dragStartY;
+            transformGlobalBaseMap(transformHandle, deltaX, deltaY);
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            return;
+        }
+
+        // Update cursor for global base map interaction
+        if (globalBaseMapImage && isTransformingGlobalBaseMap) {
+            const screenX = e.clientX - rect.left;
+            const screenY = e.clientY - rect.top;
+            
+            const handle = getGlobalBaseMapTransformHandle(screenX, screenY);
+            
+            if (handle) {
+                // Set cursor directly
+                switch (handle) {
+                    case 'nw':
+                    case 'se':
+                        canvas.style.cursor = 'nw-resize';
+                        break;
+                    case 'ne':
+                    case 'sw':
+                        canvas.style.cursor = 'ne-resize';
+                        break;
+                    case 'n':
+                    case 's':
+                        canvas.style.cursor = 'ns-resize';
+                        break;
+                    case 'w':
+                    case 'e':
+                        canvas.style.cursor = 'ew-resize';
+                        break;
+                    default:
+                        canvas.style.cursor = 'move';
+                }
+            } else if (isPointInGlobalBaseMap(screenX, screenY)) {
+                canvas.style.cursor = 'move';
+            } else {
+                canvas.style.cursor = 'default';
+            }
+        } else {
+            canvas.style.cursor = 'default';
+        }
+
         if (drawing && currentShape) {
             updateCurrentShape();
         } else if (isDragging) {
@@ -403,6 +511,14 @@
     }
 
     function handleMouseUp(e) {
+        // Handle global base map transformation end
+        if (isTransformingGlobalBaseMap) {
+            isTransformingGlobalBaseMap = false;
+            transformHandle = null;
+            isDragging = false;
+            return;
+        }
+
         if (drawing && currentShape) {
             if (currentShape.type === 'polygon') {
                 // For polygons, don't finish on mouse up - let user click to add points
@@ -1026,9 +1142,20 @@
             $('#plot-coordinates').val('');
         }
 
-        if (plot.base_image_id) {
+        if (plot.base_image_id && plot.base_image_id !== 0) {
             $('#base-image-id').val(plot.base_image_id);
-            loadBaseImage(plot.base_image_id);
+            // Load base image by ID (this would need to be implemented to get image URL from ID)
+            loadBaseImageById(plot.base_image_id);
+        }
+
+        // Load base image transform data
+        if (plot.base_image_transform) {
+            try {
+                const transform = JSON.parse(plot.base_image_transform);
+                baseImageTransform = { ...baseImageTransform, ...transform };
+            } catch (e) {
+                console.error('Error parsing base image transform:', e);
+            }
         }
 
         // Update status message
@@ -1044,6 +1171,9 @@
         formData.forEach(field => {
             plotData[field.name] = field.value;
         });
+        
+        console.log('Form data being saved:', plotData);
+        console.log('Base image ID field value:', $('#base-image-id').val());
 
         // Get coordinates
         try {
@@ -1055,6 +1185,11 @@
         } catch (e) {
             alert('Invalid coordinates format');
             return;
+        }
+
+        // Add base image transform data
+        if (baseImage) {
+            plotData.base_image_transform = JSON.stringify(baseImageTransform);
         }
 
         // Validate required fields
@@ -1338,7 +1473,28 @@
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Apply transformations
+        // Draw global base map image first (background layer)
+        if (globalBaseMapImage) {
+            try {
+                // Draw the global base map image as background
+                ctx.drawImage(
+                    globalBaseMapImage,
+                    globalBaseMapTransform.x - panX,
+                    globalBaseMapTransform.y - panY,
+                    globalBaseMapTransform.width,
+                    globalBaseMapTransform.height
+                );
+                
+                // Draw transform handles if in transform mode
+                if (isTransformingGlobalBaseMap) {
+                    drawGlobalBaseMapHandles();
+                }
+            } catch (e) {
+                console.error('Error drawing global base map image:', e);
+            }
+        }
+
+        // Apply transformations for plots and grid
         ctx.save();
         ctx.translate(panX, panY);
         ctx.scale(scale, scale);
@@ -1346,15 +1502,6 @@
         // Draw grid
         if (showGrid) {
             drawGrid();
-        }
-
-        // Draw base image
-        if (image) {
-            try {
-                ctx.drawImage(image, 0, 0, canvas.width / scale, canvas.height / scale);
-            } catch (e) {
-                console.error('Error drawing image:', e);
-            }
         }
 
         // Draw plots
@@ -1603,8 +1750,396 @@
         updatePlotList();
     }
 
+    // Global base map image upload function
+    function uploadBaseImage() {
+        console.log('uploadGlobalBaseMapImage called');
+        
+        if (typeof wp === 'undefined' || typeof wp.media === 'undefined') {
+            console.error('WordPress media uploader not available');
+            alert('WordPress media uploader not available. Please refresh the page.');
+            return;
+        }
+        
+        console.log('Creating media uploader for global base map');
+        const mediaUploader = wp.media({
+            title: 'Select Base Map Image (Canvas Background)',
+            button: {
+                text: 'Use as Base Map'
+            },
+            multiple: false,
+            library: {
+                type: 'image'
+            }
+        });
+
+        mediaUploader.on('select', function() {
+            console.log('Base map image selected from media uploader');
+            const attachment = mediaUploader.state().get('selection').first().toJSON();
+            console.log('Selected base map attachment:', attachment);
+            loadGlobalBaseMapImage(attachment.url, attachment.id);
+            // Auto-save the global base map setting
+            saveGlobalBaseMapSetting(attachment.id);
+        });
+
+        console.log('Opening media uploader for base map');
+        mediaUploader.open();
+    }
+
+    function uploadPlotImage() {
+        const mediaUploader = wp.media({
+            title: 'Select Plot Preview Image',
+            button: {
+                text: 'Use this image'
+            },
+            multiple: false,
+            library: {
+                type: 'image'
+            }
+        });
+
+        mediaUploader.on('select', function() {
+            const attachment = mediaUploader.state().get('selection').first().toJSON();
+            $('#plot-image-id').val(attachment.id);
+            $('#plot-image-preview').html(`
+                <img src="${attachment.url}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">
+                <button type="button" class="remove-image" onclick="removePlotImage()">×</button>
+            `);
+        });
+
+        mediaUploader.open();
+    }
+
+    function loadGlobalBaseMapImage(imageUrl = null, imageId = null) {
+        // If no parameters provided, load from saved setting
+        if (!imageUrl && !imageId) {
+            loadGlobalBaseMapFromSetting();
+            return;
+        }
+        
+        globalBaseMapImage = new Image();
+        globalBaseMapImage.onload = function() {
+            // Calculate initial transform to fit image in canvas
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const imageAspect = globalBaseMapImage.width / globalBaseMapImage.height;
+            const canvasAspect = canvasWidth / canvasHeight;
+            
+            if (imageAspect > canvasAspect) {
+                // Image is wider than canvas
+                globalBaseMapTransform.scale = canvasWidth / globalBaseMapImage.width;
+                globalBaseMapTransform.width = canvasWidth;
+                globalBaseMapTransform.height = globalBaseMapImage.height * globalBaseMapTransform.scale;
+            } else {
+                // Image is taller than canvas
+                globalBaseMapTransform.scale = canvasHeight / globalBaseMapImage.height;
+                globalBaseMapTransform.width = globalBaseMapImage.width * globalBaseMapTransform.scale;
+                globalBaseMapTransform.height = canvasHeight;
+            }
+            
+            // Center the image
+            globalBaseMapTransform.x = (canvasWidth - globalBaseMapTransform.width) / 2;
+            globalBaseMapTransform.y = (canvasHeight - globalBaseMapTransform.height) / 2;
+            
+            // Store image ID
+            globalBaseMapImageId = imageId;
+            console.log('Global base map loaded and ID set to:', imageId);
+            
+            // Update preview
+            $('#base-image-preview').html(`
+                <img src="${imageUrl}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">
+                <button type="button" class="remove-image" onclick="removeGlobalBaseMap()">×</button>
+                <div style="font-size: 11px; color: #666; margin-top: 4px;">Canvas Background</div>
+            `);
+            
+            // Show transform button
+            $('#transform-base-image').show().text('Transform Base Map');
+            
+            // Redraw canvas
+            drawAll();
+        };
+        globalBaseMapImage.onerror = function() {
+            console.error('Failed to load global base map image:', imageUrl);
+        };
+        globalBaseMapImage.src = imageUrl;
+    }
+
+    function removeBaseImage() {
+        baseImage = null;
+        baseImageTransform = {
+            x: 0,
+            y: 0,
+            scale: 1,
+            rotation: 0,
+            width: 0,
+            height: 0
+        };
+        isTransformingBaseImage = false;
+        transformHandle = null;
+        $('#base-image-id').val('');
+        $('#base-image-preview').empty();
+        $('#transform-base-image').hide();
+        drawAll();
+    }
+
+    function toggleBaseImageTransform() {
+        if (!globalBaseMapImage) return;
+        
+        isTransformingGlobalBaseMap = !isTransformingGlobalBaseMap;
+        const button = $('#transform-base-image');
+        
+        if (isTransformingGlobalBaseMap) {
+            button.text('Exit Transform').addClass('active');
+            button.css('background', '#ef4444');
+        } else {
+            button.text('Transform Base Map').removeClass('active');
+            button.css('background', '');
+            transformHandle = null;
+            // Reset cursor
+            if (canvas) {
+                canvas.style.cursor = 'default';
+            }
+        }
+        
+        drawAll();
+    }
+
+    function removePlotImage() {
+        $('#plot-image-id').val('');
+        $('#plot-image-preview').empty();
+    }
+
+    function loadBaseImageById(imageId) {
+        console.log('loadBaseImageById called with ID:', imageId);
+        // Get image URL from WordPress media library
+        $.post(TajMapPB.ajaxUrl, {
+            action: 'tajmap_pb_get_image_url',
+            nonce: TajMapPB.nonce,
+            image_id: imageId
+        }, function(response) {
+            console.log('AJAX response for image URL:', response);
+            if (response.success && response.data.url) {
+                console.log('Loading base image from URL:', response.data.url);
+                loadBaseImage(response.data.url, imageId);
+            } else {
+                console.error('Failed to load image URL for ID:', imageId, response);
+            }
+        }).fail(function(xhr, status, error) {
+            console.error('AJAX failed to get image URL:', status, error);
+        });
+    }
+
+    // Global base map transformation functions
+    function isPointInGlobalBaseMap(x, y) {
+        if (!globalBaseMapImage) return false;
+        
+        // Convert to screen coordinates (account for pan)
+        const screenX = globalBaseMapTransform.x - panX;
+        const screenY = globalBaseMapTransform.y - panY;
+        
+        return x >= screenX && 
+               x <= screenX + globalBaseMapTransform.width &&
+               y >= screenY && 
+               y <= screenY + globalBaseMapTransform.height;
+    }
+
+    function getGlobalBaseMapTransformHandle(x, y) {
+        if (!globalBaseMapImage) return null;
+        
+        const handleSize = 8;
+        // Convert to screen coordinates (account for pan)
+        const screenX = globalBaseMapTransform.x - panX;
+        const screenY = globalBaseMapTransform.y - panY;
+        
+        const handles = [
+            { name: 'nw', x: screenX, y: screenY },
+            { name: 'ne', x: screenX + globalBaseMapTransform.width, y: screenY },
+            { name: 'sw', x: screenX, y: screenY + globalBaseMapTransform.height },
+            { name: 'se', x: screenX + globalBaseMapTransform.width, y: screenY + globalBaseMapTransform.height },
+            { name: 'n', x: screenX + globalBaseMapTransform.width / 2, y: screenY },
+            { name: 's', x: screenX + globalBaseMapTransform.width / 2, y: screenY + globalBaseMapTransform.height },
+            { name: 'w', x: screenX, y: screenY + globalBaseMapTransform.height / 2 },
+            { name: 'e', x: screenX + globalBaseMapTransform.width, y: screenY + globalBaseMapTransform.height / 2 }
+        ];
+        
+        for (let handle of handles) {
+            if (Math.abs(x - handle.x) <= handleSize && Math.abs(y - handle.y) <= handleSize) {
+                return handle.name;
+            }
+        }
+        
+        return null;
+    }
+
+    function transformGlobalBaseMap(handle, deltaX, deltaY) {
+        if (!globalBaseMapImage) return;
+        
+        switch (handle) {
+            case 'nw':
+                globalBaseMapTransform.x += deltaX;
+                globalBaseMapTransform.y += deltaY;
+                globalBaseMapTransform.width -= deltaX;
+                globalBaseMapTransform.height -= deltaY;
+                break;
+            case 'ne':
+                globalBaseMapTransform.y += deltaY;
+                globalBaseMapTransform.width += deltaX;
+                globalBaseMapTransform.height -= deltaY;
+                break;
+            case 'sw':
+                globalBaseMapTransform.x += deltaX;
+                globalBaseMapTransform.width -= deltaX;
+                globalBaseMapTransform.height += deltaY;
+                break;
+            case 'se':
+                globalBaseMapTransform.width += deltaX;
+                globalBaseMapTransform.height += deltaY;
+                break;
+            case 'n':
+                globalBaseMapTransform.y += deltaY;
+                globalBaseMapTransform.height -= deltaY;
+                break;
+            case 's':
+                globalBaseMapTransform.height += deltaY;
+                break;
+            case 'w':
+                globalBaseMapTransform.x += deltaX;
+                globalBaseMapTransform.width -= deltaX;
+                break;
+            case 'e':
+                globalBaseMapTransform.width += deltaX;
+                break;
+            case 'move':
+                globalBaseMapTransform.x += deltaX;
+                globalBaseMapTransform.y += deltaY;
+                break;
+        }
+        
+        // Ensure minimum size
+        globalBaseMapTransform.width = Math.max(50, globalBaseMapTransform.width);
+        globalBaseMapTransform.height = Math.max(50, globalBaseMapTransform.height);
+        
+        // Auto-save the transform
+        saveGlobalBaseMapSetting(globalBaseMapImageId);
+        drawAll();
+    }
+
+    function drawGlobalBaseMapHandles() {
+        if (!globalBaseMapImage) return;
+        
+        const handleSize = 8;
+        const handles = [
+            { name: 'nw', x: globalBaseMapTransform.x, y: globalBaseMapTransform.y },
+            { name: 'ne', x: globalBaseMapTransform.x + globalBaseMapTransform.width, y: globalBaseMapTransform.y },
+            { name: 'sw', x: globalBaseMapTransform.x, y: globalBaseMapTransform.y + globalBaseMapTransform.height },
+            { name: 'se', x: globalBaseMapTransform.x + globalBaseMapTransform.width, y: globalBaseMapTransform.y + globalBaseMapTransform.height },
+            { name: 'n', x: globalBaseMapTransform.x + globalBaseMapTransform.width / 2, y: globalBaseMapTransform.y },
+            { name: 's', x: globalBaseMapTransform.x + globalBaseMapTransform.width / 2, y: globalBaseMapTransform.y + globalBaseMapTransform.height },
+            { name: 'w', x: globalBaseMapTransform.x, y: globalBaseMapTransform.y + globalBaseMapTransform.height / 2 },
+            { name: 'e', x: globalBaseMapTransform.x + globalBaseMapTransform.width, y: globalBaseMapTransform.y + globalBaseMapTransform.height / 2 }
+        ];
+        
+        // Draw border (already in screen coordinates)
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(
+            globalBaseMapTransform.x - panX,
+            globalBaseMapTransform.y - panY,
+            globalBaseMapTransform.width,
+            globalBaseMapTransform.height
+        );
+        
+        // Draw handles (already in screen coordinates)
+        ctx.fillStyle = '#3b82f6';
+        handles.forEach(handle => {
+            ctx.fillRect(
+                handle.x - panX - handleSize / 2,
+                handle.y - panY - handleSize / 2,
+                handleSize,
+                handleSize
+            );
+        });
+    }
+
+    // Global base map management functions
+    function saveGlobalBaseMapSetting(imageId) {
+        console.log('Saving global base map setting:', imageId);
+        $.post(TajMapPB.ajaxUrl, {
+            action: 'tajmap_pb_save_global_base_map',
+            nonce: TajMapPB.nonce,
+            base_map_image_id: imageId,
+            base_map_transform: JSON.stringify(globalBaseMapTransform)
+        }, function(response) {
+            if (response.success) {
+                console.log('Global base map setting saved successfully');
+            } else {
+                console.error('Failed to save global base map setting:', response);
+            }
+        }).fail(function(xhr, status, error) {
+            console.error('AJAX failed to save global base map setting:', status, error);
+        });
+    }
+    
+    function loadGlobalBaseMapFromSetting() {
+        console.log('Loading global base map from settings');
+        $.post(TajMapPB.ajaxUrl, {
+            action: 'tajmap_pb_get_global_base_map',
+            nonce: TajMapPB.nonce
+        }, function(response) {
+            if (response.success && response.data.base_map_image_id) {
+                console.log('Found saved global base map:', response.data.base_map_image_id);
+                // Get image URL and load it
+                $.post(TajMapPB.ajaxUrl, {
+                    action: 'tajmap_pb_get_image_url',
+                    nonce: TajMapPB.nonce,
+                    image_id: response.data.base_map_image_id
+                }, function(imageResponse) {
+                    if (imageResponse.success && imageResponse.data.url) {
+                        loadGlobalBaseMapImage(imageResponse.data.url, response.data.base_map_image_id);
+                        // Load saved transform if available
+                        if (response.data.base_map_transform) {
+                            try {
+                                globalBaseMapTransform = JSON.parse(response.data.base_map_transform);
+                                drawAll(); // Redraw with saved transform
+                            } catch (e) {
+                                console.error('Error parsing saved base map transform:', e);
+                            }
+                        }
+                    }
+                });
+            } else {
+                console.log('No global base map setting found');
+            }
+        }).fail(function(xhr, status, error) {
+            console.error('AJAX failed to load global base map setting:', status, error);
+        });
+    }
+    
+    function removeGlobalBaseMap() {
+        globalBaseMapImage = null;
+        globalBaseMapImageId = null;
+        globalBaseMapTransform = {
+            x: 0,
+            y: 0,
+            scale: 1,
+            rotation: 0,
+            width: 0,
+            height: 0
+        };
+        isTransformingGlobalBaseMap = false;
+        transformHandle = null;
+        $('#base-image-preview').empty();
+        $('#transform-base-image').hide();
+        
+        // Save the removal
+        saveGlobalBaseMapSetting(null);
+        
+        drawAll();
+    }
+
     // Make functions globally available
     window.initializePlotEditor = initializePlotEditor;
     window.createNewPlot = createNewPlot;
+    window.removeGlobalBaseMap = removeGlobalBaseMap;
+    window.removePlotImage = removePlotImage;
 
 })(jQuery);

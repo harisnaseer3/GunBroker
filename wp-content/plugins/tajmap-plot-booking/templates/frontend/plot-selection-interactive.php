@@ -378,12 +378,26 @@ jQuery(document).ready(function($) {
     let canvasWidth = 0;
     let canvasHeight = 0;
     
+    // Global base map image variables (canvas background)
+    let globalBaseMapImage = null;
+    let globalBaseMapTransform = {
+        x: 0,
+        y: 0,
+        scale: 1,
+        rotation: 0,
+        width: 0,
+        height: 0
+    };
+    
     // Initialize
     function init() {
         console.log('Initializing interactive plot selection...');
         
         // Setup canvas
         setupCanvas();
+        
+        // Load global base map first
+        loadGlobalBaseMap();
         
         // Load plots
         loadPlots();
@@ -453,12 +467,14 @@ jQuery(document).ready(function($) {
                     plots = response.data.plots;
                     console.log('📊 Found', plots.length, 'plots');
                     
-                    // Debug each plot
+                    // Debug each plot with base image info
                     plots.forEach((plot, i) => {
                         console.log(`📊 Plot ${i}:`, {
                             id: plot.id,
                             name: plot.plot_name,
                             status: plot.status,
+                            base_image_id: plot.base_image_id,
+                            base_image_transform: plot.base_image_transform ? 'YES' : 'NO',
                             coordinates: plot.coordinates,
                             coordinatesType: typeof plot.coordinates
                         });
@@ -466,6 +482,8 @@ jQuery(document).ready(function($) {
                     
                     // Update plot count
                     $('#plot-count').text(plots.length);
+                    
+                    // Note: Global base map is loaded separately, not per-plot
                     
                     // Render everything and fit to view so plots are visible
                     renderPlotList();
@@ -498,9 +516,7 @@ jQuery(document).ready(function($) {
             overlay.show();
         } else {
             overlay.hide();
-            // Force remove from DOM to ensure it's gone
-            overlay.remove();
-            console.log('🔄 Loading overlay removed from DOM');
+            console.log('🔄 Loading overlay hidden');
         }
     }
     
@@ -568,12 +584,29 @@ jQuery(document).ready(function($) {
             return;
         }
         
-        // Clear and paint background
+        // Clear canvas
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-        ctx.fillStyle = 'khaki';
-        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
         
-        console.log('🎨 Background painted khaki');
+        // Draw global base map image first (background layer)
+        if (globalBaseMapImage) {
+            try {
+                ctx.drawImage(
+                    globalBaseMapImage,
+                    globalBaseMapTransform.x - panX,
+                    globalBaseMapTransform.y - panY,
+                    globalBaseMapTransform.width,
+                    globalBaseMapTransform.height
+                );
+                console.log('🗺️ Global base map drawn');
+            } catch (e) {
+                console.error('Error drawing global base map:', e);
+            }
+        } else {
+            // Fallback to khaki background if no base map
+            ctx.fillStyle = 'khaki';
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+            console.log('🎨 Background painted khaki (no base map)');
+        }
         
         // Draw a test rectangle to verify canvas works
         ctx.fillStyle = 'red';
@@ -873,6 +906,165 @@ jQuery(document).ready(function($) {
         });
     }
     
+    // Global base map functions
+    function loadGlobalBaseMap() {
+        console.log('🗺️ Loading global base map...');
+        
+        const ajaxUrl = TajMapFrontend.ajaxUrl || 'http://localhost/Gunbroker/wp-admin/admin-ajax.php';
+        
+        $.post(ajaxUrl, {
+            action: 'tajmap_pb_get_global_base_map',
+            nonce: TajMapFrontend.nonce
+        }, function(response) {
+            if (response.success && response.data.base_map_image_id) {
+                console.log('🗺️ Found global base map ID:', response.data.base_map_image_id);
+                
+                // Get image URL
+                $.post(ajaxUrl, {
+                    action: 'tajmap_pb_get_image_url',
+                    nonce: TajMapFrontend.nonce,
+                    image_id: response.data.base_map_image_id
+                }, function(imageResponse) {
+                    if (imageResponse.success && imageResponse.data.url) {
+                        console.log('🗺️ Loading global base map image:', imageResponse.data.url);
+                        
+                        globalBaseMapImage = new Image();
+                        globalBaseMapImage.onload = function() {
+                            console.log('🗺️ Global base map image loaded successfully');
+                            
+                            // Load saved transform if available
+                            if (response.data.base_map_transform) {
+                                try {
+                                    globalBaseMapTransform = JSON.parse(response.data.base_map_transform);
+                                    console.log('🗺️ Loaded saved transform:', globalBaseMapTransform);
+                                } catch (e) {
+                                    console.error('Error parsing base map transform:', e);
+                                    // Use default transform
+                                    globalBaseMapTransform = {
+                                        x: 0, y: 0, scale: 1, rotation: 0,
+                                        width: canvasWidth, height: canvasHeight
+                                    };
+                                }
+                            } else {
+                                // Calculate default transform to fit canvas
+                                const imageAspect = globalBaseMapImage.width / globalBaseMapImage.height;
+                                const canvasAspect = canvasWidth / canvasHeight;
+                                
+                                if (imageAspect > canvasAspect) {
+                                    globalBaseMapTransform.width = canvasWidth;
+                                    globalBaseMapTransform.height = globalBaseMapImage.height * (canvasWidth / globalBaseMapImage.width);
+                                } else {
+                                    globalBaseMapTransform.height = canvasHeight;
+                                    globalBaseMapTransform.width = globalBaseMapImage.width * (canvasHeight / globalBaseMapImage.height);
+                                }
+                                
+                                globalBaseMapTransform.x = (canvasWidth - globalBaseMapTransform.width) / 2;
+                                globalBaseMapTransform.y = (canvasHeight - globalBaseMapTransform.height) / 2;
+                            }
+                            
+                            // Redraw canvas with base map
+                            drawAll();
+                        };
+                        globalBaseMapImage.onerror = function() {
+                            console.error('🗺️ Failed to load global base map image');
+                        };
+                        globalBaseMapImage.src = imageResponse.data.url;
+                    } else {
+                        console.error('🗺️ Failed to get base map image URL');
+                    }
+                });
+            } else {
+                console.log('🗺️ No global base map configured');
+            }
+        }).fail(function(xhr, status, error) {
+            console.error('🗺️ Failed to load global base map setting:', status, error);
+        });
+    }
+
+    // Base image functions (legacy - for plot-specific images)
+    function loadBaseImageForPlot(plot) {
+        console.log('loadBaseImageForPlot called for plot:', plot.id, 'base_image_id:', plot.base_image_id);
+        if (!plot.base_image_id || plot.base_image_id === 0 || plot.base_image_id === '0') {
+            console.log('Plot has no valid base image ID, skipping');
+            return;
+        }
+        
+        // Check if already loaded
+        if (baseImages[plot.id]) {
+            console.log('Base image already loaded for plot:', plot.id);
+            return;
+        }
+        
+        console.log('Loading base image for plot:', plot.id);
+        
+        // Get image URL from WordPress
+        $.post(ajaxUrl, {
+            action: 'tajmap_pb_get_image_url',
+            nonce: TajMapFrontend.nonce,
+            image_id: plot.base_image_id
+        }, function(response) {
+            console.log('AJAX response for plot', plot.id, 'image:', response);
+            if (response.success && response.data.url) {
+                const img = new Image();
+                img.onload = function() {
+                    console.log('Base image loaded for plot:', plot.id);
+                    baseImages[plot.id] = img;
+                    
+                    // Load transform data
+                    if (plot.base_image_transform) {
+                        console.log('Loading transform data for plot:', plot.id, plot.base_image_transform);
+                        try {
+                            baseImageTransforms[plot.id] = JSON.parse(plot.base_image_transform);
+                            console.log('Transform loaded:', baseImageTransforms[plot.id]);
+                        } catch (e) {
+                            console.error('Error parsing base image transform:', e);
+                        }
+                    }
+                    
+                    console.log('Redrawing canvas after base image load');
+                    // Redraw canvas
+                    drawAll();
+                };
+                img.onerror = function() {
+                    console.error('Failed to load base image for plot:', plot.id, response.data.url);
+                };
+                img.src = response.data.url;
+            } else {
+                console.error('Failed to get image URL for plot:', plot.id, response);
+            }
+        }).fail(function(xhr, status, error) {
+            console.error('AJAX failed for plot:', plot.id, status, error);
+        });
+    }
+    
+    function drawBaseImages() {
+        console.log('Drawing base images, plots with images:', Object.keys(baseImages).length);
+        // Draw base images for all plots that have them
+        plots.forEach(plot => {
+            if (baseImages[plot.id] && baseImageTransforms[plot.id]) {
+                const img = baseImages[plot.id];
+                const transform = baseImageTransforms[plot.id];
+                
+                console.log('Drawing base image for plot', plot.id, 'transform:', transform);
+                
+                // Draw the base image with its transform (in screen coordinates like admin)
+                ctx.drawImage(
+                    img,
+                    transform.x - panX,
+                    transform.y - panY,
+                    transform.width,
+                    transform.height
+                );
+                
+                console.log('Base image drawn at:', transform.x - panX, transform.y - panY, 'size:', transform.width, 'x', transform.height);
+            } else {
+                if (plot.base_image_id) {
+                    console.log('Plot', plot.id, 'has base_image_id but image not loaded:', plot.base_image_id);
+                }
+            }
+        });
+    }
+
     // Point in polygon test
     function isPointInPolygon(x, y, coords) {
         let inside = false;

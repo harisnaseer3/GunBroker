@@ -261,11 +261,16 @@ $area_unit_label = $unit_labels[$measurement_units] ?? 'sq ft';
                         <h4>Media</h4>
                         <div class="form-group">
                             <label>Base Map Image</label>
+                            <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
+                                Canvas background image (applies to all plots)
+                            </div>
                             <div class="image-upload-area">
                                 <button type="button" id="upload-base-image" class="btn secondary small">
                                     Upload/Select Image
                                 </button>
-                                <input type="hidden" id="base-image-id" name="base_image_id" value="">
+                                <button type="button" id="transform-base-image" class="btn secondary small" style="display: none;">
+                                    Transform Base Map
+                                </button>
                                 <div id="base-image-preview" class="image-preview"></div>
                             </div>
                         </div>

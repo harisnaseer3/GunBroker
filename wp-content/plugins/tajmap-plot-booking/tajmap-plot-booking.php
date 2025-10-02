@@ -56,12 +56,31 @@ register_activation_hook(__FILE__, function () {
 		coordinates LONGTEXT NOT NULL,
 		status ENUM('available','sold') NOT NULL DEFAULT 'available',
 		base_image_id BIGINT UNSIGNED NULL,
+		base_image_transform LONGTEXT NULL,
 		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME NULL DEFAULT NULL,
 		PRIMARY KEY (id),
 		KEY status_idx (status)
 	) $charset_collate;";
 	dbDelta($plots_sql);
+	
+	// Check if base_image_transform column exists, if not add it
+	$column_exists = $wpdb->get_results($wpdb->prepare(
+		"SHOW COLUMNS FROM `" . TAJMAP_PB_TABLE_PLOTS . "` LIKE %s",
+		'base_image_transform'
+	));
+	
+	error_log('TajMap: Checking for base_image_transform column, found: ' . count($column_exists) . ' results');
+	
+	if (empty($column_exists)) {
+		$alter_result = $wpdb->query("ALTER TABLE `" . TAJMAP_PB_TABLE_PLOTS . "` ADD COLUMN `base_image_transform` LONGTEXT NULL AFTER `base_image_id`");
+		error_log('TajMap: Added base_image_transform column, result: ' . var_export($alter_result, true));
+		if ($wpdb->last_error) {
+			error_log('TajMap: Database error adding column: ' . $wpdb->last_error);
+		}
+	} else {
+		error_log('TajMap: base_image_transform column already exists');
+	}
 
 	$leads_sql = "CREATE TABLE IF NOT EXISTS `" . TAJMAP_PB_TABLE_LEADS . "` (
 		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

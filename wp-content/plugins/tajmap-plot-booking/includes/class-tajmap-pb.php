@@ -59,6 +59,9 @@ class Plugin {
 		add_action('wp_ajax_tajmap_pb_test_configuration', [$this, 'ajax_test_configuration']);
 		add_action('wp_ajax_tajmap_pb_export_settings', [$this, 'ajax_export_settings']);
 		add_action('wp_ajax_tajmap_pb_reset_settings', [$this, 'ajax_reset_settings']);
+		add_action('wp_ajax_tajmap_pb_get_image_url', [$this, 'ajax_get_image_url']);
+		add_action('wp_ajax_tajmap_pb_save_global_base_map', [$this, 'ajax_save_global_base_map']);
+		add_action('wp_ajax_tajmap_pb_get_global_base_map', [$this, 'ajax_get_global_base_map']);
 
 		// Admin post actions
 		add_action('admin_post_tajmap_pb_export_csv', [$this, 'handle_export_csv']);
@@ -366,6 +369,7 @@ class Plugin {
 	}
 
 	public function ajax_save_plot() {
+		error_log('TajMap: ajax_save_plot called with POST data: ' . print_r($_POST, true));
 		$this->verify_nonce('tajmap_pb_admin');
 		if (!current_user_can('manage_options')) {
 			wp_send_json_error(['message' => 'Unauthorized'], 403);
@@ -378,7 +382,11 @@ class Plugin {
 		$block = isset($_POST['block']) ? sanitize_text_field(wp_unslash($_POST['block'])) : '';
 		$coordinates = isset($_POST['coordinates']) ? wp_kses_post(wp_unslash($_POST['coordinates'])) : '';
 		$status = isset($_POST['status']) && $_POST['status'] === 'sold' ? 'sold' : 'available';
-		$base_image_id = isset($_POST['base_image_id']) ? intval($_POST['base_image_id']) : null;
+		$base_image_id = isset($_POST['base_image_id']) && !empty($_POST['base_image_id']) ? intval($_POST['base_image_id']) : null;
+		$base_image_transform = isset($_POST['base_image_transform']) ? wp_kses_post(wp_unslash($_POST['base_image_transform'])) : null;
+		
+		error_log('TajMap: Parsed base_image_id: ' . var_export($base_image_id, true));
+		error_log('TajMap: Parsed base_image_transform: ' . var_export($base_image_transform, true));
 
 		$data = [
 			'plot_name' => $plot_name,
@@ -388,15 +396,26 @@ class Plugin {
 			'coordinates' => $coordinates,
 			'status' => $status,
 			'base_image_id' => $base_image_id,
+			'base_image_transform' => $base_image_transform,
 			'updated_at' => current_time('mysql'),
 		];
+		
+		error_log('TajMap: Data to be saved: ' . print_r($data, true));
 
 		if ($id > 0) {
-			$wpdb->update(TAJMAP_PB_TABLE_PLOTS, $data, ['id' => $id]);
+			$result = $wpdb->update(TAJMAP_PB_TABLE_PLOTS, $data, ['id' => $id]);
+			error_log('TajMap: Update result: ' . var_export($result, true));
+			if ($wpdb->last_error) {
+				error_log('TajMap: Database error: ' . $wpdb->last_error);
+			}
 			wp_send_json_success(['id' => $id]);
 		} else {
 			$data['created_at'] = current_time('mysql');
-			$wpdb->insert(TAJMAP_PB_TABLE_PLOTS, $data);
+			$result = $wpdb->insert(TAJMAP_PB_TABLE_PLOTS, $data);
+			error_log('TajMap: Insert result: ' . var_export($result, true));
+			if ($wpdb->last_error) {
+				error_log('TajMap: Database error: ' . $wpdb->last_error);
+			}
 			wp_send_json_success(['id' => $wpdb->insert_id]);
 		}
 	}
@@ -1133,5 +1152,61 @@ class Plugin {
 		fputcsv($fh, ['Conversion Rate (%)', $conversion_rate]);
 		fclose($fh);
 		exit;
+	}
+
+	public function ajax_get_image_url() {
+		error_log('TajMap: ajax_get_image_url called');
+		$this->verify_nonce('tajmap_pb_admin');
+		
+		$image_id = isset($_POST['image_id']) ? absint($_POST['image_id']) : 0;
+		error_log('TajMap: Requested image ID: ' . $image_id);
+		
+		if (!$image_id) {
+			error_log('TajMap: Invalid image ID');
+			wp_send_json_error(['message' => 'Invalid image ID']);
+		}
+		
+		$image_url = wp_get_attachment_url($image_id);
+		error_log('TajMap: Image URL: ' . $image_url);
+		
+		if (!$image_url) {
+			error_log('TajMap: Image not found for ID: ' . $image_id);
+			wp_send_json_error(['message' => 'Image not found']);
+		}
+		
+		error_log('TajMap: Returning image URL: ' . $image_url);
+		wp_send_json_success(['url' => $image_url]);
+	}
+	
+	public function ajax_save_global_base_map() {
+		$this->verify_nonce('tajmap_pb_admin');
+		
+		$base_map_image_id = isset($_POST['base_map_image_id']) && !empty($_POST['base_map_image_id']) ? intval($_POST['base_map_image_id']) : null;
+		$base_map_transform = isset($_POST['base_map_transform']) ? wp_kses_post(wp_unslash($_POST['base_map_transform'])) : null;
+		
+		// Save to WordPress options
+		$settings = get_option('tajmap_pb_settings', []);
+		$settings['global_base_map_image_id'] = $base_map_image_id;
+		$settings['global_base_map_transform'] = $base_map_transform;
+		
+		update_option('tajmap_pb_settings', $settings);
+		
+		error_log('TajMap: Global base map saved - Image ID: ' . var_export($base_map_image_id, true));
+		wp_send_json_success(['message' => 'Global base map saved successfully']);
+	}
+	
+	public function ajax_get_global_base_map() {
+		$this->verify_nonce('tajmap_pb_admin');
+		
+		$settings = get_option('tajmap_pb_settings', []);
+		$base_map_image_id = $settings['global_base_map_image_id'] ?? null;
+		$base_map_transform = $settings['global_base_map_transform'] ?? null;
+		
+		error_log('TajMap: Loading global base map - Image ID: ' . var_export($base_map_image_id, true));
+		
+		wp_send_json_success([
+			'base_map_image_id' => $base_map_image_id,
+			'base_map_transform' => $base_map_transform
+		]);
 	}
 }
