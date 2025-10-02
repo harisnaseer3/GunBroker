@@ -1173,7 +1173,8 @@
         });
         
         console.log('Form data being saved:', plotData);
-        console.log('Base image ID field value:', $('#base-image-id').val());
+        console.log('Global base map image ID:', globalBaseMapImageId);
+        console.log('Global base map transform:', globalBaseMapTransform);
 
         // Get coordinates
         try {
@@ -1187,9 +1188,10 @@
             return;
         }
 
-        // Add base image transform data
-        if (baseImage) {
-            plotData.base_image_transform = JSON.stringify(baseImageTransform);
+        // Add global base map transform data (if in use)
+        if (globalBaseMapImage && globalBaseMapImageId) {
+            plotData.base_image_id = globalBaseMapImageId;
+            plotData.base_image_transform = JSON.stringify(globalBaseMapTransform);
         }
 
         // Validate required fields
@@ -1238,6 +1240,9 @@
 
                     // Redraw canvas
                     drawAll();
+                    
+                    // Reload plots from database to ensure we have the latest data
+                    reloadPlotsFromDatabase();
                 }
             } else {
                 alert('Error saving plot: ' + (response.data || 'Unknown error'));
@@ -1300,6 +1305,8 @@
                 updatePlotList();
                 // Redraw canvas
                 drawAll();
+                // Reload plots from database to ensure consistency
+                reloadPlotsFromDatabase();
             } else {
                 alert('Error deleting plot: ' + (response.data || 'Unknown error'));
             }
@@ -2138,6 +2145,41 @@
         saveGlobalBaseMapSetting(null);
         
         drawAll();
+    }
+
+    // Function to reload plots from database
+    function reloadPlotsFromDatabase() {
+        console.log('🔄 Reloading plots from database...');
+        $.post(TajMapPB.ajaxUrl, {
+            action: 'tajmap_pb_get_plots',
+            nonce: TajMapPB.nonce
+        }, function(response) {
+            if (response.success && response.data && response.data.plots) {
+                console.log('🔄 Loaded plots from database:', response.data.plots);
+                plots = response.data.plots;
+                
+                // Parse coordinates for each plot
+                plots.forEach(plot => {
+                    if (typeof plot.coordinates === 'string') {
+                        try {
+                            plot.points = JSON.parse(plot.coordinates);
+                        } catch (e) {
+                            console.error('Error parsing coordinates for plot:', plot.id);
+                            plot.points = [];
+                        }
+                    }
+                });
+                
+                // Update plot list and redraw
+                updatePlotList();
+                drawAll();
+                console.log('🔄 Plots reloaded successfully');
+            } else {
+                console.error('🔄 Failed to reload plots:', response);
+            }
+        }).fail(function(xhr, status, error) {
+            console.error('🔄 AJAX failed to reload plots:', status, error);
+        });
     }
 
     // Make functions globally available
