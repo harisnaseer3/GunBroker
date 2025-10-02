@@ -1363,7 +1363,29 @@ h4 { font-size: 1.125rem; }
 }
 
 .plots-list {
+    max-height: calc(5 * 4rem); /* 5 plots * ~4rem per plot item */
+    overflow-y: auto;
+    padding-right: 8px;
     space-y: 0.5rem;
+}
+
+/* Custom scrollbar for plots list */
+.plots-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.plots-list::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.plots-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.plots-list::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 
 .plot-list-item {
@@ -1376,6 +1398,11 @@ h4 { font-size: 1.125rem; }
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
+    margin-bottom: 0.5rem;
+}
+
+.plot-list-item:last-child {
+    margin-bottom: 0;
 }
 
 .plot-list-item:hover {
