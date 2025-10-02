@@ -53,6 +53,12 @@ class Plugin {
 		add_action('wp_ajax_tajmap_pb_get_lead_details', [$this, 'ajax_get_lead_details']);
 		add_action('wp_ajax_tajmap_pb_add_lead_note', [$this, 'ajax_add_lead_note']);
 		add_action('wp_ajax_tajmap_pb_get_analytics', [$this, 'ajax_get_analytics']);
+		
+		// Settings AJAX handlers
+		add_action('wp_ajax_tajmap_pb_save_settings', [$this, 'ajax_save_settings']);
+		add_action('wp_ajax_tajmap_pb_test_configuration', [$this, 'ajax_test_configuration']);
+		add_action('wp_ajax_tajmap_pb_export_settings', [$this, 'ajax_export_settings']);
+		add_action('wp_ajax_tajmap_pb_reset_settings', [$this, 'ajax_reset_settings']);
 
 		// Admin post actions
 		add_action('admin_post_tajmap_pb_export_csv', [$this, 'handle_export_csv']);
@@ -923,6 +929,153 @@ class Plugin {
 			'conversion_rate' => $conversion_rate,
 			'leads_by_status' => $leads_by_status,
 		]);
+	}
+
+	// Settings AJAX handlers
+	public function ajax_save_settings() {
+		$this->verify_nonce('tajmap_pb_admin');
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error(['message' => 'Unauthorized'], 403);
+		}
+
+		$settings_json = isset($_POST['settings']) ? sanitize_text_field(wp_unslash($_POST['settings'])) : '';
+		if (empty($settings_json)) {
+			wp_send_json_error(['message' => 'No settings data provided'], 400);
+		}
+
+		$settings = json_decode($settings_json, true);
+		if (json_last_error() !== JSON_ERROR_NONE) {
+			wp_send_json_error(['message' => 'Invalid settings data'], 400);
+		}
+
+		// Sanitize settings
+		$sanitized_settings = $this->sanitize_settings($settings);
+
+		// Save settings
+		$result = update_option('tajmap_pb_settings', $sanitized_settings);
+
+		if ($result !== false) {
+			wp_send_json_success(['message' => 'Settings saved successfully']);
+		} else {
+			wp_send_json_error(['message' => 'Failed to save settings'], 500);
+		}
+	}
+
+	public function ajax_test_configuration() {
+		$this->verify_nonce('tajmap_pb_admin');
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error(['message' => 'Unauthorized'], 403);
+		}
+
+		$settings = get_option('tajmap_pb_settings', []);
+		$issues = [];
+
+		// Test email configuration
+		if (!empty($settings['company_email']) && !is_email($settings['company_email'])) {
+			$issues[] = 'Invalid company email address';
+		}
+
+		// Test database connection
+		global $wpdb;
+		if (!$wpdb->last_error) {
+			$test_query = $wpdb->get_var('SELECT 1');
+			if ($test_query !== '1') {
+				$issues[] = 'Database connection issue';
+			}
+		} else {
+			$issues[] = 'Database error: ' . $wpdb->last_error;
+		}
+
+		// Test file permissions
+		$upload_dir = wp_upload_dir();
+		if (!is_writable($upload_dir['basedir'])) {
+			$issues[] = 'Upload directory is not writable';
+		}
+
+		if (empty($issues)) {
+			wp_send_json_success(['message' => 'Configuration test passed']);
+		} else {
+			wp_send_json_error(['message' => 'Configuration issues found: ' . implode(', ', $issues)]);
+		}
+	}
+
+	public function ajax_export_settings() {
+		$this->verify_nonce('tajmap_pb_admin');
+		if (!current_user_can('manage_options')) {
+			wp_die('Unauthorized', 403);
+		}
+
+		$settings = get_option('tajmap_pb_settings', []);
+		$export_data = [
+			'export_date' => current_time('mysql'),
+			'plugin_version' => TAJMAP_PB_VERSION,
+			'settings' => $settings
+		];
+
+		header('Content-Type: application/json');
+		header('Content-Disposition: attachment; filename="tajmap_settings_' . date('Ymd_His') . '.json"');
+		echo json_encode($export_data, JSON_PRETTY_PRINT);
+		exit;
+	}
+
+	public function ajax_reset_settings() {
+		$this->verify_nonce('tajmap_pb_admin');
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error(['message' => 'Unauthorized'], 403);
+		}
+
+		// Delete settings to reset to defaults
+		$result = delete_option('tajmap_pb_settings');
+
+		if ($result !== false) {
+			wp_send_json_success(['message' => 'Settings reset to default']);
+		} else {
+			wp_send_json_error(['message' => 'Failed to reset settings'], 500);
+		}
+	}
+
+	private function sanitize_settings($settings) {
+		$sanitized = [];
+		
+		foreach ($settings as $key => $value) {
+			if (is_array($value)) {
+				$sanitized[$key] = $this->sanitize_settings($value);
+			} else {
+				switch ($key) {
+					case 'company_name':
+					case 'development_name':
+					case 'company_phone':
+					case 'default_currency':
+					case 'measurement_units':
+					case 'map_tile_server':
+					case 'google_maps_api_key':
+					case 'backup_frequency':
+						$sanitized[$key] = sanitize_text_field($value);
+						break;
+					case 'company_email':
+						$sanitized[$key] = sanitize_email($value);
+						break;
+					case 'default_zoom_level':
+					case 'max_plot_area':
+					case 'min_plot_area':
+					case 'data_retention_days':
+						$sanitized[$key] = absint($value);
+						break;
+					case 'email_notifications':
+					case 'sms_notifications':
+					case 'auto_assign_leads':
+					case 'require_registration':
+					case 'enable_analytics':
+					case 'enable_lead_scoring':
+						$sanitized[$key] = (bool) $value;
+						break;
+					default:
+						$sanitized[$key] = sanitize_text_field($value);
+				}
+			}
+		}
+		
+		return $sanitized;
 	}
 
 	public function handle_export_leads() {

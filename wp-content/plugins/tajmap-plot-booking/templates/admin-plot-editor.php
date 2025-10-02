@@ -8,6 +8,17 @@ if (!current_user_can('manage_options')) {
 // Get all plots for the list
 global $wpdb;
 $plots = $wpdb->get_results('SELECT * FROM ' . TAJMAP_PB_TABLE_PLOTS . ' ORDER BY id ASC', ARRAY_A);
+
+// Get measurement units and currency from settings
+$settings = get_option('tajmap_pb_settings', []);
+$measurement_units = $settings['measurement_units'] ?? 'sqft';
+$default_currency = $settings['default_currency'] ?? 'Rs.';
+$unit_labels = [
+    'sqft' => 'sq ft',
+    'sqm' => 'sq m',
+    'acres' => 'acres'
+];
+$area_unit_label = $unit_labels[$measurement_units] ?? 'sq ft';
 ?>
 <div class="wrap tajmap-plot-editor">
     <div class="editor-header">
@@ -176,7 +187,7 @@ $plots = $wpdb->get_results('SELECT * FROM ' . TAJMAP_PB_TABLE_PLOTS . ' ORDER B
             <div class="measurement-display" id="measurement-display" style="display: none;">
                 <div class="measurement-item">
                     <label>Area:</label>
-                    <span id="area-value">0 sq ft</span>
+                    <span id="area-value">0 <?php echo esc_html($area_unit_label); ?></span>
                 </div>
                 <div class="measurement-item">
                     <label>Perimeter:</label>
@@ -236,11 +247,11 @@ $plots = $wpdb->get_results('SELECT * FROM ' . TAJMAP_PB_TABLE_PLOTS . ' ORDER B
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="plot-price">Price (₹)</label>
+                                <label for="plot-price">Price (<?php echo esc_html($default_currency); ?>)</label>
                                 <input type="number" id="plot-price" name="price" step="1000">
                             </div>
                             <div class="form-group">
-                                <label for="plot-area">Area (sq ft)</label>
+                                <label for="plot-area">Area (<?php echo esc_html($area_unit_label); ?>)</label>
                                 <input type="number" id="plot-area" name="area" step="1">
                             </div>
                         </div>
@@ -304,6 +315,17 @@ $plots = $wpdb->get_results('SELECT * FROM ' . TAJMAP_PB_TABLE_PLOTS . ' ORDER B
                     <polyline points="15,18 9,12 15,6"></polyline>
                 </svg>
             </button>
+        </div>
+        
+        <div class="plots-sort">
+            <select id="plots-sort" class="sort-select">
+                <option value="newest">Latest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="name-asc">Name A-Z</option>
+                <option value="name-desc">Name Z-A</option>
+                <option value="status">Status</option>
+                <option value="sector">Sector</option>
+            </select>
         </div>
 
         <div class="plots-list" id="plots-list">

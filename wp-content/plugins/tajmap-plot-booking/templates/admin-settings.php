@@ -414,6 +414,7 @@ $settings = array_merge($default_settings, $settings);
     }
 
     function saveSettings() {
+        console.log('💾 Saving settings...');
         const formData = new FormData(document.getElementById('tajmap-settings-form'));
         const settings = {};
 
@@ -451,50 +452,73 @@ $settings = array_merge($default_settings, $settings);
             }
         });
 
+        console.log('📊 Settings to save:', settings);
+
         $.post(TajMapPB.ajaxUrl, {
             action: 'tajmap_pb_save_settings',
             nonce: TajMapPB.nonce,
             settings: JSON.stringify(settings)
         }, function(response) {
+            console.log('📡 Save response:', response);
             if (response.success) {
                 showNotification('Settings saved successfully!', 'success');
             } else {
                 showNotification('Failed to save settings. Please try again.', 'error');
             }
+        }).fail(function(xhr, status, error) {
+            console.error('❌ Save failed:', error);
+            showNotification('Failed to save settings: ' + error, 'error');
         });
     }
 
     function testConfiguration() {
+        console.log('🧪 Testing configuration...');
         $.post(TajMapPB.ajaxUrl, {
             action: 'tajmap_pb_test_configuration',
             nonce: TajMapPB.nonce
         }, function(response) {
+            console.log('📡 Test response:', response);
             if (response.success) {
                 showNotification('Configuration test passed!', 'success');
             } else {
                 showNotification('Configuration test failed: ' + response.data.message, 'error');
             }
+        }).fail(function(xhr, status, error) {
+            console.error('❌ Test failed:', error);
+            showNotification('Configuration test failed: ' + error, 'error');
         });
     }
 
     function exportSettings() {
+        console.log('📤 Exporting settings...');
         window.location.href = TajMapPB.ajaxUrl + '?action=tajmap_pb_export_settings&nonce=' + TajMapPB.nonce;
     }
 
     function resetSettings() {
+        console.log('🔄 Resetting settings...');
         if (confirm('Are you sure you want to reset all settings to default? This cannot be undone.')) {
             $.post(TajMapPB.ajaxUrl, {
                 action: 'tajmap_pb_reset_settings',
                 nonce: TajMapPB.nonce
             }, function(response) {
+                console.log('📡 Reset response:', response);
                 if (response.success) {
                     location.reload();
                 } else {
                     showNotification('Failed to reset settings.', 'error');
                 }
+            }).fail(function(xhr, status, error) {
+                console.error('❌ Reset failed:', error);
+                showNotification('Failed to reset settings: ' + error, 'error');
             });
         }
     }
+
+    // Make functions globally available
+    window.saveSettings = saveSettings;
+    window.testConfiguration = testConfiguration;
+    window.exportSettings = exportSettings;
+    window.resetSettings = resetSettings;
 
     function showNotification(message, type = 'info') {
         const notification = $(`

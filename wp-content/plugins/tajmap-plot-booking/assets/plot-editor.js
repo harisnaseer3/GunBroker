@@ -79,6 +79,12 @@
             }
         }
 
+        console.log('📊 Loaded plots data:', plots);
+        if (plots.length > 0) {
+            console.log('📊 Sample plot structure:', plots[0]);
+            console.log('📊 Available fields:', Object.keys(plots[0]));
+        }
+
         // Parse coordinates for each plot
         plots.forEach(plot => {
             if (typeof plot.coordinates === 'string') {
@@ -244,6 +250,38 @@
                 deletePlot(plotId);
             }
         });
+        
+        // Sort functionality
+        const sortDropdown = $('#plots-sort');
+        if (sortDropdown.length > 0) {
+            console.log('✅ Sort dropdown found, binding event');
+            sortDropdown.on('change', function() {
+                const sortBy = $(this).val();
+                console.log('🎯 Sort dropdown changed to:', sortBy);
+                sortPlots(sortBy);
+            });
+            
+            // Also add click handler for testing
+            sortDropdown.on('click', function() {
+                console.log('🖱️ Sort dropdown clicked');
+            });
+        } else {
+            console.error('❌ Sort dropdown not found! Retrying in 500ms...');
+            // Retry after a short delay in case the element is added dynamically
+            setTimeout(() => {
+                const retryDropdown = $('#plots-sort');
+                if (retryDropdown.length > 0) {
+                    console.log('✅ Sort dropdown found on retry, binding event');
+                    retryDropdown.on('change', function() {
+                        const sortBy = $(this).val();
+                        console.log('🎯 Sort dropdown changed to:', sortBy);
+                        sortPlots(sortBy);
+                    });
+                } else {
+                    console.error('❌ Sort dropdown still not found after retry');
+                }
+            }, 500);
+        }
 
         // Plot details panel events
         // (removed) plot details panel events
@@ -1197,6 +1235,100 @@
 
         $('#plots-list').html(plotListHtml);
     }
+
+    function sortPlots(sortBy) {
+        console.log('🔄 Sorting plots by:', sortBy);
+        console.log('📊 Current plots:', plots);
+        
+        if (!plots || plots.length === 0) {
+            console.log('⚠️ No plots to sort');
+            return;
+        }
+        
+        let sortedPlots = [...plots]; // Create a copy to avoid mutating original
+        
+        switch (sortBy) {
+            case 'newest':
+                console.log('📅 Sorting by newest (created_at)');
+                sortedPlots.sort((a, b) => {
+                    // Use created_at if available, otherwise fall back to id (higher id = newer)
+                    const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
+                    const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
+                    
+                    // If both have created_at, use that. Otherwise use id as fallback
+                    if (a.created_at && b.created_at) {
+                        return dateB - dateA;
+                    } else {
+                        return (b.id || 0) - (a.id || 0);
+                    }
+                });
+                break;
+            case 'oldest':
+                console.log('📅 Sorting by oldest (created_at)');
+                sortedPlots.sort((a, b) => {
+                    // Use created_at if available, otherwise fall back to id (lower id = older)
+                    const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
+                    const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
+                    
+                    // If both have created_at, use that. Otherwise use id as fallback
+                    if (a.created_at && b.created_at) {
+                        return dateA - dateB;
+                    } else {
+                        return (a.id || 0) - (b.id || 0);
+                    }
+                });
+                break;
+            case 'name-asc':
+                console.log('🔤 Sorting by name A-Z');
+                sortedPlots.sort((a, b) => (a.plot_name || '').localeCompare(b.plot_name || ''));
+                break;
+            case 'name-desc':
+                console.log('🔤 Sorting by name Z-A');
+                sortedPlots.sort((a, b) => (b.plot_name || '').localeCompare(a.plot_name || ''));
+                break;
+            case 'status':
+                console.log('📊 Sorting by status');
+                sortedPlots.sort((a, b) => (a.status || '').localeCompare(b.status || ''));
+                break;
+            case 'sector':
+                console.log('🏢 Sorting by sector');
+                sortedPlots.sort((a, b) => (a.sector || '').localeCompare(b.sector || ''));
+                break;
+            default:
+                console.log('❌ Unknown sort option:', sortBy);
+                return; // No sorting needed
+        }
+        
+        console.log('✅ Sorted plots:', sortedPlots);
+        
+        // Update the plots array
+        plots = sortedPlots;
+        
+        console.log('🔄 Updated plots array:', plots);
+        
+        // Re-render the plot list
+        updatePlotList();
+        
+        // Re-draw the canvas
+        drawAll();
+        
+        console.log('🔄 Sorting completed');
+        
+        // Test: Log the first few plot names to verify sorting worked
+        console.log('📋 First 3 plots after sorting:', plots.slice(0, 3).map(p => p.plot_name));
+    }
+    
+    // Test function - can be called from console
+    window.testSorting = function() {
+        console.log('🧪 Testing sorting functionality...');
+        console.log('📊 Current plots:', plots);
+        if (plots.length > 0) {
+            console.log('📊 First plot:', plots[0]);
+            sortPlots('name-asc');
+        } else {
+            console.log('❌ No plots to test with');
+        }
+    };
 
     // Drawing functions
     function drawAll() {
