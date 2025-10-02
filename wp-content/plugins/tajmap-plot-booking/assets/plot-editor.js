@@ -1473,19 +1473,24 @@
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Draw global base map image first (background layer)
+        // Apply transformations for base map, plots and grid (unified coordinate system)
+        ctx.save();
+        ctx.translate(panX, panY);
+        ctx.scale(scale, scale);
+
+        // Draw global base map image first (background layer) - now in world coordinates
         if (globalBaseMapImage) {
             try {
-                // Draw the global base map image as background
+                // Draw the global base map image as background in world coordinates
                 ctx.drawImage(
                     globalBaseMapImage,
-                    globalBaseMapTransform.x - panX,
-                    globalBaseMapTransform.y - panY,
+                    globalBaseMapTransform.x,
+                    globalBaseMapTransform.y,
                     globalBaseMapTransform.width,
                     globalBaseMapTransform.height
                 );
                 
-                // Draw transform handles if in transform mode
+                // Draw transform handles if in transform mode (in world coordinates)
                 if (isTransformingGlobalBaseMap) {
                     drawGlobalBaseMapHandles();
                 }
@@ -1493,11 +1498,6 @@
                 console.error('Error drawing global base map image:', e);
             }
         }
-
-        // Apply transformations for plots and grid
-        ctx.save();
-        ctx.translate(panX, panY);
-        ctx.scale(scale, scale);
 
         // Draw grid
         if (showGrid) {
@@ -1932,37 +1932,37 @@
     function isPointInGlobalBaseMap(x, y) {
         if (!globalBaseMapImage) return false;
         
-        // Convert to screen coordinates (account for pan)
-        const screenX = globalBaseMapTransform.x - panX;
-        const screenY = globalBaseMapTransform.y - panY;
+        // Convert mouse coordinates to world coordinates
+        const worldX = (x - panX) / scale;
+        const worldY = (y - panY) / scale;
         
-        return x >= screenX && 
-               x <= screenX + globalBaseMapTransform.width &&
-               y >= screenY && 
-               y <= screenY + globalBaseMapTransform.height;
+        return worldX >= globalBaseMapTransform.x && 
+               worldX <= globalBaseMapTransform.x + globalBaseMapTransform.width &&
+               worldY >= globalBaseMapTransform.y && 
+               worldY <= globalBaseMapTransform.y + globalBaseMapTransform.height;
     }
 
     function getGlobalBaseMapTransformHandle(x, y) {
         if (!globalBaseMapImage) return null;
         
-        const handleSize = 8;
-        // Convert to screen coordinates (account for pan)
-        const screenX = globalBaseMapTransform.x - panX;
-        const screenY = globalBaseMapTransform.y - panY;
+        const handleSize = 8 / scale; // Scale handle size with zoom
+        // Convert mouse coordinates to world coordinates
+        const worldX = (x - panX) / scale;
+        const worldY = (y - panY) / scale;
         
         const handles = [
-            { name: 'nw', x: screenX, y: screenY },
-            { name: 'ne', x: screenX + globalBaseMapTransform.width, y: screenY },
-            { name: 'sw', x: screenX, y: screenY + globalBaseMapTransform.height },
-            { name: 'se', x: screenX + globalBaseMapTransform.width, y: screenY + globalBaseMapTransform.height },
-            { name: 'n', x: screenX + globalBaseMapTransform.width / 2, y: screenY },
-            { name: 's', x: screenX + globalBaseMapTransform.width / 2, y: screenY + globalBaseMapTransform.height },
-            { name: 'w', x: screenX, y: screenY + globalBaseMapTransform.height / 2 },
-            { name: 'e', x: screenX + globalBaseMapTransform.width, y: screenY + globalBaseMapTransform.height / 2 }
+            { name: 'nw', x: globalBaseMapTransform.x, y: globalBaseMapTransform.y },
+            { name: 'ne', x: globalBaseMapTransform.x + globalBaseMapTransform.width, y: globalBaseMapTransform.y },
+            { name: 'sw', x: globalBaseMapTransform.x, y: globalBaseMapTransform.y + globalBaseMapTransform.height },
+            { name: 'se', x: globalBaseMapTransform.x + globalBaseMapTransform.width, y: globalBaseMapTransform.y + globalBaseMapTransform.height },
+            { name: 'n', x: globalBaseMapTransform.x + globalBaseMapTransform.width / 2, y: globalBaseMapTransform.y },
+            { name: 's', x: globalBaseMapTransform.x + globalBaseMapTransform.width / 2, y: globalBaseMapTransform.y + globalBaseMapTransform.height },
+            { name: 'w', x: globalBaseMapTransform.x, y: globalBaseMapTransform.y + globalBaseMapTransform.height / 2 },
+            { name: 'e', x: globalBaseMapTransform.x + globalBaseMapTransform.width, y: globalBaseMapTransform.y + globalBaseMapTransform.height / 2 }
         ];
         
         for (let handle of handles) {
-            if (Math.abs(x - handle.x) <= handleSize && Math.abs(y - handle.y) <= handleSize) {
+            if (Math.abs(worldX - handle.x) <= handleSize && Math.abs(worldY - handle.y) <= handleSize) {
                 return handle.name;
             }
         }
@@ -1973,44 +1973,48 @@
     function transformGlobalBaseMap(handle, deltaX, deltaY) {
         if (!globalBaseMapImage) return;
         
+        // Convert screen delta to world delta
+        const worldDeltaX = deltaX / scale;
+        const worldDeltaY = deltaY / scale;
+        
         switch (handle) {
             case 'nw':
-                globalBaseMapTransform.x += deltaX;
-                globalBaseMapTransform.y += deltaY;
-                globalBaseMapTransform.width -= deltaX;
-                globalBaseMapTransform.height -= deltaY;
+                globalBaseMapTransform.x += worldDeltaX;
+                globalBaseMapTransform.y += worldDeltaY;
+                globalBaseMapTransform.width -= worldDeltaX;
+                globalBaseMapTransform.height -= worldDeltaY;
                 break;
             case 'ne':
-                globalBaseMapTransform.y += deltaY;
-                globalBaseMapTransform.width += deltaX;
-                globalBaseMapTransform.height -= deltaY;
+                globalBaseMapTransform.y += worldDeltaY;
+                globalBaseMapTransform.width += worldDeltaX;
+                globalBaseMapTransform.height -= worldDeltaY;
                 break;
             case 'sw':
-                globalBaseMapTransform.x += deltaX;
-                globalBaseMapTransform.width -= deltaX;
-                globalBaseMapTransform.height += deltaY;
+                globalBaseMapTransform.x += worldDeltaX;
+                globalBaseMapTransform.width -= worldDeltaX;
+                globalBaseMapTransform.height += worldDeltaY;
                 break;
             case 'se':
-                globalBaseMapTransform.width += deltaX;
-                globalBaseMapTransform.height += deltaY;
+                globalBaseMapTransform.width += worldDeltaX;
+                globalBaseMapTransform.height += worldDeltaY;
                 break;
             case 'n':
-                globalBaseMapTransform.y += deltaY;
-                globalBaseMapTransform.height -= deltaY;
+                globalBaseMapTransform.y += worldDeltaY;
+                globalBaseMapTransform.height -= worldDeltaY;
                 break;
             case 's':
-                globalBaseMapTransform.height += deltaY;
+                globalBaseMapTransform.height += worldDeltaY;
                 break;
             case 'w':
-                globalBaseMapTransform.x += deltaX;
-                globalBaseMapTransform.width -= deltaX;
+                globalBaseMapTransform.x += worldDeltaX;
+                globalBaseMapTransform.width -= worldDeltaX;
                 break;
             case 'e':
-                globalBaseMapTransform.width += deltaX;
+                globalBaseMapTransform.width += worldDeltaX;
                 break;
             case 'move':
-                globalBaseMapTransform.x += deltaX;
-                globalBaseMapTransform.y += deltaY;
+                globalBaseMapTransform.x += worldDeltaX;
+                globalBaseMapTransform.y += worldDeltaY;
                 break;
         }
         
@@ -2038,22 +2042,22 @@
             { name: 'e', x: globalBaseMapTransform.x + globalBaseMapTransform.width, y: globalBaseMapTransform.y + globalBaseMapTransform.height / 2 }
         ];
         
-        // Draw border (already in screen coordinates)
+        // Draw border (in world coordinates)
         ctx.strokeStyle = '#3b82f6';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2 / scale; // Scale line width with zoom
         ctx.strokeRect(
-            globalBaseMapTransform.x - panX,
-            globalBaseMapTransform.y - panY,
+            globalBaseMapTransform.x,
+            globalBaseMapTransform.y,
             globalBaseMapTransform.width,
             globalBaseMapTransform.height
         );
         
-        // Draw handles (already in screen coordinates)
+        // Draw handles (in world coordinates)
         ctx.fillStyle = '#3b82f6';
         handles.forEach(handle => {
             ctx.fillRect(
-                handle.x - panX - handleSize / 2,
-                handle.y - panY - handleSize / 2,
+                handle.x - handleSize / 2,
+                handle.y - handleSize / 2,
                 handleSize,
                 handleSize
             );

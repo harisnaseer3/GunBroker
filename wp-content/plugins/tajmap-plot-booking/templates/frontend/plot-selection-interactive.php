@@ -587,13 +587,18 @@ jQuery(document).ready(function($) {
         // Clear canvas
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         
-        // Draw global base map image first (background layer)
+        // Apply transformations for base map, plots and grid (unified coordinate system)
+        ctx.save();
+        ctx.translate(panX, panY);
+        ctx.scale(scale, scale);
+
+        // Draw global base map image first (background layer) - now in world coordinates
         if (globalBaseMapImage) {
             try {
                 ctx.drawImage(
                     globalBaseMapImage,
-                    globalBaseMapTransform.x - panX,
-                    globalBaseMapTransform.y - panY,
+                    globalBaseMapTransform.x,
+                    globalBaseMapTransform.y,
                     globalBaseMapTransform.width,
                     globalBaseMapTransform.height
                 );
@@ -604,7 +609,7 @@ jQuery(document).ready(function($) {
         } else {
             // Fallback to khaki background if no base map
             ctx.fillStyle = 'khaki';
-            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+            ctx.fillRect(0, 0, canvasWidth / scale, canvasHeight / scale);
             console.log('🎨 Background painted khaki (no base map)');
         }
         
