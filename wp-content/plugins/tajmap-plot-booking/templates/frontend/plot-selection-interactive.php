@@ -745,7 +745,7 @@ jQuery(document).ready(function($) {
         if (!plot.coordinates) return;
         
         try {
-            const coords = JSON.parse(plot.coordinates);
+            const coords = parseCoordinates(plot.coordinates);
             const centerX = coords.reduce((sum, p) => sum + p.x, 0) / coords.length;
             const centerY = coords.reduce((sum, p) => sum + p.y, 0) / coords.length;
             
@@ -887,7 +887,7 @@ jQuery(document).ready(function($) {
             plots.forEach(plot => {
                 if (plot.coordinates) {
                     try {
-                        const coords = JSON.parse(plot.coordinates);
+                        const coords = parseCoordinates(plot.coordinates);
                         if (isPointInPolygon(x, y, coords)) {
                             selectPlot(plot);
                         }
