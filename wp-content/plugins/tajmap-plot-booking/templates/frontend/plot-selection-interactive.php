@@ -485,12 +485,9 @@ jQuery(document).ready(function($) {
                     
                     // Note: Global base map is loaded separately, not per-plot
                     
-                    // Render everything at 100% (scale=1) on initial load
+                    // Render everything and fit to content on initial load
                     renderPlotList();
-                    scale = 1;
-                    panX = 0;
-                    panY = 0;
-                    updateZoomDisplay();
+                    fitToView();
                     drawAll();
                     
                     // Force hide loading overlay after a small delay to ensure drawing completes
