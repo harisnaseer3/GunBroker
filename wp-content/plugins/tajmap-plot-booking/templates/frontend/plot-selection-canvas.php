@@ -1,54 +1,59 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
 ?>
-<div class="tajmap-interactive-plot-selection">
+<div class="tajmap-canvas-plot-selection">
     <!-- Header -->
     <div class="plot-header">
         <h1>Available Plots</h1>
-        <p>Interactive Plot Selection - Click and drag to explore, zoom to see details</p>
+        <p>Interactive Plot Viewer - Click and drag to explore, zoom to see details</p>
     </div>
 
     <!-- Main Content -->
     <div class="plot-main">
-        <!-- Interactive Map Container -->
-        <div class="map-container">
-            <div class="map-header">
-                <div class="map-controls">
-                    <button id="zoom-in" class="control-btn" title="Zoom In">+</button>
-                    <button id="zoom-out" class="control-btn" title="Zoom Out">-</button>
-                    <button id="fit-view" class="control-btn" title="Fit to View">⌂</button>
-                    <button id="reset-view" class="control-btn" title="Reset View">↻</button>
+        <!-- Interactive Canvas Container -->
+        <div class="canvas-container">
+            <div class="canvas-toolbar">
+                <div class="toolbar-left">
+                    <span class="canvas-status" id="canvas-status">Loading plots...</span>
                 </div>
-                <div class="zoom-level">
-                    <span id="zoom-percentage">100%</span>
+                <div class="toolbar-center">
+                    <div class="zoom-controls">
+                        <span class="zoom-level" id="zoom-level">100%</span>
+                    </div>
+                </div>
+                <div class="toolbar-right">
+                    <button class="btn small" id="show-grid-toggle">Show Grid</button>
                 </div>
             </div>
-            
-            <div id="interactive-map" class="interactive-map">
-                <div class="loading-overlay" id="loading-overlay">
-                    <div class="loading-spinner"></div>
-                    <p>Loading plots...</p>
-                </div>
-                <canvas id="plot-canvas" width="800" height="600"></canvas>
+
+            <!-- Canvas -->
+            <div class="canvas-wrapper">
+                <canvas id="plot-viewer-canvas" width="1200" height="800"></canvas>
+                
+                <!-- Grid Overlay -->
+                <div class="grid-overlay" id="grid-overlay" style="display: none;"></div>
+            </div>
+
+            <!-- Loading Overlay -->
+            <div class="loading-overlay" id="loading-overlay">
+                <div class="loading-spinner"></div>
+                <p>Loading plots...</p>
             </div>
         </div>
 
         <!-- Plot Details Panel -->
-        <div class="plot-details-panel">
+        <div class="plot-details-panel" id="plot-details-panel" style="display: none;">
             <div class="panel-header">
                 <h3>Plot Details</h3>
+                <button class="panel-close" id="panel-close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
-            <div class="panel-content">
-                <div id="plot-info" class="plot-info">
-                    <div class="placeholder">
-                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                            <polyline points="3.27,6.96 12,12.01 20.73,6.96"></polyline>
-                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                        </svg>
-                        <p>Click on a plot to view details</p>
-                    </div>
-                </div>
+            <div class="panel-content" id="panel-content">
+                <!-- Plot details will be loaded here -->
             </div>
         </div>
     </div>
@@ -56,6 +61,21 @@ if (!defined('ABSPATH')) { exit; }
     <!-- Plot List -->
     <div class="plot-list-section">
         <h3>All Plots (<span id="plot-count">0</span>)</h3>
+        <div class="plot-filters">
+            <select id="filter-sector" class="filter-select">
+                <option value="">All Sectors</option>
+            </select>
+            <select id="filter-block" class="filter-select">
+                <option value="">All Blocks</option>
+            </select>
+            <select id="filter-status" class="filter-select">
+                <option value="">All Status</option>
+                <option value="available">Available</option>
+                <option value="sold">Sold</option>
+            </select>
+            <button class="btn secondary" id="apply-filters">Apply Filters</button>
+            <button class="btn secondary" id="clear-filters">Clear</button>
+        </div>
         <div id="plot-list" class="plot-list">
             <!-- Plots will be loaded here -->
         </div>
@@ -63,7 +83,7 @@ if (!defined('ABSPATH')) { exit; }
 </div>
 
 <style>
-.tajmap-interactive-plot-selection {
+.tajmap-canvas-plot-selection {
     max-width: 100%;
     margin: 0 auto;
     padding: 20px;
@@ -93,7 +113,7 @@ if (!defined('ABSPATH')) { exit; }
     margin-bottom: 30px;
 }
 
-.map-container {
+.canvas-container {
     background: #f8fafc;
     border: 2px solid #e5e7eb;
     border-radius: 12px;
@@ -101,7 +121,7 @@ if (!defined('ABSPATH')) { exit; }
     position: relative;
 }
 
-.map-header {
+.canvas-toolbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -110,57 +130,92 @@ if (!defined('ABSPATH')) { exit; }
     border-bottom: 1px solid #e5e7eb;
 }
 
-.map-controls {
-    display: flex;
-    gap: 8px;
-}
-
-.control-btn {
-    width: 40px;
-    height: 40px;
-    border: none;
-    background: white;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    cursor: pointer;
-    font-size: 18px;
-    font-weight: bold;
-    color: #374151;
-    transition: all 0.2s;
+.toolbar-left, .toolbar-center, .toolbar-right {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 10px;
 }
 
-.control-btn:hover {
-    background: #f3f4f6;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+.canvas-status {
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .zoom-level {
     color: #6b7280;
     font-size: 14px;
     font-weight: 500;
+    min-width: 50px;
+    text-align: center;
 }
 
-.interactive-map {
+.btn {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.btn.secondary {
+    background: #6b7280;
+}
+
+.btn.secondary:hover {
+    background: #4b5563;
+}
+
+.btn.small {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+.canvas-wrapper {
     position: relative;
     width: 100%;
     height: 600px;
-    background: khaki;
+    background: #f8fafc;
     overflow: hidden;
 }
 
-#plot-canvas {
+#plot-viewer-canvas {
     width: 100%;
     height: 100%;
     cursor: grab;
     display: block;
 }
 
-#plot-canvas:active {
+#plot-viewer-canvas:active {
     cursor: grabbing;
+}
+
+.grid-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    background-image: 
+        linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
 }
 
 .loading-overlay {
@@ -199,31 +254,18 @@ if (!defined('ABSPATH')) { exit; }
 }
 
 .plot-details-panel {
-    display: none;
-}
-
-/* Hide common theme sidebars/widgets on this page */
-body .sidebar,
-body #secondary,
-body .widget-area,
-body .right-sidebar,
-body .site-sidebar {
-    display: none !important;
-}
-
-/* Expand content area if theme uses a grid with sidebar */
-body .content-area,
-body .site-main,
-body .site-content,
-body .container,
-body .wrap {
-    max-width: 100% !important;
-    width: 100% !important;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .panel-header {
-    background: #f8fafc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 15px 20px;
+    background: #f8fafc;
     border-bottom: 1px solid #e5e7eb;
 }
 
@@ -233,21 +275,23 @@ body .wrap {
     font-size: 1.2rem;
 }
 
+.panel-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 5px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.panel-close:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
 .panel-content {
     padding: 20px;
-}
-
-.plot-info {
-    color: #6b7280;
-}
-
-.placeholder {
-    text-align: center;
-    color: #9ca3af;
-}
-
-.placeholder svg {
-    margin-bottom: 15px;
 }
 
 .plot-list-section {
@@ -257,6 +301,22 @@ body .wrap {
 .plot-list-section h3 {
     color: #1f2937;
     margin-bottom: 15px;
+}
+
+.plot-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: white;
+    font-size: 14px;
+    min-width: 120px;
 }
 
 .plot-list {
@@ -316,31 +376,23 @@ body .wrap {
     line-height: 1.4;
 }
 
-.btn {
-    background: #3b82f6;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s;
-    margin-top: 15px;
-    width: 100%;
+/* Hide common theme sidebars/widgets on this page */
+body .sidebar,
+body #secondary,
+body .widget-area,
+body .right-sidebar,
+body .site-sidebar {
+    display: none !important;
 }
 
-.btn:hover {
-    background: #2563eb;
-    transform: translateY(-1px);
-}
-
-.btn-primary {
-    background: #10b981;
-}
-
-.btn-primary:hover {
-    background: #059669;
+/* Expand content area if theme uses a grid with sidebar */
+body .content-area,
+body .site-main,
+body .site-content,
+body .container,
+body .wrap {
+    max-width: 100% !important;
+    width: 100% !important;
 }
 
 @media (max-width: 768px) {
@@ -348,12 +400,16 @@ body .wrap {
         grid-template-columns: 1fr;
     }
     
-    .plot-details-panel {
-        order: -1;
+    .canvas-wrapper {
+        height: 400px;
     }
     
-    .interactive-map {
-        height: 400px;
+    .plot-filters {
+        flex-direction: column;
+    }
+    
+    .filter-select {
+        min-width: 100%;
     }
 }
 </style>
@@ -362,8 +418,7 @@ body .wrap {
 jQuery(document).ready(function($) {
     'use strict';
     
-    console.log('🚀 TajMap Interactive Plot Selection Loaded');
-    console.log('TajMapFrontend object:', typeof TajMapFrontend !== 'undefined' ? TajMapFrontend : 'UNDEFINED');
+    console.log('🚀 TajMap Canvas Plot Viewer Loaded');
     
     // Global variables
     let plots = [];
@@ -377,6 +432,7 @@ jQuery(document).ready(function($) {
     let dragStartY = 0;
     let canvasWidth = 0;
     let canvasHeight = 0;
+    let showGrid = false;
     
     // Global base map image variables (canvas background)
     let globalBaseMapImage = null;
@@ -391,7 +447,7 @@ jQuery(document).ready(function($) {
     
     // Initialize
     function init() {
-        console.log('Initializing interactive plot selection...');
+        console.log('Initializing canvas plot viewer...');
         
         // Setup canvas
         setupCanvas();
@@ -411,7 +467,7 @@ jQuery(document).ready(function($) {
     
     // Setup canvas
     function setupCanvas() {
-        canvas = document.getElementById('plot-canvas');
+        canvas = document.getElementById('plot-viewer-canvas');
         if (!canvas) {
             console.error('Canvas not found');
             return;
@@ -426,7 +482,7 @@ jQuery(document).ready(function($) {
     
     // Resize canvas
     function resizeCanvas() {
-        const container = $('#interactive-map');
+        const container = $('.canvas-wrapper');
         canvasWidth = container.width();
         canvasHeight = container.height();
         
@@ -467,23 +523,8 @@ jQuery(document).ready(function($) {
                     plots = response.data.plots;
                     console.log('📊 Found', plots.length, 'plots');
                     
-                    // Debug each plot with base image info
-                    plots.forEach((plot, i) => {
-                        console.log(`📊 Plot ${i}:`, {
-                            id: plot.id,
-                            name: plot.plot_name,
-                            status: plot.status,
-                            base_image_id: plot.base_image_id,
-                            base_image_transform: plot.base_image_transform ? 'YES' : 'NO',
-                            coordinates: plot.coordinates,
-                            coordinatesType: typeof plot.coordinates
-                        });
-                    });
-                    
                     // Update plot count
                     $('#plot-count').text(plots.length);
-                    
-                    // Note: Global base map is loaded separately, not per-plot
                     
                     // Render everything and fit to view so plots are visible
                     renderPlotList();
@@ -579,7 +620,7 @@ jQuery(document).ready(function($) {
         if (plots.length === 0) {
             console.log('⚠️ No plots to draw');
             // Still draw background
-            ctx.fillStyle = 'khaki';
+            ctx.fillStyle = '#f8fafc';
             ctx.fillRect(0, 0, canvasWidth, canvasHeight);
             return;
         }
@@ -592,7 +633,7 @@ jQuery(document).ready(function($) {
         ctx.translate(panX, panY);
         ctx.scale(scale, scale);
 
-        // Draw global base map image first (background layer) - in world coordinates
+        // Draw global base map image first (background layer) - now in world coordinates
         if (globalBaseMapImage) {
             try {
                 ctx.drawImage(
@@ -602,22 +643,32 @@ jQuery(document).ready(function($) {
                     globalBaseMapTransform.width,
                     globalBaseMapTransform.height
                 );
+                console.log('🗺️ Global base map drawn');
             } catch (e) {
                 console.error('Error drawing global base map:', e);
             }
         } else {
-            // Fallback to neutral background if no base map
+            // Fallback to light background if no base map
             ctx.fillStyle = '#f8fafc';
             ctx.fillRect(0, 0, canvasWidth / scale, canvasHeight / scale);
+            console.log('🎨 Background painted light gray (no base map)');
         }
         
-        console.log('🎨 Transform applied - panX:', panX, 'panY:', panY, 'scale:', scale);
+        // Draw grid if enabled
+        if (showGrid) {
+            drawGrid();
+        }
         
         // Draw plots
         plots.forEach((plot, index) => {
             console.log(`🎨 Drawing plot ${index}:`, plot);
             drawPlot(plot, index);
         });
+        
+        // Draw selection highlight
+        if (selectedPlot) {
+            drawSelectionHighlight(selectedPlot);
+        }
         
         ctx.restore();
         console.log('🎨 drawAll completed');
@@ -643,7 +694,7 @@ jQuery(document).ready(function($) {
             
             // Set plot style
             const color = plot.status === 'available' ? '#10b981' : '#ef4444';
-            const opacity = plot.status === 'available' ? 0.7 : 0.5;
+            const opacity = plot.status === 'available' ? 0.6 : 0.4;
             
             console.log(`🎨 Plot ${index} style - color: ${color}, opacity: ${opacity}`);
             
@@ -687,6 +738,59 @@ jQuery(document).ready(function($) {
         }
     }
     
+    // Draw selection highlight
+    function drawSelectionHighlight(plot) {
+        if (!plot.coordinates) return;
+        
+        try {
+            const coords = parseCoordinates(plot.coordinates);
+            if (coords.length < 3) return;
+            
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 3 / scale;
+            ctx.setLineDash([5 / scale, 5 / scale]);
+            ctx.globalAlpha = 1;
+            
+            ctx.beginPath();
+            ctx.moveTo(coords[0].x, coords[0].y);
+            for (let i = 1; i < coords.length; i++) {
+                ctx.lineTo(coords[i].x, coords[i].y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+            
+            ctx.setLineDash([]);
+        } catch (e) {
+            console.error('Error drawing selection highlight:', e);
+        }
+    }
+    
+    // Draw grid
+    function drawGrid() {
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.2)';
+        ctx.lineWidth = 1 / scale;
+
+        const gridSize = 20;
+        const startX = Math.floor(-panX / scale / gridSize) * gridSize;
+        const startY = Math.floor(-panY / scale / gridSize) * gridSize;
+        const endX = startX + (canvasWidth / scale) + gridSize;
+        const endY = startY + (canvasHeight / scale) + gridSize;
+
+        for (let x = startX; x <= endX; x += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(x, startY);
+            ctx.lineTo(x, endY);
+            ctx.stroke();
+        }
+
+        for (let y = startY; y <= endY; y += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(startX, y);
+            ctx.lineTo(endX, y);
+            ctx.stroke();
+        }
+    }
+    
     // Render plot list
     function renderPlotList() {
         const plotList = $('#plot-list');
@@ -722,22 +826,36 @@ jQuery(document).ready(function($) {
         $(`.plot-item[data-plot-id="${plot.id}"]`).addClass('selected');
         
         // Update details panel
-        const plotInfo = $('#plot-info');
-        plotInfo.html(`
-            <h4>${plot.plot_name || 'Plot'}</h4>
-            <p><strong>Status:</strong> <span class="plot-status ${plot.status}">${plot.status || 'Unknown'}</span></p>
-            <p><strong>Sector:</strong> ${plot.sector || 'N/A'}</p>
-            <p><strong>Block:</strong> ${plot.block || 'N/A'}</p>
-            <p><strong>Street:</strong> ${plot.street || 'N/A'}</p>
-            <p><strong>Plot ID:</strong> ${plot.id || 'N/A'}</p>
-            <p><strong>Created:</strong> ${plot.created_at || 'N/A'}</p>
-            <button class="btn btn-primary" onclick="expressInterest('${plot.id}')">
-                Express Interest
-            </button>
-        `);
+        showPlotDetails(plot);
         
         // Center on plot
         centerOnPlot(plot);
+        
+        // Redraw to show selection
+        drawAll();
+    }
+    
+    // Show plot details
+    function showPlotDetails(plot) {
+        const panel = $('#plot-details-panel');
+        const content = $('#panel-content');
+        
+        content.html(`
+            <div class="plot-details">
+                <h4>${plot.plot_name || 'Plot'}</h4>
+                <p><strong>Status:</strong> <span class="plot-status ${plot.status}">${plot.status || 'Unknown'}</span></p>
+                <p><strong>Sector:</strong> ${plot.sector || 'N/A'}</p>
+                <p><strong>Block:</strong> ${plot.block || 'N/A'}</p>
+                <p><strong>Street:</strong> ${plot.street || 'N/A'}</p>
+                <p><strong>Plot ID:</strong> ${plot.id || 'N/A'}</p>
+                <p><strong>Created:</strong> ${plot.created_at || 'N/A'}</p>
+                <button class="btn primary" onclick="expressInterest('${plot.id}')">
+                    Express Interest
+                </button>
+            </div>
+        `);
+        
+        panel.show();
     }
     
     // Center on plot
@@ -745,7 +863,7 @@ jQuery(document).ready(function($) {
         if (!plot.coordinates) return;
         
         try {
-            const coords = JSON.parse(plot.coordinates);
+            const coords = parseCoordinates(plot.coordinates);
             const centerX = coords.reduce((sum, p) => sum + p.x, 0) / coords.length;
             const centerY = coords.reduce((sum, p) => sum + p.y, 0) / coords.length;
             
@@ -765,27 +883,18 @@ jQuery(document).ready(function($) {
     
     // Setup controls
     function setupControls() {
-        $('#zoom-in').click(function() {
-            scale = Math.min(scale * 1.2, 5);
-            updateZoomDisplay();
+        $('#show-grid-toggle').click(function() {
+            showGrid = !showGrid;
+            $(this).toggleClass('active', showGrid);
+            $('#grid-overlay').toggle(showGrid);
             drawAll();
         });
         
-        $('#zoom-out').click(function() {
-            scale = Math.max(scale / 1.2, 0.1);
-            updateZoomDisplay();
-            drawAll();
-        });
-        
-        $('#fit-view').click(function() {
-            fitToView();
-        });
-        
-        $('#reset-view').click(function() {
-            scale = 1;
-            panX = 0;
-            panY = 0;
-            updateZoomDisplay();
+        // Panel close
+        $('#panel-close').click(function() {
+            $('#plot-details-panel').hide();
+            selectedPlot = null;
+            $('.plot-item').removeClass('selected');
             drawAll();
         });
     }
@@ -838,13 +947,13 @@ jQuery(document).ready(function($) {
     
     // Update zoom display
     function updateZoomDisplay() {
-        $('#zoom-percentage').text(Math.round(scale * 100) + '%');
+        $('#zoom-level').text(Math.round(scale * 100) + '%');
     }
     
     // Setup event listeners
     function setupEventListeners() {
         // Mouse wheel zoom
-        $('#interactive-map').on('wheel', function(e) {
+        $('.canvas-wrapper').on('wheel', function(e) {
             e.preventDefault();
             const delta = e.originalEvent.deltaY > 0 ? 0.9 : 1.1;
             scale = Math.max(0.1, Math.min(5, scale * delta));
@@ -853,7 +962,7 @@ jQuery(document).ready(function($) {
         });
         
         // Pan functionality
-        $('#interactive-map').on('mousedown', function(e) {
+        $('.canvas-wrapper').on('mousedown', function(e) {
             if (e.target === canvas) {
                 isDragging = true;
                 dragStartX = e.clientX - panX;
@@ -876,7 +985,7 @@ jQuery(document).ready(function($) {
         });
         
         // Click on plot
-        $('#plot-canvas').on('click', function(e) {
+        $('#plot-viewer-canvas').on('click', function(e) {
             if (isDragging) return;
             
             const rect = canvas.getBoundingClientRect();
@@ -887,7 +996,7 @@ jQuery(document).ready(function($) {
             plots.forEach(plot => {
                 if (plot.coordinates) {
                     try {
-                        const coords = JSON.parse(plot.coordinates);
+                        const coords = parseCoordinates(plot.coordinates);
                         if (isPointInPolygon(x, y, coords)) {
                             selectPlot(plot);
                         }
@@ -971,90 +1080,6 @@ jQuery(document).ready(function($) {
             }
         }).fail(function(xhr, status, error) {
             console.error('🗺️ Failed to load global base map setting:', status, error);
-        });
-    }
-
-    // Base image functions (legacy - for plot-specific images)
-    function loadBaseImageForPlot(plot) {
-        console.log('loadBaseImageForPlot called for plot:', plot.id, 'base_image_id:', plot.base_image_id);
-        if (!plot.base_image_id || plot.base_image_id === 0 || plot.base_image_id === '0') {
-            console.log('Plot has no valid base image ID, skipping');
-            return;
-        }
-        
-        // Check if already loaded
-        if (baseImages[plot.id]) {
-            console.log('Base image already loaded for plot:', plot.id);
-            return;
-        }
-        
-        console.log('Loading base image for plot:', plot.id);
-        
-        // Get image URL from WordPress
-        $.post(ajaxUrl, {
-            action: 'tajmap_pb_get_image_url',
-            nonce: TajMapFrontend.nonce,
-            image_id: plot.base_image_id
-        }, function(response) {
-            console.log('AJAX response for plot', plot.id, 'image:', response);
-            if (response.success && response.data.url) {
-                const img = new Image();
-                img.onload = function() {
-                    console.log('Base image loaded for plot:', plot.id);
-                    baseImages[plot.id] = img;
-                    
-                    // Load transform data
-                    if (plot.base_image_transform) {
-                        console.log('Loading transform data for plot:', plot.id, plot.base_image_transform);
-                        try {
-                            baseImageTransforms[plot.id] = JSON.parse(plot.base_image_transform);
-                            console.log('Transform loaded:', baseImageTransforms[plot.id]);
-                        } catch (e) {
-                            console.error('Error parsing base image transform:', e);
-                        }
-                    }
-                    
-                    console.log('Redrawing canvas after base image load');
-                    // Redraw canvas
-                    drawAll();
-                };
-                img.onerror = function() {
-                    console.error('Failed to load base image for plot:', plot.id, response.data.url);
-                };
-                img.src = response.data.url;
-            } else {
-                console.error('Failed to get image URL for plot:', plot.id, response);
-            }
-        }).fail(function(xhr, status, error) {
-            console.error('AJAX failed for plot:', plot.id, status, error);
-        });
-    }
-    
-    function drawBaseImages() {
-        console.log('Drawing base images, plots with images:', Object.keys(baseImages).length);
-        // Draw base images for all plots that have them
-        plots.forEach(plot => {
-            if (baseImages[plot.id] && baseImageTransforms[plot.id]) {
-                const img = baseImages[plot.id];
-                const transform = baseImageTransforms[plot.id];
-                
-                console.log('Drawing base image for plot', plot.id, 'transform:', transform);
-                
-                // Draw the base image with its transform (in screen coordinates like admin)
-                ctx.drawImage(
-                    img,
-                    transform.x - panX,
-                    transform.y - panY,
-                    transform.width,
-                    transform.height
-                );
-                
-                console.log('Base image drawn at:', transform.x - panX, transform.y - panY, 'size:', transform.width, 'x', transform.height);
-            } else {
-                if (plot.base_image_id) {
-                    console.log('Plot', plot.id, 'has base_image_id but image not loaded:', plot.base_image_id);
-                }
-            }
         });
     }
 

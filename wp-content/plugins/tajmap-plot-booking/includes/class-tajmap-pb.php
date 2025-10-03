@@ -60,8 +60,10 @@ class Plugin {
 		add_action('wp_ajax_tajmap_pb_export_settings', [$this, 'ajax_export_settings']);
 		add_action('wp_ajax_tajmap_pb_reset_settings', [$this, 'ajax_reset_settings']);
 		add_action('wp_ajax_tajmap_pb_get_image_url', [$this, 'ajax_get_image_url']);
+		add_action('wp_ajax_nopriv_tajmap_pb_get_image_url', [$this, 'ajax_get_image_url']);
 		add_action('wp_ajax_tajmap_pb_save_global_base_map', [$this, 'ajax_save_global_base_map']);
 		add_action('wp_ajax_tajmap_pb_get_global_base_map', [$this, 'ajax_get_global_base_map']);
+		add_action('wp_ajax_nopriv_tajmap_pb_get_global_base_map', [$this, 'ajax_get_global_base_map']);
 
 		// Admin post actions
 		add_action('admin_post_tajmap_pb_export_csv', [$this, 'handle_export_csv']);
@@ -76,6 +78,7 @@ class Plugin {
 		add_shortcode('tajmap_plot_booking', [$this, 'shortcode']);
 		add_shortcode('tajmap_landing_page', [$this, 'landing_page_shortcode']);
 		add_shortcode('tajmap_plot_selection', [$this, 'plot_selection_shortcode']);
+		add_shortcode('tajmap_plot_canvas', [$this, 'plot_canvas_shortcode']);
 		add_shortcode('tajmap_gallery', [$this, 'gallery_shortcode']);
 		add_shortcode('tajmap_user_dashboard', [$this, 'user_dashboard_shortcode']);
 	}
@@ -556,7 +559,8 @@ class Plugin {
 			'nonce' => wp_create_nonce('tajmap_pb_frontend'),
 			'homeUrl' => home_url(),
 		]);
-		include TAJMAP_PB_PATH . 'templates/frontend/plot-selection.php';
+		// Use the new canvas template for the plot selection page
+		include TAJMAP_PB_PATH . 'templates/frontend/plot-selection-canvas.php';
 	}
 
 	public function render_plot_details_page() {
@@ -632,6 +636,22 @@ class Plugin {
 			'pluginName' => 'TAJMAP_PLOT_BOOKING',
 		]) . ';</script>';
 		include TAJMAP_PB_PATH . 'templates/frontend/plot-selection-interactive.php';
+		return ob_get_clean();
+	}
+
+	public function plot_canvas_shortcode($atts) {
+		error_log('TajMap: plot_canvas_shortcode called at ' . current_time('mysql'));
+		
+		ob_start();
+		wp_enqueue_style('tajmap-frontend', TAJMAP_PB_URL . 'assets/frontend.css', [], TAJMAP_PB_VERSION);
+		// Inject the TajMapFrontend config inline for the template to consume
+		echo '<script>window.TajMapFrontend = ' . wp_json_encode([
+			'ajaxUrl' => admin_url('admin-ajax.php'),
+			'nonce' => wp_create_nonce('tajmap_pb_frontend'),
+			'homeUrl' => home_url(),
+			'pluginName' => 'TAJMAP_PLOT_BOOKING',
+		]) . ';</script>';
+		include TAJMAP_PB_PATH . 'templates/frontend/plot-selection-canvas.php';
 		return ob_get_clean();
 	}
 
@@ -1156,7 +1176,17 @@ class Plugin {
 
 	public function ajax_get_image_url() {
 		error_log('TajMap: ajax_get_image_url called');
-		$this->verify_nonce('tajmap_pb_admin');
+		// Accept either admin or frontend nonce so frontend can fetch images
+		$nonce_valid = false;
+		if (isset($_POST['nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'tajmap_pb_admin')) {
+			$nonce_valid = true;
+		}
+		if (!$nonce_valid && isset($_POST['nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'tajmap_pb_frontend')) {
+			$nonce_valid = true;
+		}
+		if (!$nonce_valid) {
+			wp_send_json_error(['message' => 'Invalid nonce'], 403);
+		}
 		
 		$image_id = isset($_POST['image_id']) ? absint($_POST['image_id']) : 0;
 		error_log('TajMap: Requested image ID: ' . $image_id);
@@ -1196,7 +1226,17 @@ class Plugin {
 	}
 	
 	public function ajax_get_global_base_map() {
-		$this->verify_nonce('tajmap_pb_admin');
+		// Accept either admin or frontend nonce
+		$nonce_valid = false;
+		if (isset($_POST['nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'tajmap_pb_admin')) {
+			$nonce_valid = true;
+		}
+		if (!$nonce_valid && isset($_POST['nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'tajmap_pb_frontend')) {
+			$nonce_valid = true;
+		}
+		if (!$nonce_valid) {
+			wp_send_json_error(['message' => 'Invalid nonce'], 403);
+		}
 		
 		$settings = get_option('tajmap_pb_settings', []);
 		$base_map_image_id = $settings['global_base_map_image_id'] ?? null;
