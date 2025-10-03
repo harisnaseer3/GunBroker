@@ -1201,10 +1201,12 @@
             return;
         }
 
-        // Show loading spinner
+        // Show loading overlays
         const $saveBtn = $('#save-plot');
         $saveBtn.addClass('loading');
         $saveBtn.find('.spinner').show();
+        $('#global-loading-text').text('Saving plot...');
+        $('#global-loading-overlay').css('display','flex');
 
         // Save via AJAX
         $.post(TajMapPB.ajaxUrl, {
@@ -1250,9 +1252,10 @@
         }).fail(function() {
             alert('Network error. Please try again.');
         }).always(function() {
-            // Hide loading spinner
+            // Hide loading overlays
             $saveBtn.removeClass('loading');
             $saveBtn.find('.spinner').hide();
+            $('#global-loading-overlay').hide();
         });
     }
 
@@ -1280,10 +1283,12 @@
         // Handle saved plots (plotId is a valid ID)
         if (!confirm('Are you sure you want to delete this plot?')) return;
 
-        // Show loading spinner
+        // Show loading overlays
         const $deleteBtn = $('#delete-plot');
         $deleteBtn.addClass('loading');
         $deleteBtn.find('.spinner').show();
+        $('#global-loading-text').text('Deleting plot...');
+        $('#global-loading-overlay').css('display','flex');
 
         $.post(TajMapPB.ajaxUrl, {
             action: 'tajmap_pb_delete_plot',
@@ -1313,9 +1318,10 @@
         }).fail(function() {
             alert('Network error. Please try again.');
         }).always(function() {
-            // Hide loading spinner
+            // Hide loading overlays
             $deleteBtn.removeClass('loading');
             $deleteBtn.find('.spinner').hide();
+            $('#global-loading-overlay').hide();
         });
     }
 

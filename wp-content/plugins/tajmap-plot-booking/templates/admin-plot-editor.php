@@ -160,6 +160,16 @@ $area_unit_label = $unit_labels[$measurement_units] ?? 'sq ft';
 
         <!-- Main Canvas Area -->
         <div class="canvas-container">
+            <!-- Fullscreen Loading Overlay (hidden by default) -->
+            <div id="global-loading-overlay" style="display:none; position: fixed; inset: 0; background: rgba(248,250,252,0.9); z-index: 9999; align-items: center; justify-content: center;">
+                <div style="text-align:center;">
+                    <div style="width:40px;height:40px;border:4px solid #e5e7eb;border-top:4px solid #3b82f6;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;"></div>
+                    <div id="global-loading-text" style="color:#374151;font-weight:600;">Processing...</div>
+                </div>
+            </div>
+            <style>
+            @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+            </style>
             <div class="canvas-toolbar">
                 <div class="toolbar-left">
                     <span class="canvas-status" id="canvas-status">Ready</span>
