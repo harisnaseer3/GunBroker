@@ -485,9 +485,12 @@ jQuery(document).ready(function($) {
                     
                     // Note: Global base map is loaded separately, not per-plot
                     
-                    // Render everything and fit to view so plots are visible
+                    // Render everything at 100% (scale=1) on initial load
                     renderPlotList();
-                    fitToView();
+                    scale = 1;
+                    panX = 0;
+                    panY = 0;
+                    updateZoomDisplay();
                     drawAll();
                     
                     // Force hide loading overlay after a small delay to ensure drawing completes
@@ -766,13 +769,35 @@ jQuery(document).ready(function($) {
     // Setup controls
     function setupControls() {
         $('#zoom-in').click(function() {
-            scale = Math.min(scale * 1.2, 5);
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = rect.left + rect.width / 2;
+            const mouseY = rect.top + rect.height / 2;
+            const oldScale = scale;
+            const newScale = Math.min(scale * 1.2, 5);
+            if (newScale !== oldScale) {
+                const worldX = (mouseX - rect.left - panX) / oldScale;
+                const worldY = (mouseY - rect.top - panY) / oldScale;
+                scale = newScale;
+                panX = mouseX - rect.left - worldX * scale;
+                panY = mouseY - rect.top - worldY * scale;
+            }
             updateZoomDisplay();
             drawAll();
         });
         
         $('#zoom-out').click(function() {
-            scale = Math.max(scale / 1.2, 0.1);
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = rect.left + rect.width / 2;
+            const mouseY = rect.top + rect.height / 2;
+            const oldScale = scale;
+            const newScale = Math.max(scale / 1.2, 0.1);
+            if (newScale !== oldScale) {
+                const worldX = (mouseX - rect.left - panX) / oldScale;
+                const worldY = (mouseY - rect.top - panY) / oldScale;
+                scale = newScale;
+                panX = mouseX - rect.left - worldX * scale;
+                panY = mouseY - rect.top - worldY * scale;
+            }
             updateZoomDisplay();
             drawAll();
         });
@@ -846,8 +871,19 @@ jQuery(document).ready(function($) {
         // Mouse wheel zoom
         $('#interactive-map').on('wheel', function(e) {
             e.preventDefault();
-            const delta = e.originalEvent.deltaY > 0 ? 0.9 : 1.1;
-            scale = Math.max(0.1, Math.min(5, scale * delta));
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+            const oldScale = scale;
+            const zoomFactor = e.originalEvent.deltaY > 0 ? 0.9 : 1.1;
+            const newScale = Math.max(0.1, Math.min(5, scale * zoomFactor));
+            if (newScale !== oldScale) {
+                const worldX = (mouseX - rect.left - panX) / oldScale;
+                const worldY = (mouseY - rect.top - panY) / oldScale;
+                scale = newScale;
+                panX = mouseX - rect.left - worldX * scale;
+                panY = mouseY - rect.top - worldY * scale;
+            }
             updateZoomDisplay();
             drawAll();
         });
