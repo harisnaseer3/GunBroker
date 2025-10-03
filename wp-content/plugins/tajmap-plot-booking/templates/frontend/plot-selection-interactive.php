@@ -343,6 +343,30 @@ body .wrap {
     background: #059669;
 }
 
+/* Pagination */
+.pagination {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 16px;
+}
+.page-btn {
+    background: #ffffff;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+    border-radius: 9999px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    transition: all 0.15s ease;
+}
+.page-btn:hover { background: #f9fafb; border-color: #d1d5db; transform: translateY(-1px); }
+.page-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.page-btn.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+.page-dots { color: #9ca3af; font-size: 13px; padding: 0 4px; }
+
 @media (max-width: 768px) {
     .plot-main {
         grid-template-columns: 1fr;
@@ -367,6 +391,9 @@ jQuery(document).ready(function($) {
     
     // Global variables
     let plots = [];
+    let pagedPlots = [];
+    let currentPage = 1;
+    const pageSize = 12; // paginate after 12 plots
     let selectedPlot = null;
     let canvas, ctx;
     let scale = 1;
@@ -486,7 +513,7 @@ jQuery(document).ready(function($) {
                     // Note: Global base map is loaded separately, not per-plot
                     
                     // Render everything and fit to content on initial load
-                    renderPlotList();
+                    updatePagination();
                     fitToView();
                     drawAll();
                     
@@ -687,12 +714,23 @@ jQuery(document).ready(function($) {
         }
     }
     
+    // Update pagination data
+    function updatePagination() {
+        const total = plots.length;
+        const totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        pagedPlots = plots.slice(start, end);
+        renderPlotList(totalPages);
+    }
+
     // Render plot list
-    function renderPlotList() {
+    function renderPlotList(totalPages = Math.max(1, Math.ceil(plots.length / pageSize))) {
         const plotList = $('#plot-list');
         plotList.empty();
         
-        plots.forEach((plot, index) => {
+        pagedPlots.forEach((plot, index) => {
             const plotItem = $(`
                 <div class="plot-item" data-plot-id="${plot.id || index}">
                     <div class="plot-name">${plot.plot_name || 'Plot ' + (index + 1)}</div>
@@ -710,6 +748,43 @@ jQuery(document).ready(function($) {
             
             plotList.append(plotItem);
         });
+
+        // Pagination controls
+        const controlsId = 'plot-pagination-controls';
+        $('#' + controlsId).remove();
+        if (plots.length > pageSize) {
+            const pagination = $(`
+                <div id="${controlsId}" class="pagination">
+                    <button id="plot-prev" class="page-btn" ${currentPage === 1 ? 'disabled' : ''} aria-label="Previous page">‹</button>
+                    ${renderPageNumbers(totalPages)}
+                    <button id="plot-next" class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} aria-label="Next page">›</button>
+                </div>
+            `);
+            plotList.after(pagination);
+            $('#plot-prev').on('click', function(){ if (currentPage > 1) { currentPage--; updatePagination(); }});
+            $('#plot-next').on('click', function(){ const max = Math.ceil(plots.length / pageSize); if (currentPage < max) { currentPage++; updatePagination(); }});
+            // number buttons
+            $('.page-btn[data-page]').on('click', function(){ const p = parseInt($(this).data('page')); if (!Number.isNaN(p) && p !== currentPage) { currentPage = p; updatePagination(); }});
+        }
+    }
+
+    function renderPageNumbers(totalPages) {
+        // compact pagination: 1 ... prev current next ... N
+        const pages = [];
+        const addBtn = (p) => `<button class="page-btn ${p===currentPage?'active':''}" data-page="${p}">${p}</button>`;
+        const addDots = () => '<span class="page-dots">…</span>';
+        if (totalPages <= 5) {
+            for (let p=1;p<=totalPages;p++) pages.push(addBtn(p));
+        } else {
+            pages.push(addBtn(1));
+            if (currentPage > 3) pages.push(addDots());
+            const start = Math.max(2, currentPage - 1);
+            const end = Math.min(totalPages - 1, currentPage + 1);
+            for (let p=start;p<=end;p++) pages.push(addBtn(p));
+            if (currentPage < totalPages - 2) pages.push(addDots());
+            pages.push(addBtn(totalPages));
+        }
+        return pages.join('');
     }
     
     // Select plot
