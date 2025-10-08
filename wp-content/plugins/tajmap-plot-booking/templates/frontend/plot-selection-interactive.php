@@ -414,19 +414,20 @@ body .wrap {
 }
 
 /* Hover Popup Styles */
-.plot-hover-popup {
-    position: absolute;
-    background: white;
-    border: 2px solid #007cba;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 1000;
-    pointer-events: auto; /* Allow clicking on popup */
-    max-width: 280px;
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: all 0.2s ease;
-}
+        .plot-hover-popup {
+            position: absolute;
+            background: white;
+            border: 2px solid #007cba;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            pointer-events: auto; /* Allow clicking on popup */
+            max-width: 280px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+            cursor: default; /* Ensure normal cursor over popup */
+        }
 
 .plot-hover-popup.show {
     opacity: 1;
@@ -1360,6 +1361,7 @@ jQuery(document).ready(function($) {
         let hoverTimeout;
         let lastHoveredPlot = null;
         let isPopupVisible = false;
+        let isMouseOverPopup = false;
         
         $('#plot-canvas').on('mousemove', function(e) {
             if (isDragging) return;
@@ -1391,36 +1393,51 @@ jQuery(document).ready(function($) {
                 showHoverPopup(e, hoveredPlot);
                 lastHoveredPlot = hoveredPlot;
                 isPopupVisible = true;
-            } else if (!hoveredPlot && isPopupVisible) {
-                // No plot hovered, hide popup after delay to allow moving to popup
+            } else if (!hoveredPlot && isPopupVisible && !isMouseOverPopup) {
+                // No plot hovered and mouse not over popup, hide popup after short delay
+                console.log('No plot hovered, setting timeout to hide popup');
                 hoverTimeout = setTimeout(() => {
-                    hideHoverPopup();
-                    lastHoveredPlot = null;
-                    isPopupVisible = false;
-                }, 1000); // 1 second delay to allow moving to popup
+                    if (!isMouseOverPopup) {
+                        console.log('Hiding popup due to timeout');
+                        hideHoverPopup();
+                        lastHoveredPlot = null;
+                        isPopupVisible = false;
+                    }
+                }, 500); // Short delay to allow moving to popup
             }
         });
         
-        // Mouse leave to hide popup
+        // Mouse leave canvas - only hide if not over popup
         $('#plot-canvas').on('mouseleave', function() {
             clearTimeout(hoverTimeout);
-            hideHoverPopup();
-            lastHoveredPlot = null;
+            // Only hide if mouse is not over popup
+            if (!isMouseOverPopup) {
+                hoverTimeout = setTimeout(() => {
+                    if (!isMouseOverPopup) {
+                        hideHoverPopup();
+                        lastHoveredPlot = null;
+                        isPopupVisible = false;
+                    }
+                }, 1000); // Give time to move to popup
+            }
         });
         
-        // Prevent popup from hiding when mouse enters popup
+        // Track when mouse enters popup - keep it visible
         $('#plot-hover-popup').on('mouseenter', function() {
+            console.log('Mouse entered popup');
             clearTimeout(hoverTimeout);
+            isMouseOverPopup = true;
+            isPopupVisible = true; // Ensure popup stays visible
             // Keep popup visible when mouse is over it
         });
         
-        // Hide popup when mouse leaves popup (with longer delay)
+        // Track when mouse leaves popup - hide it immediately
         $('#plot-hover-popup').on('mouseleave', function() {
-            hoverTimeout = setTimeout(() => {
-                hideHoverPopup();
-                lastHoveredPlot = null;
-                isPopupVisible = false;
-            }, 500); // Longer delay to allow moving back to plot
+            isMouseOverPopup = false;
+            // Hide popup immediately when mouse leaves popup
+            hideHoverPopup();
+            lastHoveredPlot = null;
+            isPopupVisible = false;
         });
         
         // Click on plot
@@ -1618,58 +1635,7 @@ jQuery(document).ready(function($) {
         return inside;
     }
     
-    // Hover popup functions
-    function showHoverPopup(event, plot) {
-        const popup = $('#plot-hover-popup');
-        const rect = canvas.getBoundingClientRect();
-        
-        // Update popup content
-        $('#popup-plot-name').text(plot.plot_name || 'Plot');
-        $('#popup-plot-status').text(plot.status || 'Unknown').removeClass('available sold').addClass(plot.status || 'available');
-        $('#popup-plot-sector').text(plot.sector || 'N/A');
-        $('#popup-plot-block').text(plot.block || 'N/A');
-        $('#popup-plot-street').text(plot.street || 'N/A');
-        
-        // Show description if available
-        if (plot.description && plot.description.trim()) {
-            $('#popup-plot-description').text(plot.description);
-            $('#popup-description-row').show();
-        } else {
-            $('#popup-description-row').hide();
-        }
-        
-        // Position popup
-        const mouseX = event.clientX - rect.left;
-        const mouseY = event.clientY - rect.top;
-        
-        // Calculate popup position (above and to the right of mouse)
-        const popupWidth = 280;
-        const popupHeight = 200;
-        const offsetX = 30; // Increased gap
-        const offsetY = -popupHeight - 30; // Increased gap
-        
-        let left = mouseX + offsetX;
-        let top = mouseY + offsetY;
-        
-        // Adjust if popup would go off screen
-        if (left + popupWidth > rect.width) {
-            left = mouseX - popupWidth - offsetX;
-        }
-        if (top < 0) {
-            top = mouseY + 20;
-        }
-        
-        popup.css({
-            left: left + 'px',
-            top: top + 'px',
-            display: 'block'
-        });
-        
-        // Show with animation
-        setTimeout(() => {
-            popup.addClass('show');
-        }, 10);
-    }
+    // Hover popup functions (removed duplicate - using the one below)
     
     function hideHoverPopup() {
         const popup = $('#plot-hover-popup');
@@ -1677,6 +1643,7 @@ jQuery(document).ready(function($) {
         setTimeout(() => {
             popup.hide();
             isPopupVisible = false;
+            isMouseOverPopup = false;
         }, 200);
     }
     
@@ -1743,11 +1710,13 @@ jQuery(document).ready(function($) {
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
         
-        // Calculate popup position (above and to the right of mouse)
+        console.log('Positioning popup at:', mouseX, mouseY);
+        
+        // Calculate popup position (very close to mouse)
         const popupWidth = 280;
         const popupHeight = 200;
-        const offsetX = 30; // Increased gap
-        const offsetY = -popupHeight - 30; // Increased gap
+        const offsetX = 5; // Very small gap - close to cursor
+        const offsetY = -popupHeight - 5; // Very small gap - close to cursor
         
         let left = mouseX + offsetX;
         let top = mouseY + offsetY;
@@ -1765,6 +1734,8 @@ jQuery(document).ready(function($) {
             top: top + 'px',
             display: 'block'
         });
+        
+        console.log('Popup positioned at:', left, top);
         
         // Show with animation
         setTimeout(() => {

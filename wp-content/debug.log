@@ -13036,3 +13036,457 @@ Content-Disposition: form-data; name="data"
 [08-Oct-2025 05:11:34 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
 [08-Oct-2025 05:11:35 UTC] TajMap: AJAX actions registered at 2025-10-08 05:11:35
 [08-Oct-2025 05:11:35 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:13:34 UTC] TajMap: AJAX actions registered at 2025-10-08 05:13:34
+[08-Oct-2025 05:13:34 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:13:36 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:13:36 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:13:36 UTC] TajMap: AJAX actions registered at 2025-10-08 05:13:36
+[08-Oct-2025 05:13:37 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:13:37 UTC] TajMap: AJAX actions registered at 2025-10-08 05:13:37
+[08-Oct-2025 05:13:38 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:13:38 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:13:38 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:15:35 UTC] TajMap: AJAX actions registered at 2025-10-08 05:15:35
+[08-Oct-2025 05:15:35 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:15:37 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:15:37 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:15:37 UTC] TajMap: AJAX actions registered at 2025-10-08 05:15:37
+[08-Oct-2025 05:15:37 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:15:38 UTC] TajMap: AJAX actions registered at 2025-10-08 05:15:38
+[08-Oct-2025 05:15:39 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:15:39 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:15:39 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:17:07 UTC] TajMap: AJAX actions registered at 2025-10-08 05:17:07
+[08-Oct-2025 05:17:07 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:17:09 UTC] TajMap: plot_selection_shortcode called at 2025-10-08 05:17:09
+[08-Oct-2025 05:17:09 UTC] TajMap: Plugin constants: Array
+(
+    [TAJMAP_PB_URL] => http://localhost/Gunbroker/wp-content/plugins/tajmap-plot-booking/
+    [TAJMAP_PB_VERSION] => 2.0.3
+    [TAJMAP_PB_PATH] => C:\laragon\www\Gunbroker\wp-content\plugins\tajmap-plot-booking/
+)
+
+[08-Oct-2025 05:17:09 UTC] TajMap: AJAX actions registered at 2025-10-08 05:17:09
+[08-Oct-2025 05:17:10 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:17:11 UTC] TajMap: AJAX actions registered at 2025-10-08 05:17:11
+[08-Oct-2025 05:17:11 UTC] TajMap: AJAX actions registered at 2025-10-08 05:17:11
+[08-Oct-2025 05:17:11 UTC] TajMap: AJAX actions registered at 2025-10-08 05:17:11
+[08-Oct-2025 05:17:11 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:17:11 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:17:12 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:17:12 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:17:12 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:17:12 UTC] TajMap: ajax_get_plots called at 2025-10-08 05:17:12
+[08-Oct-2025 05:17:12 UTC] TajMap: POST data: Array
+(
+    [action] => tajmap_pb_get_plots
+)
+
+[08-Oct-2025 05:17:12 UTC] TajMap: Found 6 plots in database
+[08-Oct-2025 05:17:12 UTC] TajMap: First plot structure: Array
+(
+    [id] => 1
+    [plot_name] => A-12
+    [street] => S-33
+    [sector] => lilly
+    [block] => A
+    [coordinates] => [
+  {
+    "x": 398,
+    "y": 154
+  },
+  {
+    "x": 348,
+    "y": 284
+  },
+  {
+    "x": 534,
+    "y": 369
+  }
+]
+    [status] => available
+    [base_image_id] => 0
+    [base_image_transform] => 
+    [created_at] => 2025-09-30 11:23:50
+    [updated_at] => 2025-10-01 05:01:43
+)
+
+[08-Oct-2025 05:17:12 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:17:12 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:17:12 UTC] TajMap: Loading global base map - Image ID: 357
+[08-Oct-2025 05:17:12 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:17:12 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:17:12 UTC] TajMap: ajax_get_plots called at 2025-10-08 05:17:12
+[08-Oct-2025 05:17:12 UTC] TajMap: POST data: Array
+(
+    [action] => tajmap_pb_get_plots
+    [nonce] => 12aa2ba7a6
+)
+
+[08-Oct-2025 05:17:12 UTC] TajMap: Found 6 plots in database
+[08-Oct-2025 05:17:12 UTC] TajMap: First plot structure: Array
+(
+    [id] => 1
+    [plot_name] => A-12
+    [street] => S-33
+    [sector] => lilly
+    [block] => A
+    [coordinates] => [
+  {
+    "x": 398,
+    "y": 154
+  },
+  {
+    "x": 348,
+    "y": 284
+  },
+  {
+    "x": 534,
+    "y": 369
+  }
+]
+    [status] => available
+    [base_image_id] => 0
+    [base_image_transform] => 
+    [created_at] => 2025-09-30 11:23:50
+    [updated_at] => 2025-10-01 05:01:43
+)
+
+[08-Oct-2025 05:17:13 UTC] TajMap: AJAX actions registered at 2025-10-08 05:17:13
+[08-Oct-2025 05:17:14 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:17:14 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:17:14 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:17:14 UTC] TajMap: ajax_get_image_url called
+[08-Oct-2025 05:17:14 UTC] TajMap: Requested image ID: 357
+[08-Oct-2025 05:17:14 UTC] TajMap: Image URL: http://localhost/Gunbroker/wp-content/uploads/2025/10/plot1-3.png
+[08-Oct-2025 05:17:14 UTC] TajMap: Returning image URL: http://localhost/Gunbroker/wp-content/uploads/2025/10/plot1-3.png
+[08-Oct-2025 05:17:36 UTC] TajMap: AJAX actions registered at 2025-10-08 05:17:36
+[08-Oct-2025 05:17:36 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:17:37 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:17:37 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:19:37 UTC] TajMap: AJAX actions registered at 2025-10-08 05:19:37
+[08-Oct-2025 05:19:37 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:19:39 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:19:39 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:19:39 UTC] TajMap: AJAX actions registered at 2025-10-08 05:19:39
+[08-Oct-2025 05:19:40 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:19:40 UTC] TajMap: AJAX actions registered at 2025-10-08 05:19:40
+[08-Oct-2025 05:19:41 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:19:41 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:19:41 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:19:42 UTC] TajMap: AJAX actions registered at 2025-10-08 05:19:42
+[08-Oct-2025 05:19:42 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:19:42 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:19:42 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:23:10 UTC] TajMap: AJAX actions registered at 2025-10-08 05:23:10
+[08-Oct-2025 05:23:10 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:23:12 UTC] TajMap: plot_selection_shortcode called at 2025-10-08 05:23:12
+[08-Oct-2025 05:23:12 UTC] TajMap: Plugin constants: Array
+(
+    [TAJMAP_PB_URL] => http://localhost/Gunbroker/wp-content/plugins/tajmap-plot-booking/
+    [TAJMAP_PB_VERSION] => 2.0.3
+    [TAJMAP_PB_PATH] => C:\laragon\www\Gunbroker\wp-content\plugins\tajmap-plot-booking/
+)
+
+[08-Oct-2025 05:23:12 UTC] TajMap: AJAX actions registered at 2025-10-08 05:23:12
+[08-Oct-2025 05:23:13 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:23:14 UTC] TajMap: AJAX actions registered at 2025-10-08 05:23:14
+[08-Oct-2025 05:23:14 UTC] TajMap: AJAX actions registered at 2025-10-08 05:23:14
+[08-Oct-2025 05:23:15 UTC] TajMap: AJAX actions registered at 2025-10-08 05:23:15
+[08-Oct-2025 05:23:15 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:23:16 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:23:16 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:23:16 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:23:16 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:23:16 UTC] TajMap: Loading global base map - Image ID: 357
+[08-Oct-2025 05:23:17 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:23:17 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:23:17 UTC] TajMap: ajax_get_plots called at 2025-10-08 05:23:17
+[08-Oct-2025 05:23:17 UTC] TajMap: POST data: Array
+(
+    [action] => tajmap_pb_get_plots
+    [nonce] => 12aa2ba7a6
+)
+
+[08-Oct-2025 05:23:17 UTC] TajMap: Found 6 plots in database
+[08-Oct-2025 05:23:17 UTC] TajMap: First plot structure: Array
+(
+    [id] => 1
+    [plot_name] => A-12
+    [street] => S-33
+    [sector] => lilly
+    [block] => A
+    [coordinates] => [
+  {
+    "x": 398,
+    "y": 154
+  },
+  {
+    "x": 348,
+    "y": 284
+  },
+  {
+    "x": 534,
+    "y": 369
+  }
+]
+    [status] => available
+    [base_image_id] => 0
+    [base_image_transform] => 
+    [created_at] => 2025-09-30 11:23:50
+    [updated_at] => 2025-10-01 05:01:43
+)
+
+[08-Oct-2025 05:23:17 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:23:17 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:23:17 UTC] TajMap: ajax_get_plots called at 2025-10-08 05:23:17
+[08-Oct-2025 05:23:17 UTC] TajMap: POST data: Array
+(
+    [action] => tajmap_pb_get_plots
+)
+
+[08-Oct-2025 05:23:17 UTC] TajMap: Found 6 plots in database
+[08-Oct-2025 05:23:17 UTC] TajMap: First plot structure: Array
+(
+    [id] => 1
+    [plot_name] => A-12
+    [street] => S-33
+    [sector] => lilly
+    [block] => A
+    [coordinates] => [
+  {
+    "x": 398,
+    "y": 154
+  },
+  {
+    "x": 348,
+    "y": 284
+  },
+  {
+    "x": 534,
+    "y": 369
+  }
+]
+    [status] => available
+    [base_image_id] => 0
+    [base_image_transform] => 
+    [created_at] => 2025-09-30 11:23:50
+    [updated_at] => 2025-10-01 05:01:43
+)
+
+[08-Oct-2025 05:23:18 UTC] TajMap: AJAX actions registered at 2025-10-08 05:23:18
+[08-Oct-2025 05:23:18 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:23:19 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:23:19 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:23:19 UTC] TajMap: ajax_get_image_url called
+[08-Oct-2025 05:23:19 UTC] TajMap: Requested image ID: 357
+[08-Oct-2025 05:23:19 UTC] TajMap: Image URL: http://localhost/Gunbroker/wp-content/uploads/2025/10/plot1-3.png
+[08-Oct-2025 05:23:19 UTC] TajMap: Returning image URL: http://localhost/Gunbroker/wp-content/uploads/2025/10/plot1-3.png
+[08-Oct-2025 05:25:27 UTC] TajMap: AJAX actions registered at 2025-10-08 05:25:27
+[08-Oct-2025 05:25:28 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:25:30 UTC] TajMap: plot_selection_shortcode called at 2025-10-08 05:25:30
+[08-Oct-2025 05:25:30 UTC] TajMap: Plugin constants: Array
+(
+    [TAJMAP_PB_URL] => http://localhost/Gunbroker/wp-content/plugins/tajmap-plot-booking/
+    [TAJMAP_PB_VERSION] => 2.0.3
+    [TAJMAP_PB_PATH] => C:\laragon\www\Gunbroker\wp-content\plugins\tajmap-plot-booking/
+)
+
+[08-Oct-2025 05:25:31 UTC] TajMap: AJAX actions registered at 2025-10-08 05:25:31
+[08-Oct-2025 05:25:32 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:25:32 UTC] TajMap: AJAX actions registered at 2025-10-08 05:25:32
+[08-Oct-2025 05:25:33 UTC] TajMap: AJAX actions registered at 2025-10-08 05:25:33
+[08-Oct-2025 05:25:33 UTC] TajMap: AJAX actions registered at 2025-10-08 05:25:33
+[08-Oct-2025 05:25:33 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:25:33 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:25:33 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:25:34 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:25:34 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:25:34 UTC] TajMap: ajax_get_plots called at 2025-10-08 05:25:34
+[08-Oct-2025 05:25:34 UTC] TajMap: POST data: Array
+(
+    [action] => tajmap_pb_get_plots
+    [nonce] => 12aa2ba7a6
+)
+
+[08-Oct-2025 05:25:34 UTC] TajMap: Found 6 plots in database
+[08-Oct-2025 05:25:34 UTC] TajMap: First plot structure: Array
+(
+    [id] => 1
+    [plot_name] => A-12
+    [street] => S-33
+    [sector] => lilly
+    [block] => A
+    [coordinates] => [
+  {
+    "x": 398,
+    "y": 154
+  },
+  {
+    "x": 348,
+    "y": 284
+  },
+  {
+    "x": 534,
+    "y": 369
+  }
+]
+    [status] => available
+    [base_image_id] => 0
+    [base_image_transform] => 
+    [created_at] => 2025-09-30 11:23:50
+    [updated_at] => 2025-10-01 05:01:43
+)
+
+[08-Oct-2025 05:25:34 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:25:34 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:25:34 UTC] TajMap: ajax_get_plots called at 2025-10-08 05:25:34
+[08-Oct-2025 05:25:34 UTC] TajMap: POST data: Array
+(
+    [action] => tajmap_pb_get_plots
+)
+
+[08-Oct-2025 05:25:34 UTC] TajMap: Found 6 plots in database
+[08-Oct-2025 05:25:34 UTC] TajMap: First plot structure: Array
+(
+    [id] => 1
+    [plot_name] => A-12
+    [street] => S-33
+    [sector] => lilly
+    [block] => A
+    [coordinates] => [
+  {
+    "x": 398,
+    "y": 154
+  },
+  {
+    "x": 348,
+    "y": 284
+  },
+  {
+    "x": 534,
+    "y": 369
+  }
+]
+    [status] => available
+    [base_image_id] => 0
+    [base_image_transform] => 
+    [created_at] => 2025-09-30 11:23:50
+    [updated_at] => 2025-10-01 05:01:43
+)
+
+[08-Oct-2025 05:25:34 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:25:34 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:25:34 UTC] TajMap: Loading global base map - Image ID: 357
+[08-Oct-2025 05:25:36 UTC] TajMap: AJAX actions registered at 2025-10-08 05:25:36
+[08-Oct-2025 05:25:37 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:25:37 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:25:37 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:25:37 UTC] TajMap: ajax_get_image_url called
+[08-Oct-2025 05:25:37 UTC] TajMap: Requested image ID: 357
+[08-Oct-2025 05:25:37 UTC] TajMap: Image URL: http://localhost/Gunbroker/wp-content/uploads/2025/10/plot1-3.png
+[08-Oct-2025 05:25:37 UTC] TajMap: Returning image URL: http://localhost/Gunbroker/wp-content/uploads/2025/10/plot1-3.png
+[08-Oct-2025 05:27:22 UTC] TajMap: AJAX actions registered at 2025-10-08 05:27:22
+[08-Oct-2025 05:27:23 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:27:24 UTC] TajMap: plot_selection_shortcode called at 2025-10-08 05:27:24
+[08-Oct-2025 05:27:24 UTC] TajMap: Plugin constants: Array
+(
+    [TAJMAP_PB_URL] => http://localhost/Gunbroker/wp-content/plugins/tajmap-plot-booking/
+    [TAJMAP_PB_VERSION] => 2.0.3
+    [TAJMAP_PB_PATH] => C:\laragon\www\Gunbroker\wp-content\plugins\tajmap-plot-booking/
+)
+
+[08-Oct-2025 05:27:25 UTC] TajMap: AJAX actions registered at 2025-10-08 05:27:25
+[08-Oct-2025 05:27:25 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:27:26 UTC] TajMap: AJAX actions registered at 2025-10-08 05:27:26
+[08-Oct-2025 05:27:26 UTC] TajMap: AJAX actions registered at 2025-10-08 05:27:26
+[08-Oct-2025 05:27:27 UTC] TajMap: AJAX actions registered at 2025-10-08 05:27:27
+[08-Oct-2025 05:27:27 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:27:27 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:27:28 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:27:28 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:27:28 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:27:28 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:27:28 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:27:28 UTC] TajMap: ajax_get_plots called at 2025-10-08 05:27:28
+[08-Oct-2025 05:27:28 UTC] TajMap: POST data: Array
+(
+    [action] => tajmap_pb_get_plots
+)
+
+[08-Oct-2025 05:27:28 UTC] TajMap: Found 6 plots in database
+[08-Oct-2025 05:27:28 UTC] TajMap: First plot structure: Array
+(
+    [id] => 1
+    [plot_name] => A-12
+    [street] => S-33
+    [sector] => lilly
+    [block] => A
+    [coordinates] => [
+  {
+    "x": 398,
+    "y": 154
+  },
+  {
+    "x": 348,
+    "y": 284
+  },
+  {
+    "x": 534,
+    "y": 369
+  }
+]
+    [status] => available
+    [base_image_id] => 0
+    [base_image_transform] => 
+    [created_at] => 2025-09-30 11:23:50
+    [updated_at] => 2025-10-01 05:01:43
+)
+
+[08-Oct-2025 05:27:28 UTC] TajMap: Loading global base map - Image ID: 357
+[08-Oct-2025 05:27:29 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:27:29 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:27:29 UTC] TajMap: ajax_get_plots called at 2025-10-08 05:27:29
+[08-Oct-2025 05:27:29 UTC] TajMap: POST data: Array
+(
+    [action] => tajmap_pb_get_plots
+    [nonce] => 12aa2ba7a6
+)
+
+[08-Oct-2025 05:27:29 UTC] TajMap: Found 6 plots in database
+[08-Oct-2025 05:27:29 UTC] TajMap: First plot structure: Array
+(
+    [id] => 1
+    [plot_name] => A-12
+    [street] => S-33
+    [sector] => lilly
+    [block] => A
+    [coordinates] => [
+  {
+    "x": 398,
+    "y": 154
+  },
+  {
+    "x": 348,
+    "y": 284
+  },
+  {
+    "x": 534,
+    "y": 369
+  }
+]
+    [status] => available
+    [base_image_id] => 0
+    [base_image_transform] => 
+    [created_at] => 2025-09-30 11:23:50
+    [updated_at] => 2025-10-01 05:01:43
+)
+
+[08-Oct-2025 05:27:30 UTC] TajMap: AJAX actions registered at 2025-10-08 05:27:30
+[08-Oct-2025 05:27:30 UTC] missing_token Unable to send request to WooCommerce Tax server. WordPress.com token is missing (fetch_service_schemas_from_connect_server)
+[08-Oct-2025 05:27:31 UTC] GunBroker: Successfully updated gunbroker_id column to allow NULL values
+[08-Oct-2025 05:27:31 UTC] GunBroker: Fixed 0 records with invalid gunbroker_id values
+[08-Oct-2025 05:27:31 UTC] TajMap: ajax_get_image_url called
+[08-Oct-2025 05:27:31 UTC] TajMap: Requested image ID: 357
+[08-Oct-2025 05:27:31 UTC] TajMap: Image URL: http://localhost/Gunbroker/wp-content/uploads/2025/10/plot1-3.png
+[08-Oct-2025 05:27:31 UTC] TajMap: Returning image URL: http://localhost/Gunbroker/wp-content/uploads/2025/10/plot1-3.png
