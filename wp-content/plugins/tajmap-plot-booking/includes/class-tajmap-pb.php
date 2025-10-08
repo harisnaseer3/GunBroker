@@ -503,11 +503,24 @@ class Plugin {
 		}
 		global $wpdb;
 		$id = isset($_POST['id']) ? intval($_POST['id']) : 0;
-		$status = isset($_POST['status']) && $_POST['status'] === 'contacted' ? 'contacted' : 'new';
-		if ($id > 0) {
-			$wpdb->update(TAJMAP_PB_TABLE_LEADS, ['status' => $status], ['id' => $id]);
+		$status = isset($_POST['status']) ? sanitize_text_field($_POST['status']) : 'new';
+		
+		// Validate status
+		$valid_statuses = ['new', 'contacted', 'interested', 'closed'];
+		if (!in_array($status, $valid_statuses)) {
+			wp_send_json_error(['message' => 'Invalid status'], 400);
 		}
-		wp_send_json_success();
+		
+		if ($id > 0) {
+			$result = $wpdb->update(TAJMAP_PB_TABLE_LEADS, ['status' => $status], ['id' => $id]);
+			if ($result !== false) {
+				wp_send_json_success(['message' => 'Status updated successfully']);
+			} else {
+				wp_send_json_error(['message' => 'Failed to update status: ' . $wpdb->last_error], 500);
+			}
+		} else {
+			wp_send_json_error(['message' => 'Invalid lead ID'], 400);
+		}
 	}
 
 	public function handle_export_csv() {

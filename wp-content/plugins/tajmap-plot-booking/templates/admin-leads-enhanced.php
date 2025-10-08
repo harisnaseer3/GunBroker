@@ -28,6 +28,15 @@ if ($search_filter) {
 
 $where_clause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
+// Get all leads for Kanban board (not filtered)
+$all_leads = $wpdb->get_results(
+    'SELECT l.*, p.plot_name, p.street, p.sector, p.block FROM ' . TAJMAP_PB_TABLE_LEADS . ' l
+     LEFT JOIN ' . TAJMAP_PB_TABLE_PLOTS . ' p ON p.id = l.plot_id
+     ORDER BY l.created_at DESC',
+    ARRAY_A
+);
+
+// Get filtered leads for list view
 $leads = $wpdb->get_results($wpdb->prepare(
     'SELECT l.*, p.plot_name, p.street, p.sector, p.block FROM ' . TAJMAP_PB_TABLE_LEADS . ' l
      LEFT JOIN ' . TAJMAP_PB_TABLE_PLOTS . ' p ON p.id = l.plot_id
@@ -35,12 +44,12 @@ $leads = $wpdb->get_results($wpdb->prepare(
     $params
 ), ARRAY_A);
 
-// Get lead statistics
-$total_leads = count($leads);
-$new_count = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM " . TAJMAP_PB_TABLE_LEADS . " WHERE status = %s " . $where_clause, array_merge(['new'], $params)));
-$contacted_count = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM " . TAJMAP_PB_TABLE_LEADS . " WHERE status = %s " . $where_clause, array_merge(['contacted'], $params)));
-$interested_count = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM " . TAJMAP_PB_TABLE_LEADS . " WHERE status = %s " . $where_clause, array_merge(['interested'], $params)));
-$closed_count = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM " . TAJMAP_PB_TABLE_LEADS . " WHERE status = %s " . $where_clause, array_merge(['closed'], $params)));
+// Get lead statistics (always show all leads, not filtered)
+$total_leads = $wpdb->get_var("SELECT COUNT(*) FROM " . TAJMAP_PB_TABLE_LEADS);
+$new_count = $wpdb->get_var("SELECT COUNT(*) FROM " . TAJMAP_PB_TABLE_LEADS . " WHERE status = 'new'");
+$contacted_count = $wpdb->get_var("SELECT COUNT(*) FROM " . TAJMAP_PB_TABLE_LEADS . " WHERE status = 'contacted'");
+$interested_count = $wpdb->get_var("SELECT COUNT(*) FROM " . TAJMAP_PB_TABLE_LEADS . " WHERE status = 'interested'");
+$closed_count = $wpdb->get_var("SELECT COUNT(*) FROM " . TAJMAP_PB_TABLE_LEADS . " WHERE status = 'closed'");
 
 $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_leads'), 'tajmap_pb_export');
 ?>
@@ -48,81 +57,49 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
     <div class="leads-header">
         <h1>Leads Management</h1>
         <div class="leads-actions">
-            <button class="btn primary" onclick="exportLeads()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7,10 12,15 17,10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                Export CSV
-            </button>
-            <button class="btn secondary" onclick="refreshLeads()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="23,4 23,10 17,10"></polyline>
-                    <polyline points="1,20 1,14 7,14"></polyline>
-                    <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4l-4.64,4.36A9,9,0,0,1,3.51,15"></path>
-                </svg>
-                Refresh
-            </button>
+            <button class="button" onclick="exportLeads()">Export Leads</button>
+            <button class="button" onclick="refreshLeads()">Refresh</button>
         </div>
     </div>
 
     <!-- Statistics Cards -->
     <div class="leads-stats">
         <div class="stat-card">
-            <div class="stat-value"><?php echo number_format($total_leads); ?></div>
+            <div class="stat-number"><?php echo $total_leads; ?></div>
             <div class="stat-label">Total Leads</div>
         </div>
         <div class="stat-card new">
-            <div class="stat-value"><?php echo number_format($new_count); ?></div>
+            <div class="stat-number"><?php echo $new_count; ?></div>
             <div class="stat-label">New</div>
         </div>
         <div class="stat-card contacted">
-            <div class="stat-value"><?php echo number_format($contacted_count); ?></div>
+            <div class="stat-number"><?php echo $contacted_count; ?></div>
             <div class="stat-label">Contacted</div>
         </div>
         <div class="stat-card interested">
-            <div class="stat-value"><?php echo number_format($interested_count); ?></div>
+            <div class="stat-number"><?php echo $interested_count; ?></div>
             <div class="stat-label">Interested</div>
         </div>
         <div class="stat-card closed">
-            <div class="stat-value"><?php echo number_format($closed_count); ?></div>
+            <div class="stat-number"><?php echo $closed_count; ?></div>
             <div class="stat-label">Closed</div>
         </div>
     </div>
 
-    <!-- Filters and Search -->
+    <!-- Filters -->
     <div class="leads-filters">
-        <div class="filter-row">
-            <div class="search-box">
-                <input type="text" id="leads-search" placeholder="Search by email, phone, or plot name..." value="<?php echo esc_attr($search_filter); ?>">
-                <button id="search-btn" class="search-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.35-4.35"></path>
-                    </svg>
-                </button>
-            </div>
-
-            <div class="filter-controls">
-                <select id="status-filter" class="filter-select">
-                    <option value="">All Status</option>
-                    <option value="new" <?php selected($status_filter, 'new'); ?>>New</option>
-                    <option value="contacted" <?php selected($status_filter, 'contacted'); ?>>Contacted</option>
-                    <option value="interested" <?php selected($status_filter, 'interested'); ?>>Interested</option>
-                    <option value="closed" <?php selected($status_filter, 'closed'); ?>>Closed</option>
-                </select>
-
-                <select id="sort-by" class="filter-select">
-                    <option value="newest">Newest First</option>
-                    <option value="oldest">Oldest First</option>
-                    <option value="status">By Status</option>
-                    <option value="plot">By Plot</option>
-                </select>
-
-                <button id="clear-filters" class="btn secondary small">Clear</button>
-            </div>
-        </div>
+        <form method="get" class="filter-form">
+            <input type="hidden" name="page" value="tajmap-plot-leads">
+            <select name="status" onchange="this.form.submit()">
+                <option value="all" <?php selected($status_filter, 'all'); ?>>All Status</option>
+                <option value="new" <?php selected($status_filter, 'new'); ?>>New</option>
+                <option value="contacted" <?php selected($status_filter, 'contacted'); ?>>Contacted</option>
+                <option value="interested" <?php selected($status_filter, 'interested'); ?>>Interested</option>
+                <option value="closed" <?php selected($status_filter, 'closed'); ?>>Closed</option>
+            </select>
+            <input type="text" name="search" placeholder="Search leads..." value="<?php echo esc_attr($search_filter); ?>">
+            <button type="submit" class="button">Search</button>
+        </form>
     </div>
 
     <!-- View Toggle -->
@@ -159,7 +136,7 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
                     <span class="column-count"><?php echo $new_count; ?></span>
                 </div>
                 <div class="column-content" id="new-leads">
-                    <?php foreach ($leads as $lead): ?>
+                    <?php foreach ($all_leads as $lead): ?>
                         <?php if ($lead['status'] === 'new'): ?>
                             <div class="lead-card" data-id="<?php echo $lead['id']; ?>">
                                 <div class="lead-header">
@@ -199,7 +176,7 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
                     <span class="column-count"><?php echo $contacted_count; ?></span>
                 </div>
                 <div class="column-content" id="contacted-leads">
-                    <?php foreach ($leads as $lead): ?>
+                    <?php foreach ($all_leads as $lead): ?>
                         <?php if ($lead['status'] === 'contacted'): ?>
                             <div class="lead-card contacted" data-id="<?php echo $lead['id']; ?>">
                                 <div class="lead-header">
@@ -236,7 +213,7 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
                     <span class="column-count"><?php echo $interested_count; ?></span>
                 </div>
                 <div class="column-content" id="interested-leads">
-                    <?php foreach ($leads as $lead): ?>
+                    <?php foreach ($all_leads as $lead): ?>
                         <?php if ($lead['status'] === 'interested'): ?>
                             <div class="lead-card interested" data-id="<?php echo $lead['id']; ?>">
                                 <div class="lead-header">
@@ -273,7 +250,7 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
                     <span class="column-count"><?php echo $closed_count; ?></span>
                 </div>
                 <div class="column-content" id="closed-leads">
-                    <?php foreach ($leads as $lead): ?>
+                    <?php foreach ($all_leads as $lead): ?>
                         <?php if ($lead['status'] === 'closed'): ?>
                             <div class="lead-card closed" data-id="<?php echo $lead['id']; ?>">
                                 <div class="lead-header">
@@ -394,36 +371,152 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
             </tbody>
         </table>
     </div>
+</div>
 
-    <!-- Lead Details Modal -->
-    <div class="modal-overlay" id="lead-modal">
-        <div class="modal-container large">
-            <div class="modal-header">
-                <h3>Lead Details</h3>
-                <button class="modal-close" id="lead-modal-close">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-
-            <div class="modal-body" id="lead-modal-body">
-                <div class="loading-state">
-                    <div class="loading-spinner"></div>
-                    <p>Loading lead details...</p>
-                </div>
-            </div>
+<!-- Lead Details Modal -->
+<div id="lead-modal" class="lead-modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Lead Details</h3>
+            <button id="lead-modal-close" class="close-btn">&times;</button>
+        </div>
+        <div id="lead-modal-body" class="modal-body">
+            <!-- Content will be loaded here -->
         </div>
     </div>
 </div>
 
 <script type="text/javascript">
-(function($) {
-    // Enhanced leads management functionality
-    $(document).ready(function() {
-        initializeLeadsManagement();
+// Global functions for leads management
+function viewLead(leadId) {
+    if (typeof TajMapPB === 'undefined') {
+        alert('Configuration error: TajMapPB not loaded');
+        return;
+    }
+    
+    // Load lead details in modal
+    jQuery.post(TajMapPB.ajaxUrl, {
+        action: 'tajmap_pb_get_lead_details',
+        nonce: TajMapPB.nonce,
+        lead_id: leadId
+    }, function(response) {
+        if (response.success) {
+            showLeadModal(response.data.lead, response.data.history);
+        } else {
+            alert('Failed to load lead details: ' + (response.data || 'Unknown error'));
+        }
+    }).fail(function(xhr, status, error) {
+        alert('AJAX error: ' + error);
     });
+}
+
+function showLeadModal(lead, history) {
+    const modal = jQuery('#lead-modal');
+    const body = jQuery('#lead-modal-body');
+    
+    // Show modal
+    modal.show();
+
+    body.html(`
+        <div class="lead-details">
+            <div class="details-grid">
+                <div class="detail-section">
+                    <h4>Lead Information</h4>
+                    <div class="detail-item">
+                        <label>Status:</label>
+                        <select class="lead-status-select" data-id="${lead.id}">
+                            <option value="new" ${lead.status === 'new' ? 'selected' : ''}>New</option>
+                            <option value="contacted" ${lead.status === 'contacted' ? 'selected' : ''}>Contacted</option>
+                            <option value="interested" ${lead.status === 'interested' ? 'selected' : ''}>Interested</option>
+                            <option value="closed" ${lead.status === 'closed' ? 'selected' : ''}>Closed</option>
+                        </select>
+                    </div>
+                    <div class="detail-item">
+                        <label>Plot:</label>
+                        <span>${lead.plot_name || 'Not specified'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Email:</label>
+                        <span>${lead.email}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Phone:</label>
+                        <span>${lead.phone}</span>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>Message</h4>
+                    <div class="message-content">
+                        ${lead.message || 'No message provided'}
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>Activity History</h4>
+                    <div class="history-timeline">
+                        ${history.map(h => `
+                            <div class="history-item">
+                                <div class="history-action">${h.action.replace('_', ' ')}</div>
+                                <div class="history-details">${h.details || ''}</div>
+                                <div class="history-time">${new Date(h.created_at).toLocaleString()}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `);
+
+    // Bind status change handler
+    jQuery('.lead-status-select').on('change', function() {
+        const leadId = jQuery(this).data('id');
+        const newStatus = jQuery(this).val();
+        updateLeadStatus(leadId, newStatus);
+    });
+}
+
+function updateLeadStatus(leadId, status) {
+    jQuery.post(TajMapPB.ajaxUrl, {
+        action: 'tajmap_pb_set_lead_status',
+        nonce: TajMapPB.nonce,
+        id: leadId,
+        status: status
+    }, function(response) {
+        if (response.success) {
+            // Update UI accordingly
+            location.reload();
+        } else {
+            alert('Failed to update lead status: ' + (response.data || 'Unknown error'));
+        }
+    }).fail(function(xhr, status, error) {
+        alert('AJAX error: ' + error);
+    });
+}
+
+function contactLead(leadId) {
+    updateLeadStatus(leadId, 'contacted');
+}
+
+function markInterested(leadId) {
+    updateLeadStatus(leadId, 'interested');
+}
+
+function markClosed(leadId) {
+    updateLeadStatus(leadId, 'closed');
+}
+
+function exportLeads() {
+    window.location.href = '<?php echo $export_url; ?>';
+}
+
+function refreshLeads() {
+    window.location.reload();
+}
+
+jQuery(document).ready(function($) {
+    // Enhanced leads management functionality
+    initializeLeadsManagement();
 
     function initializeLeadsManagement() {
         // View toggle functionality
@@ -432,41 +525,11 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
             toggleView(view);
         });
 
-        // Status filter functionality
-        $('#status-filter, #sort-by').on('change', function() {
-            applyFilters();
-        });
-
-        // Search functionality
-        $('#leads-search').on('input', debounce(applyFilters, 300));
-
         // Status change handlers
         $(document).on('change', '.lead-status-select', function() {
             const leadId = $(this).data('id');
             const newStatus = $(this).val();
             updateLeadStatus(leadId, newStatus);
-        });
-
-        // Lead card actions
-        $(document).on('click', '.lead-card .btn', function(e) {
-            e.stopPropagation();
-            const action = $(this).text().toLowerCase();
-            const leadId = $(this).closest('.lead-card').data('id');
-
-            switch(action) {
-                case 'view':
-                    viewLead(leadId);
-                    break;
-                case 'contact':
-                    contactLead(leadId);
-                    break;
-                case 'interested':
-                    markInterested(leadId);
-                    break;
-                case 'close deal':
-                    markClosed(leadId);
-                    break;
-            }
         });
     }
 
@@ -481,180 +544,6 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
             $('#kanban-view').hide();
             $('#list-view').show();
         }
-    }
-
-    function applyFilters() {
-        const status = $('#status-filter').val();
-        const search = $('#leads-search').val();
-        const sortBy = $('#sort-by').val();
-
-        // Update URL parameters
-        const url = new URL(window.location);
-        if (status) url.searchParams.set('status', status);
-        if (search) url.searchParams.set('search', search);
-        if (sortBy !== 'newest') url.searchParams.set('sort', sortBy);
-
-        window.location.href = url.toString();
-    }
-
-    function updateLeadStatus(leadId, status) {
-        $.post(TajMapPB.ajaxUrl, {
-            action: 'tajmap_pb_set_lead_status',
-            nonce: TajMapPB.nonce,
-            id: leadId,
-            status: status
-        }, function(response) {
-            if (response.success) {
-                // Update UI accordingly
-                $(`.lead-card[data-id="${leadId}"], tr[data-id="${leadId}"]`).fadeOut(300, function() {
-                    // Move to appropriate column or update status
-                    location.reload();
-                });
-            } else {
-                alert('Failed to update lead status');
-            }
-        });
-    }
-
-    function viewLead(leadId) {
-        if (typeof TajMapPB === 'undefined') {
-            alert('Configuration error: TajMapPB not loaded');
-            return;
-        }
-        
-        // Load lead details in modal
-        $.post(TajMapPB.ajaxUrl, {
-            action: 'tajmap_pb_get_lead_details',
-            nonce: TajMapPB.nonce,
-            lead_id: leadId
-        }, function(response) {
-            if (response.success) {
-                showLeadModal(response.data.lead, response.data.history);
-            } else {
-                alert('Failed to load lead details: ' + (response.data || 'Unknown error'));
-            }
-        }).fail(function(xhr, status, error) {
-            alert('AJAX error: ' + error);
-        });
-    }
-
-    function showLeadModal(lead, history) {
-        const modal = $('#lead-modal');
-        const body = $('#lead-modal-body');
-        
-        // Show modal
-        modal.show();
-
-        body.html(`
-            <div class="lead-details">
-                <div class="details-grid">
-                    <div class="detail-section">
-                        <h4>Lead Information</h4>
-                        <div class="detail-item">
-                            <label>Status:</label>
-                            <select class="lead-status-select" data-id="${lead.id}">
-                                <option value="new" ${lead.status === 'new' ? 'selected' : ''}>New</option>
-                                <option value="contacted" ${lead.status === 'contacted' ? 'selected' : ''}>Contacted</option>
-                                <option value="interested" ${lead.status === 'interested' ? 'selected' : ''}>Interested</option>
-                                <option value="closed" ${lead.status === 'closed' ? 'selected' : ''}>Closed</option>
-                            </select>
-                        </div>
-                        <div class="detail-item">
-                            <label>Plot:</label>
-                            <span>${lead.plot_name || 'Not specified'}</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>Email:</label>
-                            <span>${lead.email}</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>Phone:</label>
-                            <span>${lead.phone}</span>
-                        </div>
-                    </div>
-
-                    <div class="detail-section">
-                        <h4>Message</h4>
-                        <div class="message-content">
-                            ${lead.message || 'No message provided'}
-                        </div>
-                    </div>
-
-                    <div class="detail-section">
-                        <h4>Activity History</h4>
-                        <div class="history-timeline">
-                            ${history.map(h => `
-                                <div class="history-item">
-                                    <div class="history-action">${h.action.replace('_', ' ')}</div>
-                                    <div class="history-details">${h.details || ''}</div>
-                                    <div class="history-time">${new Date(h.created_at).toLocaleString()}</div>
-                                </div>
-                            `).join('')}
-                        </div>
-
-                        <div class="add-note">
-                            <h5>Add Note</h5>
-                            <textarea id="lead-note" placeholder="Add a note about this lead..."></textarea>
-                            <button class="btn primary small" onclick="addLeadNote(${lead.id})">Add Note</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `);
-
-        modal.show();
-    }
-
-    function addLeadNote(leadId) {
-        const note = $('#lead-note').val().trim();
-        if (!note) return;
-
-        $.post(TajMapPB.ajaxUrl, {
-            action: 'tajmap_pb_add_lead_note',
-            nonce: TajMapPB.nonce,
-            lead_id: leadId,
-            note: note
-        }, function(response) {
-            if (response.success) {
-                $('#lead-note').val('');
-                // Refresh modal content
-                viewLead(leadId);
-            } else {
-                alert('Failed to add note');
-            }
-        });
-    }
-
-    function contactLead(leadId) {
-        updateLeadStatus(leadId, 'contacted');
-    }
-
-    function markInterested(leadId) {
-        updateLeadStatus(leadId, 'interested');
-    }
-
-    function markClosed(leadId) {
-        updateLeadStatus(leadId, 'closed');
-    }
-
-    function exportLeads() {
-        window.location.href = '<?php echo $export_url; ?>';
-    }
-
-    function refreshLeads() {
-        window.location.reload();
-    }
-
-    function debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
     }
 
     // Modal event handlers
@@ -678,6 +567,447 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
             }
         });
     });
-
-})(jQuery);
+});
 </script>
+
+<style>
+.leads-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.leads-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.leads-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2em;
+    font-weight: bold;
+    color: #333;
+}
+
+.stat-label {
+    color: #666;
+    margin-top: 5px;
+}
+
+.stat-card.new .stat-number { color: #0073aa; }
+.stat-card.contacted .stat-number { color: #00a32a; }
+.stat-card.interested .stat-number { color: #dba617; }
+.stat-card.closed .stat-number { color: #d63638; }
+
+.leads-filters {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.filter-form {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.filter-form select,
+.filter-form input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.view-toggle {
+    margin-bottom: 20px;
+}
+
+.view-btn {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    background: #fff;
+    cursor: pointer;
+}
+
+.view-btn.active {
+    background: #0073aa;
+    color: #fff;
+}
+
+.leads-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.lead-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+    border-left: 4px solid #0073aa;
+}
+
+.lead-card.contacted { border-left-color: #00a32a; }
+.lead-card.interested { border-left-color: #dba617; }
+.lead-card.closed { border-left-color: #d63638; }
+
+.lead-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.lead-header h4 {
+    margin: 0;
+    color: #333;
+}
+
+.lead-contact {
+    margin-bottom: 15px;
+}
+
+.contact-item {
+    margin-bottom: 5px;
+}
+
+.lead-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-badge.new { background: #e3f2fd; color: #1976d2; }
+.status-badge.contacted { background: #e8f5e8; color: #2e7d32; }
+.status-badge.interested { background: #fff3e0; color: #f57c00; }
+.status-badge.closed { background: #ffebee; color: #c62828; }
+
+.lead-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: #fff;
+    border-radius: 8px;
+    max-width: 800px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.lead-details {
+    display: grid;
+    gap: 20px;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.detail-section h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+    border-bottom: 2px solid #0073aa;
+    padding-bottom: 5px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-item label {
+    font-weight: 500;
+    color: #555;
+}
+
+.detail-item span {
+    color: #333;
+}
+
+.message-content {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 4px;
+    border-left: 4px solid #0073aa;
+}
+
+.history-timeline {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.history-item {
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.history-action {
+    font-weight: 500;
+    color: #0073aa;
+}
+
+.history-details {
+    color: #666;
+    margin: 5px 0;
+}
+
+.history-time {
+    font-size: 12px;
+    color: #999;
+}
+
+.no-leads {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+/* Kanban Board Styles */
+.leads-kanban {
+    margin-top: 20px;
+}
+
+.kanban-columns {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    min-height: 600px;
+}
+
+.kanban-column {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    border: 1px solid #e9ecef;
+}
+
+.column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.column-header h3 {
+    margin: 0;
+    color: #495057;
+    font-size: 16px;
+}
+
+.column-count {
+    background: #6c757d;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.column-content {
+    min-height: 500px;
+}
+
+.lead-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-left: 4px solid #0073aa;
+    transition: all 0.3s ease;
+}
+
+.lead-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.lead-card.contacted { border-left-color: #00a32a; }
+.lead-card.interested { border-left-color: #dba617; }
+.lead-card.closed { border-left-color: #d63638; }
+
+.lead-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.lead-header h4 {
+    margin: 0;
+    color: #333;
+    font-size: 14px;
+    line-height: 1.3;
+}
+
+.lead-contact {
+    margin-bottom: 10px;
+}
+
+.contact-item {
+    margin-bottom: 3px;
+    font-size: 12px;
+    color: #666;
+}
+
+.lead-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 11px;
+    color: #999;
+}
+
+.has-message {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+}
+
+.lead-actions {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn.small {
+    padding: 3px 6px;
+    font-size: 10px;
+}
+
+.btn.primary {
+    background: #0073aa;
+    color: #fff;
+}
+
+.btn.secondary {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.btn.success {
+    background: #00a32a;
+    color: #fff;
+}
+
+.btn:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+}
+
+/* List View Styles */
+.leads-list {
+    margin-top: 20px;
+}
+
+.plot-info strong {
+    color: #333;
+    font-size: 14px;
+}
+
+.plot-details {
+    color: #666;
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.contact-info {
+    font-size: 13px;
+}
+
+.message-preview {
+    max-width: 200px;
+    font-size: 12px;
+    color: #666;
+}
+
+.lead-date {
+    font-size: 12px;
+}
+
+.time-ago {
+    color: #999;
+    font-size: 11px;
+}
+
+.lead-source {
+    font-size: 12px;
+    color: #666;
+    text-transform: capitalize;
+}
+</style>
