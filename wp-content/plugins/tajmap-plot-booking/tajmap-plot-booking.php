@@ -85,8 +85,9 @@ register_activation_hook(__FILE__, function () {
 	$leads_sql = "CREATE TABLE IF NOT EXISTS `" . TAJMAP_PB_TABLE_LEADS . "` (
 		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 		plot_id BIGINT UNSIGNED NOT NULL,
+		name VARCHAR(191) NULL,
 		phone VARCHAR(64) NOT NULL,
-		email VARCHAR(191) NOT NULL,
+		email VARCHAR(191) NULL,
 		message TEXT NULL,
 		status ENUM('new','contacted','interested','closed') NOT NULL DEFAULT 'new',
 		source VARCHAR(50) DEFAULT 'website',
@@ -97,6 +98,26 @@ register_activation_hook(__FILE__, function () {
 		KEY email_idx (email)
 	) $charset_collate;";
 	dbDelta($leads_sql);
+	
+	// Check if name column exists, if not add it
+	$name_column_exists = $wpdb->get_results($wpdb->prepare(
+		"SHOW COLUMNS FROM `" . TAJMAP_PB_TABLE_LEADS . "` LIKE %s",
+		'name'
+	));
+	
+	if (empty($name_column_exists)) {
+		$wpdb->query("ALTER TABLE `" . TAJMAP_PB_TABLE_LEADS . "` ADD COLUMN `name` VARCHAR(191) NULL AFTER `plot_id`");
+	}
+	
+	// Check if email column allows NULL, if not modify it
+	$email_column = $wpdb->get_results($wpdb->prepare(
+		"SHOW COLUMNS FROM `" . TAJMAP_PB_TABLE_LEADS . "` LIKE %s",
+		'email'
+	));
+	
+	if (!empty($email_column) && $email_column[0]->Null === 'NO') {
+		$wpdb->query("ALTER TABLE `" . TAJMAP_PB_TABLE_LEADS . "` MODIFY COLUMN `email` VARCHAR(191) NULL");
+	}
 
 	$users_sql = "CREATE TABLE IF NOT EXISTS `" . TAJMAP_PB_TABLE_USERS . "` (
 		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

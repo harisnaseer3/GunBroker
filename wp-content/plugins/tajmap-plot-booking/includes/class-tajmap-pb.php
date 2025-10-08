@@ -454,23 +454,36 @@ class Plugin {
 		$this->verify_nonce('tajmap_pb_public');
 		global $wpdb;
 		$plot_id = isset($_POST['plot_id']) ? intval($_POST['plot_id']) : 0;
+		$name = isset($_POST['name']) ? sanitize_text_field(wp_unslash($_POST['name'])) : '';
 		$phone = isset($_POST['phone']) ? sanitize_text_field(wp_unslash($_POST['phone'])) : '';
 		$email = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
 		$message = isset($_POST['message']) ? wp_kses_post(wp_unslash($_POST['message'])) : '';
 
-		if ($plot_id <= 0 || empty($phone) || empty($email) || !is_email($email)) {
-			wp_send_json_error(['message' => 'Invalid input'], 400);
+		// Validate required fields
+		if ($plot_id <= 0 || empty($name) || empty($phone) || empty($message)) {
+			wp_send_json_error(['message' => 'Please fill in all required fields'], 400);
+		}
+
+		// Email is optional, but if provided, must be valid
+		if (!empty($email) && !is_email($email)) {
+			wp_send_json_error(['message' => 'Invalid email address'], 400);
 		}
 
 		$wpdb->insert(TAJMAP_PB_TABLE_LEADS, [
 			'plot_id' => $plot_id,
+			'name' => $name,
 			'phone' => $phone,
 			'email' => $email,
 			'message' => $message,
 			'status' => 'new',
 			'created_at' => current_time('mysql'),
 		]);
-		wp_send_json_success(['id' => $wpdb->insert_id]);
+		
+		if ($wpdb->last_error) {
+			wp_send_json_error(['message' => 'Database error: ' . $wpdb->last_error], 500);
+		}
+		
+		wp_send_json_success(['id' => $wpdb->insert_id, 'message' => 'Lead saved successfully']);
 	}
 
 	public function ajax_set_lead_status() {

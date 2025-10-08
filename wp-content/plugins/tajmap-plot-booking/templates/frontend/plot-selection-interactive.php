@@ -57,6 +57,11 @@ if (!defined('ABSPATH')) { exit; }
                                     <span id="popup-plot-description">-</span>
                                 </div>
                             </div>
+                            <div class="popup-actions">
+                                <button id="popup-contact-btn" class="contact-btn" onclick="openContactForm()">
+                                    📝 Inquire Plot
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -88,6 +93,41 @@ if (!defined('ABSPATH')) { exit; }
         <h3>All Plots (<span id="plot-count">0</span>)</h3>
         <div id="plot-list" class="plot-list">
             <!-- Plots will be loaded here -->
+        </div>
+    </div>
+    
+    <!-- Contact Form Modal -->
+    <div id="contact-modal" class="contact-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeContactForm()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Contact Admin</h3>
+                <button class="close-btn" onclick="closeContactForm()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="contact-form">
+                    <div class="form-group">
+                        <label for="contact-name">Name *</label>
+                        <input type="text" id="contact-name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-email">Email (Optional)</label>
+                        <input type="email" id="contact-email" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-phone">Contact Number *</label>
+                        <input type="tel" id="contact-phone" name="phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-message">Message *</label>
+                        <textarea id="contact-message" name="message" rows="4" required placeholder="Tell us about your interest in this plot..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeContactForm()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Send Message</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -381,7 +421,7 @@ body .wrap {
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 1000;
-    pointer-events: none;
+    pointer-events: auto; /* Allow clicking on popup */
     max-width: 280px;
     opacity: 0;
     transform: translateY(-10px);
@@ -480,6 +520,200 @@ body .wrap {
     border: 6px solid transparent;
     border-top-color: white;
     margin-top: -2px;
+}
+
+/* Contact Button in Popup */
+.popup-actions {
+    padding: 12px 16px;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.contact-btn {
+    width: 100%;
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    pointer-events: auto; /* Ensure button is clickable */
+}
+
+.contact-btn:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+/* Contact Modal Styles */
+.contact-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    position: relative;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+    border-radius: 12px 12px 0 0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #374151;
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.btn-secondary {
+    background: #6b7280;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+}
+
+.btn-primary:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
 }
 
 /* Pagination */
@@ -1122,9 +1356,16 @@ jQuery(document).ready(function($) {
             canvas.style.cursor = 'grab';
         });
         
-        // Mouse move for hover popup
+        // Mouse move for hover popup - immediate show
+        let hoverTimeout;
+        let lastHoveredPlot = null;
+        let isPopupVisible = false;
+        
         $('#plot-canvas').on('mousemove', function(e) {
             if (isDragging) return;
+            
+            // Clear previous timeout
+            clearTimeout(hoverTimeout);
             
             const rect = canvas.getBoundingClientRect();
             const x = (e.clientX - rect.left - panX) / scale;
@@ -1145,16 +1386,41 @@ jQuery(document).ready(function($) {
                 }
             });
             
-            if (hoveredPlot) {
+            if (hoveredPlot && hoveredPlot.id !== lastHoveredPlot?.id) {
+                // New plot hovered, show popup immediately
                 showHoverPopup(e, hoveredPlot);
-            } else {
-                hideHoverPopup();
+                lastHoveredPlot = hoveredPlot;
+                isPopupVisible = true;
+            } else if (!hoveredPlot && isPopupVisible) {
+                // No plot hovered, hide popup after delay to allow moving to popup
+                hoverTimeout = setTimeout(() => {
+                    hideHoverPopup();
+                    lastHoveredPlot = null;
+                    isPopupVisible = false;
+                }, 1000); // 1 second delay to allow moving to popup
             }
         });
         
         // Mouse leave to hide popup
         $('#plot-canvas').on('mouseleave', function() {
+            clearTimeout(hoverTimeout);
             hideHoverPopup();
+            lastHoveredPlot = null;
+        });
+        
+        // Prevent popup from hiding when mouse enters popup
+        $('#plot-hover-popup').on('mouseenter', function() {
+            clearTimeout(hoverTimeout);
+            // Keep popup visible when mouse is over it
+        });
+        
+        // Hide popup when mouse leaves popup (with longer delay)
+        $('#plot-hover-popup').on('mouseleave', function() {
+            hoverTimeout = setTimeout(() => {
+                hideHoverPopup();
+                lastHoveredPlot = null;
+                isPopupVisible = false;
+            }, 500); // Longer delay to allow moving back to plot
         });
         
         // Click on plot
@@ -1379,8 +1645,8 @@ jQuery(document).ready(function($) {
         // Calculate popup position (above and to the right of mouse)
         const popupWidth = 280;
         const popupHeight = 200;
-        const offsetX = 20;
-        const offsetY = -popupHeight - 20;
+        const offsetX = 30; // Increased gap
+        const offsetY = -popupHeight - 30; // Increased gap
         
         let left = mouseX + offsetX;
         let top = mouseY + offsetY;
@@ -1410,8 +1676,153 @@ jQuery(document).ready(function($) {
         popup.removeClass('show');
         setTimeout(() => {
             popup.hide();
+            isPopupVisible = false;
         }, 200);
     }
+    
+    // Contact form functions
+    let currentPlotId = null;
+    
+    function openContactForm() {
+        // Get the currently hovered plot ID
+        currentPlotId = getCurrentHoveredPlotId();
+        
+        // Get plot details for auto-filling message
+        const plot = plots.find(p => p.id == currentPlotId);
+        if (plot) {
+            // Update modal header with plot name
+            $('.modal-header h3').text(`Inquire about Plot: ${plot.plot_name || 'N/A'}`);
+            
+            // Auto-fill message with plot details
+            const plotDetails = `Plot: ${plot.plot_name || 'N/A'}\nSector: ${plot.sector || 'N/A'}\nBlock: ${plot.block || 'N/A'}\nStreet: ${plot.street || 'N/A'}\n\nI am interested in this plot. Please provide more information about availability and pricing.`;
+            $('#contact-message').val(plotDetails);
+        }
+        
+        $('#contact-modal').show();
+        $('body').css('overflow', 'hidden'); // Prevent background scrolling
+    }
+    
+    function closeContactForm() {
+        $('#contact-modal').hide();
+        $('body').css('overflow', ''); // Restore scrolling
+        $('#contact-form')[0].reset(); // Reset form
+        $('.modal-header h3').text('Contact Admin'); // Reset header
+        currentPlotId = null;
+    }
+    
+    function getCurrentHoveredPlotId() {
+        // This would need to be set when hovering over a plot
+        // For now, we'll use a global variable or find another way
+        return window.currentHoveredPlotId || null;
+    }
+    
+    // Set the current hovered plot ID when showing popup
+    function showHoverPopup(event, plot) {
+        const popup = $('#plot-hover-popup');
+        const rect = canvas.getBoundingClientRect();
+        
+        // Store the current plot ID for contact form
+        window.currentHoveredPlotId = plot.id;
+        
+        // Update popup content
+        $('#popup-plot-name').text(plot.plot_name || 'Plot');
+        $('#popup-plot-status').text(plot.status || 'Unknown').removeClass('available sold').addClass(plot.status || 'available');
+        $('#popup-plot-sector').text(plot.sector || 'N/A');
+        $('#popup-plot-block').text(plot.block || 'N/A');
+        $('#popup-plot-street').text(plot.street || 'N/A');
+        
+        // Show description if available
+        if (plot.description && plot.description.trim()) {
+            $('#popup-plot-description').text(plot.description);
+            $('#popup-description-row').show();
+        } else {
+            $('#popup-description-row').hide();
+        }
+        
+        // Position popup
+        const mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+        
+        // Calculate popup position (above and to the right of mouse)
+        const popupWidth = 280;
+        const popupHeight = 200;
+        const offsetX = 30; // Increased gap
+        const offsetY = -popupHeight - 30; // Increased gap
+        
+        let left = mouseX + offsetX;
+        let top = mouseY + offsetY;
+        
+        // Adjust if popup would go off screen
+        if (left + popupWidth > rect.width) {
+            left = mouseX - popupWidth - offsetX;
+        }
+        if (top < 0) {
+            top = mouseY + 20;
+        }
+        
+        popup.css({
+            left: left + 'px',
+            top: top + 'px',
+            display: 'block'
+        });
+        
+        // Show with animation
+        setTimeout(() => {
+            popup.addClass('show');
+        }, 10);
+    }
+    
+    // Contact form submission
+    $(document).ready(function() {
+        $('#contact-form').on('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                action: 'tajmap_pb_save_lead',
+                plot_id: currentPlotId,
+                name: $('#contact-name').val(),
+                email: $('#contact-email').val(),
+                phone: $('#contact-phone').val(),
+                message: $('#contact-message').val(),
+                nonce: TajMapFrontend ? TajMapFrontend.nonce : ''
+            };
+            
+            // Validate required fields
+            if (!formData.name || !formData.phone || !formData.message) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            // Disable submit button
+            const submitBtn = $(this).find('button[type="submit"]');
+            submitBtn.prop('disabled', true).text('Sending...');
+            
+            // Send AJAX request
+            $.ajax({
+                url: TajMapFrontend ? TajMapFrontend.ajaxUrl : '/wp-admin/admin-ajax.php',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    console.log('Contact form response:', response);
+                    
+                    if (response.success) {
+                        alert('Thank you! Your message has been sent to the admin.');
+                        closeContactForm();
+                    } else {
+                        alert('Error: ' + (response.data || 'Failed to send message. Please try again.'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Contact form error:', status, error);
+                    alert('Error sending message. Please try again.');
+                },
+                complete: function() {
+                    // Re-enable submit button
+                    submitBtn.prop('disabled', false).text('Send Message');
+                }
+            });
+        });
+    });
     
     // Express interest function
     window.expressInterest = function(plotId) {
