@@ -30,6 +30,36 @@ if (!defined('ABSPATH')) { exit; }
                     <p>Loading plots...</p>
                 </div>
                 <canvas id="plot-canvas" width="800" height="600"></canvas>
+                
+                <!-- Hover Popup -->
+                <div id="plot-hover-popup" class="plot-hover-popup" style="display: none;">
+                    <div class="popup-content">
+                        <div class="popup-header">
+                            <h4 id="popup-plot-name">Plot Name</h4>
+                            <span id="popup-plot-status" class="status-badge">Available</span>
+                        </div>
+                        <div class="popup-body">
+                            <div class="popup-details">
+                                <div class="detail-row">
+                                    <span class="label">Sector:</span>
+                                    <span id="popup-plot-sector">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="label">Block:</span>
+                                    <span id="popup-plot-block">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="label">Street:</span>
+                                    <span id="popup-plot-street">-</span>
+                                </div>
+                                <div class="detail-row" id="popup-description-row" style="display: none;">
+                                    <span class="label">Description:</span>
+                                    <span id="popup-plot-description">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -341,6 +371,115 @@ body .wrap {
 
 .btn-primary:hover {
     background: #059669;
+}
+
+/* Hover Popup Styles */
+.plot-hover-popup {
+    position: absolute;
+    background: white;
+    border: 2px solid #007cba;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    pointer-events: none;
+    max-width: 280px;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+}
+
+.plot-hover-popup.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.popup-content {
+    padding: 0;
+}
+
+.popup-header {
+    background: #007cba;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 6px 6px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.popup-header h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.status-badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.status-badge.sold {
+    background: #dc3545;
+}
+
+.status-badge.available {
+    background: #28a745;
+}
+
+.popup-body {
+    padding: 16px;
+}
+
+.popup-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-size: 14px;
+}
+
+.detail-row .label {
+    font-weight: 600;
+    color: #555;
+    min-width: 80px;
+}
+
+.detail-row span:last-child {
+    color: #333;
+    text-align: right;
+    flex: 1;
+    margin-left: 8px;
+}
+
+/* Popup Arrow */
+.plot-hover-popup::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-top-color: #007cba;
+}
+
+.plot-hover-popup::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: white;
+    margin-top: -2px;
 }
 
 /* Pagination */
@@ -983,6 +1122,41 @@ jQuery(document).ready(function($) {
             canvas.style.cursor = 'grab';
         });
         
+        // Mouse move for hover popup
+        $('#plot-canvas').on('mousemove', function(e) {
+            if (isDragging) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left - panX) / scale;
+            const y = (e.clientY - rect.top - panY) / scale;
+            
+            // Find hovered plot
+            let hoveredPlot = null;
+            plots.forEach(plot => {
+                if (plot.coordinates) {
+                    try {
+                        const coords = parseCoordinates(plot.coordinates);
+                        if (isPointInPolygon(x, y, coords)) {
+                            hoveredPlot = plot;
+                        }
+                    } catch (e) {
+                        console.error('Error checking plot hover:', e);
+                    }
+                }
+            });
+            
+            if (hoveredPlot) {
+                showHoverPopup(e, hoveredPlot);
+            } else {
+                hideHoverPopup();
+            }
+        });
+        
+        // Mouse leave to hide popup
+        $('#plot-canvas').on('mouseleave', function() {
+            hideHoverPopup();
+        });
+        
         // Click on plot
         $('#plot-canvas').on('click', function(e) {
             if (isDragging) return;
@@ -1176,6 +1350,67 @@ jQuery(document).ready(function($) {
             }
         }
         return inside;
+    }
+    
+    // Hover popup functions
+    function showHoverPopup(event, plot) {
+        const popup = $('#plot-hover-popup');
+        const rect = canvas.getBoundingClientRect();
+        
+        // Update popup content
+        $('#popup-plot-name').text(plot.plot_name || 'Plot');
+        $('#popup-plot-status').text(plot.status || 'Unknown').removeClass('available sold').addClass(plot.status || 'available');
+        $('#popup-plot-sector').text(plot.sector || 'N/A');
+        $('#popup-plot-block').text(plot.block || 'N/A');
+        $('#popup-plot-street').text(plot.street || 'N/A');
+        
+        // Show description if available
+        if (plot.description && plot.description.trim()) {
+            $('#popup-plot-description').text(plot.description);
+            $('#popup-description-row').show();
+        } else {
+            $('#popup-description-row').hide();
+        }
+        
+        // Position popup
+        const mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+        
+        // Calculate popup position (above and to the right of mouse)
+        const popupWidth = 280;
+        const popupHeight = 200;
+        const offsetX = 20;
+        const offsetY = -popupHeight - 20;
+        
+        let left = mouseX + offsetX;
+        let top = mouseY + offsetY;
+        
+        // Adjust if popup would go off screen
+        if (left + popupWidth > rect.width) {
+            left = mouseX - popupWidth - offsetX;
+        }
+        if (top < 0) {
+            top = mouseY + 20;
+        }
+        
+        popup.css({
+            left: left + 'px',
+            top: top + 'px',
+            display: 'block'
+        });
+        
+        // Show with animation
+        setTimeout(() => {
+            popup.addClass('show');
+        }, 10);
+    }
+    
+    function hideHoverPopup() {
+        const popup = $('#plot-hover-popup');
+        popup.removeClass('show');
+        setTimeout(() => {
+            popup.hide();
+        }, 200);
     }
     
     // Express interest function
