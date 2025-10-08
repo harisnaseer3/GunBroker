@@ -764,7 +764,10 @@ jQuery(document).ready(function($) {
     console.log('TajMapFrontend object:', typeof TajMapFrontend !== 'undefined' ? TajMapFrontend : 'UNDEFINED');
     
     // Global variables
-    let plots = [];
+    window.plots = [];
+    window.currentPlotId = null;
+    window.isPopupVisible = false;
+    window.isMouseOverPopup = false;
     let pagedPlots = [];
     let currentPage = 1;
     const pageSize = 12; // paginate after 12 plots
@@ -837,7 +840,7 @@ jQuery(document).ready(function($) {
         console.log('Canvas resized:', canvasWidth, 'x', canvasHeight);
         
         // Redraw if plots are loaded
-        if (plots.length > 0) {
+        if (window.plots.length > 0) {
             drawAll();
         }
     }
@@ -865,11 +868,11 @@ jQuery(document).ready(function($) {
                 console.log('📡 AJAX Response:', response);
                 
                 if (response.success && response.data && response.data.plots) {
-                    plots = response.data.plots;
-                    console.log('📊 Found', plots.length, 'plots');
+                    window.plots = response.data.plots;
+                    console.log('📊 Found', window.plots.length, 'plots');
                     
                     // Debug each plot with base image info
-                    plots.forEach((plot, i) => {
+                    window.plots.forEach((plot, i) => {
                         console.log(`📊 Plot ${i}:`, {
                             id: plot.id,
                             name: plot.plot_name,
@@ -882,7 +885,7 @@ jQuery(document).ready(function($) {
                     });
                     
                     // Update plot count
-                    $('#plot-count').text(plots.length);
+                    $('#plot-count').text(window.plots.length);
                     
                     // Note: Global base map is loaded separately, not per-plot
                     
@@ -970,14 +973,14 @@ jQuery(document).ready(function($) {
 
     // Draw all plots
     function drawAll() {
-        console.log('🎨 drawAll called - plots:', plots.length, 'canvas:', canvasWidth, 'x', canvasHeight);
+        console.log('🎨 drawAll called - plots:', window.plots.length, 'canvas:', canvasWidth, 'x', canvasHeight);
         
         if (!ctx) {
             console.error('❌ No canvas context');
             return;
         }
         
-        if (plots.length === 0) {
+        if (window.plots.length === 0) {
             console.log('⚠️ No plots to draw');
             // Still draw background
             ctx.fillStyle = 'khaki';
@@ -1015,7 +1018,7 @@ jQuery(document).ready(function($) {
         console.log('🎨 Transform applied - panX:', panX, 'panY:', panY, 'scale:', scale);
         
         // Draw plots
-        plots.forEach((plot, index) => {
+        window.plots.forEach((plot, index) => {
             console.log(`🎨 Drawing plot ${index}:`, plot);
             drawPlot(plot, index);
         });
@@ -1090,17 +1093,17 @@ jQuery(document).ready(function($) {
     
     // Update pagination data
     function updatePagination() {
-        const total = plots.length;
+        const total = window.plots.length;
         const totalPages = Math.max(1, Math.ceil(total / pageSize));
         if (currentPage > totalPages) currentPage = totalPages;
         const start = (currentPage - 1) * pageSize;
         const end = start + pageSize;
-        pagedPlots = plots.slice(start, end);
+        pagedPlots = window.plots.slice(start, end);
         renderPlotList(totalPages);
     }
 
     // Render plot list
-    function renderPlotList(totalPages = Math.max(1, Math.ceil(plots.length / pageSize))) {
+    function renderPlotList(totalPages = Math.max(1, Math.ceil(window.plots.length / pageSize))) {
         const plotList = $('#plot-list');
         plotList.empty();
         
@@ -1126,7 +1129,7 @@ jQuery(document).ready(function($) {
         // Pagination controls
         const controlsId = 'plot-pagination-controls';
         $('#' + controlsId).remove();
-        if (plots.length > pageSize) {
+        if (window.plots.length > pageSize) {
             const pagination = $(`
                 <div id="${controlsId}" class="pagination">
                     <button id="plot-prev" class="page-btn" ${currentPage === 1 ? 'disabled' : ''} aria-label="Previous page">‹</button>
@@ -1136,7 +1139,7 @@ jQuery(document).ready(function($) {
             `);
             plotList.after(pagination);
             $('#plot-prev').on('click', function(){ if (currentPage > 1) { currentPage--; updatePagination(); }});
-            $('#plot-next').on('click', function(){ const max = Math.ceil(plots.length / pageSize); if (currentPage < max) { currentPage++; updatePagination(); }});
+            $('#plot-next').on('click', function(){ const max = Math.ceil(window.plots.length / pageSize); if (currentPage < max) { currentPage++; updatePagination(); }});
             // number buttons
             $('.page-btn[data-page]').on('click', function(){ const p = parseInt($(this).data('page')); if (!Number.isNaN(p) && p !== currentPage) { currentPage = p; updatePagination(); }});
         }
@@ -1263,13 +1266,13 @@ jQuery(document).ready(function($) {
     
     // Fit to view
     function fitToView() {
-        if (plots.length === 0) return;
+        if (window.plots.length === 0) return;
         
         // Calculate bounds
         let minX = Infinity, maxX = -Infinity;
         let minY = Infinity, maxY = -Infinity;
         
-        plots.forEach(plot => {
+        window.plots.forEach(plot => {
             if (plot.coordinates) {
                 try {
                     const coords = parseCoordinates(plot.coordinates);
@@ -1360,8 +1363,6 @@ jQuery(document).ready(function($) {
         // Mouse move for hover popup - immediate show
         let hoverTimeout;
         let lastHoveredPlot = null;
-        let isPopupVisible = false;
-        let isMouseOverPopup = false;
         
         $('#plot-canvas').on('mousemove', function(e) {
             if (isDragging) return;
@@ -1375,7 +1376,7 @@ jQuery(document).ready(function($) {
             
             // Find hovered plot
             let hoveredPlot = null;
-            plots.forEach(plot => {
+            window.plots.forEach(plot => {
                 if (plot.coordinates) {
                     try {
                         const coords = parseCoordinates(plot.coordinates);
@@ -1392,16 +1393,14 @@ jQuery(document).ready(function($) {
                 // New plot hovered, show popup immediately
                 showHoverPopup(e, hoveredPlot);
                 lastHoveredPlot = hoveredPlot;
-                isPopupVisible = true;
-            } else if (!hoveredPlot && isPopupVisible && !isMouseOverPopup) {
+                window.isPopupVisible = true;
+            } else if (!hoveredPlot && window.isPopupVisible && !window.isMouseOverPopup) {
                 // No plot hovered and mouse not over popup, hide popup after short delay
-                console.log('No plot hovered, setting timeout to hide popup');
                 hoverTimeout = setTimeout(() => {
-                    if (!isMouseOverPopup) {
-                        console.log('Hiding popup due to timeout');
+                    if (!window.isMouseOverPopup) {
                         hideHoverPopup();
                         lastHoveredPlot = null;
-                        isPopupVisible = false;
+                        window.isPopupVisible = false;
                     }
                 }, 500); // Short delay to allow moving to popup
             }
@@ -1411,12 +1410,12 @@ jQuery(document).ready(function($) {
         $('#plot-canvas').on('mouseleave', function() {
             clearTimeout(hoverTimeout);
             // Only hide if mouse is not over popup
-            if (!isMouseOverPopup) {
+            if (!window.isMouseOverPopup) {
                 hoverTimeout = setTimeout(() => {
-                    if (!isMouseOverPopup) {
+                    if (!window.isMouseOverPopup) {
                         hideHoverPopup();
                         lastHoveredPlot = null;
-                        isPopupVisible = false;
+                        window.isPopupVisible = false;
                     }
                 }, 1000); // Give time to move to popup
             }
@@ -1424,20 +1423,19 @@ jQuery(document).ready(function($) {
         
         // Track when mouse enters popup - keep it visible
         $('#plot-hover-popup').on('mouseenter', function() {
-            console.log('Mouse entered popup');
             clearTimeout(hoverTimeout);
-            isMouseOverPopup = true;
-            isPopupVisible = true; // Ensure popup stays visible
+            window.isMouseOverPopup = true;
+            window.isPopupVisible = true; // Ensure popup stays visible
             // Keep popup visible when mouse is over it
         });
         
         // Track when mouse leaves popup - hide it immediately
         $('#plot-hover-popup').on('mouseleave', function() {
-            isMouseOverPopup = false;
+            window.isMouseOverPopup = false;
             // Hide popup immediately when mouse leaves popup
             hideHoverPopup();
             lastHoveredPlot = null;
-            isPopupVisible = false;
+            window.isPopupVisible = false;
         });
         
         // Click on plot
@@ -1449,7 +1447,7 @@ jQuery(document).ready(function($) {
             const y = (e.clientY - rect.top - panY) / scale;
             
             // Find clicked plot
-            plots.forEach(plot => {
+            window.plots.forEach(plot => {
                 if (plot.coordinates) {
                     try {
                         const coords = parseCoordinates(plot.coordinates);
@@ -1598,7 +1596,7 @@ jQuery(document).ready(function($) {
     function drawBaseImages() {
         console.log('Drawing base images, plots with images:', Object.keys(baseImages).length);
         // Draw base images for all plots that have them
-        plots.forEach(plot => {
+        window.plots.forEach(plot => {
             if (baseImages[plot.id] && baseImageTransforms[plot.id]) {
                 const img = baseImages[plot.id];
                 const transform = baseImageTransforms[plot.id];
@@ -1642,46 +1640,12 @@ jQuery(document).ready(function($) {
         popup.removeClass('show');
         setTimeout(() => {
             popup.hide();
-            isPopupVisible = false;
-            isMouseOverPopup = false;
+            window.isPopupVisible = false;
+            window.isMouseOverPopup = false;
         }, 200);
     }
     
-    // Contact form functions
-    let currentPlotId = null;
-    
-    function openContactForm() {
-        // Get the currently hovered plot ID
-        currentPlotId = getCurrentHoveredPlotId();
-        
-        // Get plot details for auto-filling message
-        const plot = plots.find(p => p.id == currentPlotId);
-        if (plot) {
-            // Update modal header with plot name
-            $('.modal-header h3').text(`Inquire about Plot: ${plot.plot_name || 'N/A'}`);
-            
-            // Auto-fill message with plot details
-            const plotDetails = `Plot: ${plot.plot_name || 'N/A'}\nSector: ${plot.sector || 'N/A'}\nBlock: ${plot.block || 'N/A'}\nStreet: ${plot.street || 'N/A'}\n\nI am interested in this plot. Please provide more information about availability and pricing.`;
-            $('#contact-message').val(plotDetails);
-        }
-        
-        $('#contact-modal').show();
-        $('body').css('overflow', 'hidden'); // Prevent background scrolling
-    }
-    
-    function closeContactForm() {
-        $('#contact-modal').hide();
-        $('body').css('overflow', ''); // Restore scrolling
-        $('#contact-form')[0].reset(); // Reset form
-        $('.modal-header h3').text('Contact Admin'); // Reset header
-        currentPlotId = null;
-    }
-    
-    function getCurrentHoveredPlotId() {
-        // This would need to be set when hovering over a plot
-        // For now, we'll use a global variable or find another way
-        return window.currentHoveredPlotId || null;
-    }
+    // Contact form functions (moved to global scope)
     
     // Set the current hovered plot ID when showing popup
     function showHoverPopup(event, plot) {
@@ -1710,8 +1674,6 @@ jQuery(document).ready(function($) {
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
         
-        console.log('Positioning popup at:', mouseX, mouseY);
-        
         // Calculate popup position (very close to mouse)
         const popupWidth = 280;
         const popupHeight = 200;
@@ -1735,8 +1697,6 @@ jQuery(document).ready(function($) {
             display: 'block'
         });
         
-        console.log('Popup positioned at:', left, top);
-        
         // Show with animation
         setTimeout(() => {
             popup.addClass('show');
@@ -1750,7 +1710,7 @@ jQuery(document).ready(function($) {
             
             const formData = {
                 action: 'tajmap_pb_save_lead',
-                plot_id: currentPlotId,
+                plot_id: window.currentPlotId,
                 name: $('#contact-name').val(),
                 email: $('#contact-email').val(),
                 phone: $('#contact-phone').val(),
@@ -1804,4 +1764,43 @@ jQuery(document).ready(function($) {
     // Initialize
     init();
 });
+
+// Global functions for contact form
+function openContactForm() {
+    console.log('openContactForm called - jQuery available:', typeof jQuery !== 'undefined');
+    // Get the currently hovered plot ID
+    window.currentPlotId = getCurrentHoveredPlotId();
+    console.log('Current plot ID:', window.currentPlotId);
+    
+    // Get plot details for auto-filling message
+    const plot = window.plots.find(p => p.id == window.currentPlotId);
+    console.log('Found plot:', plot);
+    
+    if (plot) {
+        // Update modal header with plot name
+        jQuery('.modal-header h3').text(`Inquire about Plot: ${plot.plot_name || 'N/A'}`);
+        
+        // Auto-fill message with plot details
+        const plotDetails = `Plot: ${plot.plot_name || 'N/A'}\nSector: ${plot.sector || 'N/A'}\nBlock: ${plot.block || 'N/A'}\nStreet: ${plot.street || 'N/A'}\n\nI am interested in this plot. Please provide more information about availability and pricing.`;
+        jQuery('#contact-message').val(plotDetails);
+    }
+    
+    console.log('Showing contact modal');
+    jQuery('#contact-modal').show();
+    jQuery('body').css('overflow', 'hidden'); // Prevent background scrolling
+}
+
+function closeContactForm() {
+    jQuery('#contact-modal').hide();
+    jQuery('body').css('overflow', ''); // Restore scrolling
+    jQuery('#contact-form')[0].reset(); // Reset form
+    jQuery('.modal-header h3').text('Contact Admin'); // Reset header
+    window.currentPlotId = null;
+}
+
+function getCurrentHoveredPlotId() {
+    // This would need to be set when hovering over a plot
+    // For now, we'll use a global variable or find another way
+    return window.currentHoveredPlotId || null;
+}
 </script>

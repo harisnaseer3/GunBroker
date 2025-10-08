@@ -451,7 +451,8 @@ class Plugin {
 	}
 
 	public function ajax_save_lead() {
-		$this->verify_nonce('tajmap_pb_public');
+		error_log('TajMap: ajax_save_lead called with POST data: ' . print_r($_POST, true));
+		$this->verify_nonce('tajmap_pb_frontend');
 		global $wpdb;
 		$plot_id = isset($_POST['plot_id']) ? intval($_POST['plot_id']) : 0;
 		$name = isset($_POST['name']) ? sanitize_text_field(wp_unslash($_POST['name'])) : '';
@@ -459,8 +460,11 @@ class Plugin {
 		$email = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
 		$message = isset($_POST['message']) ? wp_kses_post(wp_unslash($_POST['message'])) : '';
 
+		error_log('TajMap: Parsed lead data - plot_id: ' . $plot_id . ', name: ' . $name . ', phone: ' . $phone . ', email: ' . $email);
+
 		// Validate required fields
 		if ($plot_id <= 0 || empty($name) || empty($phone) || empty($message)) {
+			error_log('TajMap: Lead validation failed - plot_id: ' . $plot_id . ', name: ' . $name . ', phone: ' . $phone . ', message: ' . $message);
 			wp_send_json_error(['message' => 'Please fill in all required fields'], 400);
 		}
 
@@ -469,7 +473,7 @@ class Plugin {
 			wp_send_json_error(['message' => 'Invalid email address'], 400);
 		}
 
-		$wpdb->insert(TAJMAP_PB_TABLE_LEADS, [
+		$result = $wpdb->insert(TAJMAP_PB_TABLE_LEADS, [
 			'plot_id' => $plot_id,
 			'name' => $name,
 			'phone' => $phone,
@@ -479,10 +483,14 @@ class Plugin {
 			'created_at' => current_time('mysql'),
 		]);
 		
+		error_log('TajMap: Database insert result: ' . $result . ', insert_id: ' . $wpdb->insert_id . ', last_error: ' . $wpdb->last_error);
+		
 		if ($wpdb->last_error) {
+			error_log('TajMap: Database error in ajax_save_lead: ' . $wpdb->last_error);
 			wp_send_json_error(['message' => 'Database error: ' . $wpdb->last_error], 500);
 		}
 		
+		error_log('TajMap: Lead saved successfully with ID: ' . $wpdb->insert_id);
 		wp_send_json_success(['id' => $wpdb->insert_id, 'message' => 'Lead saved successfully']);
 	}
 
