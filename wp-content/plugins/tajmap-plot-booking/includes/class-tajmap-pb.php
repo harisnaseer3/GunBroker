@@ -383,6 +383,7 @@ class Plugin {
 		$street = isset($_POST['street']) ? sanitize_text_field(wp_unslash($_POST['street'])) : '';
 		$sector = isset($_POST['sector']) ? sanitize_text_field(wp_unslash($_POST['sector'])) : '';
 		$block = isset($_POST['block']) ? sanitize_text_field(wp_unslash($_POST['block'])) : '';
+		$description = isset($_POST['description']) ? sanitize_textarea_field(wp_unslash($_POST['description'])) : '';
 		$coordinates = isset($_POST['coordinates']) ? wp_kses_post(wp_unslash($_POST['coordinates'])) : '';
 		$status = isset($_POST['status']) && $_POST['status'] === 'sold' ? 'sold' : 'available';
 		$base_image_id = isset($_POST['base_image_id']) && !empty($_POST['base_image_id']) ? intval($_POST['base_image_id']) : null;
@@ -396,6 +397,7 @@ class Plugin {
 			'street' => $street,
 			'sector' => $sector,
 			'block' => $block,
+			'description' => $description,
 			'coordinates' => $coordinates,
 			'status' => $status,
 			'base_image_id' => $base_image_id,

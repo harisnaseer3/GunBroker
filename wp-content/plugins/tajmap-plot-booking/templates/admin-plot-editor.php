@@ -243,6 +243,11 @@ $area_unit_label = $unit_labels[$measurement_units] ?? 'sq ft';
                             <label for="plot-street">Street</label>
                             <input type="text" id="plot-street" name="street">
                         </div>
+
+                        <div class="form-group">
+                            <label for="plot-description">Description</label>
+                            <textarea id="plot-description" name="description" rows="3" placeholder="Optional short description"></textarea>
+                        </div>
                     </div>
 
                     <div class="form-section">

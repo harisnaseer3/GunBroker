@@ -1131,6 +1131,7 @@
         $('#plot-sector').val(plot.sector || '');
         $('#plot-block').val(plot.block || '');
         $('#plot-street').val(plot.street || '');
+        $('#plot-description').val(plot.description || '');
         $('#plot-status').val(plot.status || 'available');
         $('#plot-price').val(plot.price || '');
         $('#plot-area').val(plot.area || '');

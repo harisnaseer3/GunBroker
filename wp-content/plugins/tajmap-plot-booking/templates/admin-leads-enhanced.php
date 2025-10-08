@@ -517,6 +517,11 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
     }
 
     function viewLead(leadId) {
+        if (typeof TajMapPB === 'undefined') {
+            alert('Configuration error: TajMapPB not loaded');
+            return;
+        }
+        
         // Load lead details in modal
         $.post(TajMapPB.ajaxUrl, {
             action: 'tajmap_pb_get_lead_details',
@@ -526,14 +531,19 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
             if (response.success) {
                 showLeadModal(response.data.lead, response.data.history);
             } else {
-                alert('Failed to load lead details');
+                alert('Failed to load lead details: ' + (response.data || 'Unknown error'));
             }
+        }).fail(function(xhr, status, error) {
+            alert('AJAX error: ' + error);
         });
     }
 
     function showLeadModal(lead, history) {
         const modal = $('#lead-modal');
         const body = $('#lead-modal-body');
+        
+        // Show modal
+        modal.show();
 
         body.html(`
             <div class="lead-details">
@@ -646,6 +656,28 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
             timeout = setTimeout(later, wait);
         };
     }
+
+    // Modal event handlers
+    $(document).ready(function() {
+        // Close modal when clicking close button
+        $('#lead-modal-close').on('click', function() {
+            $('#lead-modal').hide();
+        });
+        
+        // Close modal when clicking overlay
+        $('#lead-modal').on('click', function(e) {
+            if (e.target === this) {
+                $(this).hide();
+            }
+        });
+        
+        // Close modal with Escape key
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' && $('#lead-modal').is(':visible')) {
+                $('#lead-modal').hide();
+            }
+        });
+    });
 
 })(jQuery);
 </script>
