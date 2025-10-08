@@ -477,6 +477,9 @@ function showLeadModal(lead, history) {
 }
 
 function updateLeadStatus(leadId, status) {
+    // Show loading overlay
+    showStatusLoadingOverlay();
+    
     jQuery.post(TajMapPB.ajaxUrl, {
         action: 'tajmap_pb_set_lead_status',
         nonce: TajMapPB.nonce,
@@ -487,23 +490,103 @@ function updateLeadStatus(leadId, status) {
             // Update UI accordingly
             location.reload();
         } else {
+            hideStatusLoadingOverlay();
             alert('Failed to update lead status: ' + (response.data || 'Unknown error'));
         }
     }).fail(function(xhr, status, error) {
+        hideStatusLoadingOverlay();
         alert('AJAX error: ' + error);
     });
 }
 
+function showStatusLoadingOverlay() {
+    // Create loading overlay if it doesn't exist
+    if (jQuery('#status-loading-overlay').length === 0) {
+        jQuery('body').append(`
+            <div id="status-loading-overlay" class="status-loading-overlay">
+                <div class="loading-content">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Updating lead status...</div>
+                    <div class="loading-subtext">Please wait while we process your request</div>
+                    <div class="loading-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <div class="progress-text">Processing...</div>
+                    </div>
+                </div>
+            </div>
+        `);
+    }
+    jQuery('#status-loading-overlay').css('display', 'flex').hide().fadeIn(300);
+    
+    // Start progress animation
+    startProgressAnimation();
+}
+
+function startProgressAnimation() {
+    const progressFill = jQuery('.progress-fill');
+    const progressText = jQuery('.progress-text');
+    
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress > 90) progress = 90;
+        
+        progressFill.css('width', progress + '%');
+        
+        if (progress < 30) {
+            progressText.text('Connecting to server...');
+        } else if (progress < 60) {
+            progressText.text('Updating database...');
+        } else if (progress < 90) {
+            progressText.text('Finalizing changes...');
+        }
+        
+        if (progress >= 90) {
+            clearInterval(interval);
+        }
+    }, 200);
+}
+
+function hideStatusLoadingOverlay() {
+    jQuery('#status-loading-overlay').fadeOut(300, function() {
+        jQuery(this).remove();
+    });
+}
+
 function contactLead(leadId) {
+    setButtonLoadingState(leadId, 'Contact');
     updateLeadStatus(leadId, 'contacted');
 }
 
 function markInterested(leadId) {
+    setButtonLoadingState(leadId, 'Interested');
     updateLeadStatus(leadId, 'interested');
 }
 
 function markClosed(leadId) {
+    setButtonLoadingState(leadId, 'Close Deal');
     updateLeadStatus(leadId, 'closed');
+}
+
+function setButtonLoadingState(leadId, buttonText) {
+    // Find the button and set loading state
+    const button = jQuery(`button[onclick*="${leadId}"]`).filter(function() {
+        return jQuery(this).text().trim() === buttonText;
+    });
+    
+    if (button.length) {
+        button.prop('disabled', true)
+              .addClass('loading')
+              .html('<span class="btn-spinner"></span> Processing...');
+    }
+    
+    // Add loading animation to the lead card
+    const leadCard = jQuery(`.lead-card[data-id="${leadId}"]`);
+    if (leadCard.length) {
+        leadCard.addClass('status-updating');
+    }
 }
 
 function exportLeads() {
@@ -1009,5 +1092,126 @@ jQuery(document).ready(function($) {
     font-size: 12px;
     color: #666;
     text-transform: capitalize;
+}
+
+/* Status Loading Overlay */
+.status-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 99999;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.loading-content {
+    background: #fff;
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #0073aa;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.loading-subtext {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.4;
+}
+
+.loading-progress {
+    margin-top: 20px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #f0f0f0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0073aa, #00a32a);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+}
+
+/* Button Loading State */
+.btn.loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+    position: relative;
+}
+
+.btn-spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+}
+
+/* Lead Card Loading Animation */
+.lead-card.status-updating {
+    position: relative;
+    overflow: hidden;
+}
+
+.lead-card.status-updating::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 115, 170, 0.1), transparent);
+    animation: shimmer 1.5s infinite;
+    z-index: 1;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
 }
 </style>
