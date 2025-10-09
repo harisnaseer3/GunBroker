@@ -134,7 +134,7 @@ if (!defined('ABSPATH')) { exit; }
 
 <style>
 .tajmap-interactive-plot-selection {
-    max-width: 100%;
+    max-width: 1200px; /* match admin width and keep layout tidy */
     margin: 0 auto;
     padding: 20px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -218,7 +218,7 @@ if (!defined('ABSPATH')) { exit; }
     position: relative;
     width: 100%;
     height: 600px;
-    background: khaki;
+    background: #ffffff; /* clean canvas background */
     overflow: hidden;
 }
 
@@ -792,6 +792,43 @@ jQuery(document).ready(function($) {
         width: 0,
         height: 0
     };
+    // Render scale for higher-resolution drawing without changing visual size
+    const RENDER_SCALE = 2;
+    // Global view offset: X moves left/right in % of width; Y moves up/down in % of height
+    const VIEW_OFFSET_RATIO = -0.35; // X: negative = left
+    const VIEW_OFFSET_Y_RATIO = -0.10; // Y: negative = up (move to top by 10%)
+    // Scale only the plots layer by +10% (background unchanged)
+    const PLOT_SCALE = 1.7;
+    // Transform only the plots layer 10% up (background unchanged)
+    const PLOT_OFFSET_Y_RATIO = -0.13;
+    // Transform only the plots layer 3% right (background unchanged)
+    const PLOT_OFFSET_X_RATIO = 0.003;
+    
+    function getViewOffsetScreen() {
+        return canvasWidth * VIEW_OFFSET_RATIO;
+    }
+    function getViewOffsetScreenY() {
+        return canvasHeight * VIEW_OFFSET_Y_RATIO;
+    }
+    function getPlotOffsetScreenY() {
+        return canvasHeight * PLOT_OFFSET_Y_RATIO;
+    }
+    function getPlotOffsetScreenX() {
+        return canvasWidth * PLOT_OFFSET_X_RATIO;
+    }
+    // Auto-fit coordination flags
+    let baseMapReady = false;
+    let plotsReady = false;
+
+    function maybeAutoFit() {
+        // Auto-fit once both base map and plots are ready (on first load/refresh)
+        if (baseMapReady && plotsReady) {
+            scale = 1.5;
+            panX = 0;
+            panY = 0;
+            fitToView();
+        }
+    }
     
     // Initialize
     function init() {
@@ -834,15 +871,32 @@ jQuery(document).ready(function($) {
         canvasWidth = container.width();
         canvasHeight = container.height();
         
-        canvas.width = canvasWidth;
-        canvas.height = canvasHeight;
+        // Increase drawing buffer for sharper render; keep CSS size the same
+        canvas.style.width = canvasWidth + 'px';
+        canvas.style.height = canvasHeight + 'px';
+        canvas.width = Math.floor(canvasWidth * RENDER_SCALE);
+        canvas.height = Math.floor(canvasHeight * RENDER_SCALE);
         
         console.log('Canvas resized:', canvasWidth, 'x', canvasHeight);
-        
-        // Redraw if plots are loaded
-        if (window.plots.length > 0) {
-            drawAll();
+
+        // Refit base map to canvas on resize so it always fits view
+        if (globalBaseMapImage) {
+            const imageAspect = globalBaseMapImage.width / globalBaseMapImage.height;
+            const canvasAspect = canvasWidth / canvasHeight;
+            if (imageAspect > canvasAspect) {
+                globalBaseMapTransform.width = canvasWidth;
+                globalBaseMapTransform.height = globalBaseMapImage.height * (canvasWidth / globalBaseMapImage.width);
+            } else {
+                globalBaseMapTransform.height = canvasHeight;
+                globalBaseMapTransform.width = globalBaseMapImage.width * (canvasHeight / globalBaseMapImage.height);
+            }
+            // Position at top-left corner
+            globalBaseMapTransform.x = 0;
+            globalBaseMapTransform.y = 0;
         }
+
+        // Redraw
+        drawAll();
     }
     
     // Load plots
@@ -889,9 +943,10 @@ jQuery(document).ready(function($) {
                     
                     // Note: Global base map is loaded separately, not per-plot
                     
-                    // Render everything and fit to content on initial load
+                    // Render everything; mark plots ready and auto-fit when base map also ready
                     updatePagination();
-                    fitToView();
+                    plotsReady = true;
+                    maybeAutoFit();
                     drawAll();
                     
                     // Force hide loading overlay after a small delay to ensure drawing completes
@@ -988,12 +1043,13 @@ jQuery(document).ready(function($) {
             return;
         }
         
-        // Clear canvas
+        // Reset to render scale and clear canvas
+        ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         
         // Apply transformations for base map, plots and grid (unified coordinate system)
         ctx.save();
-        ctx.translate(panX, panY);
+        ctx.translate(panX + getViewOffsetScreen(), panY + getViewOffsetScreenY());
         ctx.scale(scale, scale);
 
         // Draw global base map image first (background layer) - in world coordinates
@@ -1017,11 +1073,15 @@ jQuery(document).ready(function($) {
         
         console.log('🎨 Transform applied - panX:', panX, 'panY:', panY, 'scale:', scale);
         
-        // Draw plots
+        // Draw plots with plots-only scaling and X/Y offsets
+        ctx.save();
+        ctx.scale(PLOT_SCALE, PLOT_SCALE);
+        ctx.translate(getPlotOffsetScreenX() / PLOT_SCALE, getPlotOffsetScreenY() / PLOT_SCALE);
         window.plots.forEach((plot, index) => {
             console.log(`🎨 Drawing plot ${index}:`, plot);
             drawPlot(plot, index);
         });
+        ctx.restore();
         
         ctx.restore();
         console.log('🎨 drawAll completed');
@@ -1053,7 +1113,7 @@ jQuery(document).ready(function($) {
             
             ctx.fillStyle = color;
             ctx.strokeStyle = '#374151';
-            ctx.lineWidth = 2 / scale;
+            ctx.lineWidth = (2 / scale); // base thickness
             ctx.globalAlpha = opacity;
             
             // Draw polygon
@@ -1075,7 +1135,6 @@ jQuery(document).ready(function($) {
             if (scale > 0.5) {
                 const centerX = coords.reduce((sum, p) => sum + p.x, 0) / coords.length;
                 const centerY = coords.reduce((sum, p) => sum + p.y, 0) / coords.length;
-                
                 ctx.fillStyle = '#1f2937';
                 ctx.font = `${12 / scale}px Arial`;
                 ctx.textAlign = 'center';
@@ -1327,11 +1386,11 @@ jQuery(document).ready(function($) {
             const zoomFactor = e.originalEvent.deltaY > 0 ? 0.9 : 1.1;
             const newScale = Math.max(0.1, Math.min(5, scale * zoomFactor));
             if (newScale !== oldScale) {
-                const worldX = (mouseX - rect.left - panX) / oldScale;
-                const worldY = (mouseY - rect.top - panY) / oldScale;
+                const worldX = (mouseX - rect.left - panX - getViewOffsetScreen()) / oldScale;
+                const worldY = (mouseY - rect.top - panY - getViewOffsetScreenY()) / oldScale;
                 scale = newScale;
-                panX = mouseX - rect.left - worldX * scale;
-                panY = mouseY - rect.top - worldY * scale;
+                panX = mouseX - rect.left - worldX * scale - getViewOffsetScreen();
+                panY = mouseY - rect.top - worldY * scale - getViewOffsetScreenY();
             }
             updateZoomDisplay();
             drawAll();
@@ -1371,8 +1430,9 @@ jQuery(document).ready(function($) {
             clearTimeout(hoverTimeout);
             
             const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left - panX) / scale;
-            const y = (e.clientY - rect.top - panY) / scale;
+            // Invert plots-only scale and offsets when hit-testing so interactions align
+            const x = (e.clientX - rect.left - panX - getViewOffsetScreen() - getPlotOffsetScreenX()) / (scale * PLOT_SCALE);
+            const y = (e.clientY - rect.top - panY - getViewOffsetScreenY() - getPlotOffsetScreenY()) / (scale * PLOT_SCALE);
             
             // Find hovered plot
             let hoveredPlot = null;
@@ -1443,8 +1503,8 @@ jQuery(document).ready(function($) {
             if (isDragging) return;
             
             const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left - panX) / scale;
-            const y = (e.clientY - rect.top - panY) / scale;
+            const x = (e.clientX - rect.left - panX - getViewOffsetScreen() - getPlotOffsetScreenX()) / (scale * PLOT_SCALE);
+            const y = (e.clientY - rect.top - panY - getViewOffsetScreenY() - getPlotOffsetScreenY()) / (scale * PLOT_SCALE);
             
             // Find clicked plot
             window.plots.forEach(plot => {
@@ -1488,36 +1548,23 @@ jQuery(document).ready(function($) {
                         globalBaseMapImage.onload = function() {
                             console.log('🗺️ Global base map image loaded successfully');
                             
-                            // Load saved transform if available
-                            if (response.data.base_map_transform) {
-                                try {
-                                    globalBaseMapTransform = JSON.parse(response.data.base_map_transform);
-                                    console.log('🗺️ Loaded saved transform:', globalBaseMapTransform);
-                                } catch (e) {
-                                    console.error('Error parsing base map transform:', e);
-                                    // Use default transform
-                                    globalBaseMapTransform = {
-                                        x: 0, y: 0, scale: 1, rotation: 0,
-                                        width: canvasWidth, height: canvasHeight
-                                    };
-                                }
+                            // Always fit background image to canvas on load (ignore saved transform)
+                            const imageAspect = globalBaseMapImage.width / globalBaseMapImage.height;
+                            const canvasAspect = canvasWidth / canvasHeight;
+                            if (imageAspect > canvasAspect) {
+                                globalBaseMapTransform.width = canvasWidth;
+                                globalBaseMapTransform.height = globalBaseMapImage.height * (canvasWidth / globalBaseMapImage.width);
                             } else {
-                                // Calculate default transform to fit canvas
-                                const imageAspect = globalBaseMapImage.width / globalBaseMapImage.height;
-                                const canvasAspect = canvasWidth / canvasHeight;
-                                
-                                if (imageAspect > canvasAspect) {
-                                    globalBaseMapTransform.width = canvasWidth;
-                                    globalBaseMapTransform.height = globalBaseMapImage.height * (canvasWidth / globalBaseMapImage.width);
-                                } else {
-                                    globalBaseMapTransform.height = canvasHeight;
-                                    globalBaseMapTransform.width = globalBaseMapImage.width * (canvasHeight / globalBaseMapImage.height);
-                                }
-                                
-                                globalBaseMapTransform.x = (canvasWidth - globalBaseMapTransform.width) / 2;
-                                globalBaseMapTransform.y = (canvasHeight - globalBaseMapTransform.height) / 2;
+                                globalBaseMapTransform.height = canvasHeight;
+                                globalBaseMapTransform.width = globalBaseMapImage.width * (canvasHeight / globalBaseMapImage.height);
                             }
+                            // Position at top-left corner
+                            globalBaseMapTransform.x = 0;
+                            globalBaseMapTransform.y = 0;
                             
+                            // Mark base map ready and attempt auto-fit
+                            baseMapReady = true;
+                            maybeAutoFit();
                             // Redraw canvas with base map
                             drawAll();
                         };
