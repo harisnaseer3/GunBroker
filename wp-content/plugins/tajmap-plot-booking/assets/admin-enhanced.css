@@ -1030,9 +1030,12 @@ h4 { font-size: 1.125rem; }
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     overflow: hidden;
-    height: calc(100vh - 40px);
+    height: auto; /* allow page height to grow with content */
     display: flex;
     flex-direction: column;
+    max-width: 1200px; /* match frontend container width */
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .editor-container {
@@ -1095,6 +1098,7 @@ h4 { font-size: 1.125rem; }
     display: flex;
     flex-direction: column;
     position: relative;
+    height: 600px; /* keep canvas section fixed; list growth won't stretch it */
 }
 
 .canvas-toolbar {
@@ -1391,8 +1395,8 @@ h4 { font-size: 1.125rem; }
 }
 
 .plots-list {
-    max-height: calc(5 * 4rem); /* 5 plots * ~4rem per plot item */
-    overflow-y: auto;
+    max-height: none; /* allow list to grow the page */
+    overflow-y: visible; /* no internal scroll; page height increases instead */
     padding-right: 8px;
     space-y: 0.5rem;
 }
