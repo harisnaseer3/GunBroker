@@ -800,9 +800,9 @@ jQuery(document).ready(function($) {
     // Scale only the plots layer by +10% (background unchanged)
     const PLOT_SCALE = 1.7;
     // Transform only the plots layer 10% up (background unchanged)
-    const PLOT_OFFSET_Y_RATIO = -0.13;
+    const PLOT_OFFSET_Y_RATIO = -0.125;
     // Transform only the plots layer 3% right (background unchanged)
-    const PLOT_OFFSET_X_RATIO = 0.003;
+    const PLOT_OFFSET_X_RATIO = 0.001;
     
     function getViewOffsetScreen() {
         return canvasWidth * VIEW_OFFSET_RATIO;
