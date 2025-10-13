@@ -1,7 +1,9 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
+$upload_dir = wp_upload_dir();
+$map_bg_url = $upload_dir['baseurl'] . '/2025/10/map-background.jpg';
 ?>
-<div class="tajmap-interactive-plot-selection">
+<div class="tajmap-interactive-plot-selection" style="background-image: url('<?php echo esc_url($map_bg_url); ?>')">
     <!-- Header -->
     <div class="plot-header">
         <h1>Available Plots</h1>
@@ -134,26 +136,72 @@ if (!defined('ABSPATH')) { exit; }
 
 <style>
 .tajmap-interactive-plot-selection {
-    max-width: 1200px; /* match admin width and keep layout tidy */
+    max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    position: relative;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+}
+
+.tajmap-interactive-plot-selection::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(2px);
+    border-radius: 16px;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.tajmap-interactive-plot-selection > * {
+    position: relative;
+    z-index: 1;
 }
 
 .plot-header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
+    padding: 30px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    color: white;
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+    animation: fadeInDown 0.6s ease-out;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .plot-header h1 {
     font-size: 2.5rem;
-    color: #1f2937;
+    color: white;
     margin-bottom: 10px;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .plot-header p {
-    color: #6b7280;
+    color: rgba(255,255,255,0.9);
     font-size: 1.1rem;
+    font-weight: 400;
 }
 
 .plot-main {
@@ -164,54 +212,77 @@ if (!defined('ABSPATH')) { exit; }
 }
 
 .map-container {
-    background: #f8fafc;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
+    background: white;
+    border: none;
+    border-radius: 16px;
     overflow: hidden;
     position: relative;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    animation: fadeInUp 0.7s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .map-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 20px;
-    background: #f8fafc;
-    border-bottom: 1px solid #e5e7eb;
+    padding: 20px 25px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-bottom: none;
 }
 
 .map-controls {
     display: flex;
-    gap: 8px;
+    gap: 10px;
 }
 
 .control-btn {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border: none;
-    background: white;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
-    color: #374151;
-    transition: all 0.2s;
+    color: white;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .control-btn:hover {
-    background: #f3f4f6;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+}
+
+.control-btn:active {
+    transform: translateY(0) scale(0.98);
 }
 
 .zoom-level {
-    color: #6b7280;
-    font-size: 14px;
-    font-weight: 500;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    padding: 8px 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .interactive-map {
@@ -239,7 +310,8 @@ if (!defined('ABSPATH')) { exit; }
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(248, 250, 252, 0.9);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
+    backdrop-filter: blur(10px);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -248,13 +320,14 @@ if (!defined('ABSPATH')) { exit; }
 }
 
 .loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #e5e7eb;
-    border-top: 4px solid #3b82f6;
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255,255,255,0.3);
+    border-top: 5px solid white;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 15px;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
 }
 
 @keyframes spin {
@@ -263,9 +336,11 @@ if (!defined('ABSPATH')) { exit; }
 }
 
 .loading-overlay p {
-    color: #6b7280;
-    font-size: 16px;
+    color: white;
+    font-size: 18px;
     margin: 0;
+    font-weight: 500;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .plot-details-panel {
@@ -321,37 +396,67 @@ body .wrap {
 }
 
 .plot-list-section {
-    margin-top: 30px;
+    margin-top: 40px;
+    animation: fadeInUp 0.9s ease-out;
 }
 
 .plot-list-section h3 {
     color: #1f2937;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .plot-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 15px;
+    gap: 20px;
 }
 
 .plot-item {
     background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    padding: 20px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.plot-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.plot-item:hover::before {
+    transform: scaleX(1);
 }
 
 .plot-item:hover {
-    border-color: #3b82f6;
-    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.25);
 }
 
 .plot-item.selected {
-    border-color: #3b82f6;
-    background: #eff6ff;
+    border: 2px solid #667eea;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+}
+
+.plot-item.selected::before {
+    transform: scaleX(1);
 }
 
 .plot-name {
@@ -363,21 +468,25 @@ body .wrap {
 
 .plot-status {
     display: inline-block;
-    padding: 4px 12px;
-    border-radius: 12px;
+    padding: 6px 14px;
+    border-radius: 20px;
     font-size: 0.85rem;
-    font-weight: 500;
-    margin-bottom: 8px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .plot-status.available {
-    background: #dcfce7;
-    color: #166534;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .plot-status.sold {
-    background: #fee2e2;
-    color: #991b1b;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
 .plot-details {
@@ -387,51 +496,70 @@ body .wrap {
 }
 
 .btn {
-    background: #3b82f6;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
+    padding: 12px 20px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     margin-top: 15px;
     width: 100%;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .btn:hover {
-    background: #2563eb;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn:active {
+    transform: translateY(0);
 }
 
 .btn-primary {
-    background: #10b981;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .btn-primary:hover {
-    background: #059669;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
 }
 
 /* Hover Popup Styles */
-        .plot-hover-popup {
-            position: absolute;
-            background: white;
-            border: 2px solid #007cba;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            z-index: 1000;
-            pointer-events: auto; /* Allow clicking on popup */
-            max-width: 280px;
-            opacity: 0;
-            transform: translateY(-10px);
-            transition: all 0.2s ease;
-            cursor: default; /* Ensure normal cursor over popup */
-        }
+.plot-hover-popup {
+    position: absolute;
+    background: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    pointer-events: auto;
+    max-width: 300px;
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: default;
+    overflow: hidden;
+}
+
+.plot-hover-popup::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
 
 .plot-hover-popup.show {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
 }
 
 .popup-content {
@@ -439,40 +567,44 @@ body .wrap {
 }
 
 .popup-header {
-    background: #007cba;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 12px 16px;
-    border-radius: 6px 6px 0 0;
+    padding: 16px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: 4px;
 }
 
 .popup-header h4 {
     margin: 0;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 17px;
+    font-weight: 700;
 }
 
 .status-badge {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 500;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .status-badge.sold {
-    background: #dc3545;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
 .status-badge.available {
-    background: #28a745;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .popup-body {
-    padding: 16px;
+    padding: 20px;
 }
 
 .popup-details {
@@ -489,68 +621,54 @@ body .wrap {
 }
 
 .detail-row .label {
-    font-weight: 600;
-    color: #555;
+    font-weight: 700;
+    color: #667eea;
     min-width: 80px;
 }
 
 .detail-row span:last-child {
-    color: #333;
+    color: #1f2937;
     text-align: right;
     flex: 1;
     margin-left: 8px;
-}
-
-/* Popup Arrow */
-.plot-hover-popup::before {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 8px solid transparent;
-    border-top-color: #007cba;
-}
-
-.plot-hover-popup::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 6px solid transparent;
-    border-top-color: white;
-    margin-top: -2px;
+    font-weight: 500;
 }
 
 /* Contact Button in Popup */
 .popup-actions {
-    padding: 12px 16px;
+    padding: 16px 20px;
     border-top: 1px solid #e5e7eb;
     background: #f9fafb;
 }
 
 .contact-btn {
     width: 100%;
-    background: #10b981;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
     border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
+    padding: 12px 16px;
+    border-radius: 8px;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     justify-content: center;
     gap: 6px;
     pointer-events: auto; /* Ensure button is clickable */
 }
 
 .contact-btn:hover {
-    background: #059669;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+.contact-btn:active {
+    transform: translateY(0);
 }
 
 /* Contact Modal Styles */
@@ -572,26 +690,26 @@ body .wrap {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
 }
 
 .modal-content {
     position: relative;
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    max-width: 500px;
+    border-radius: 16px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25);
+    max-width: 550px;
     width: 90%;
     max-height: 90vh;
-    overflow-y: auto;
-    animation: modalSlideIn 0.3s ease;
+    overflow: hidden;
+    animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes modalSlideIn {
     from {
         opacity: 0;
-        transform: translateY(-20px) scale(0.95);
+        transform: translateY(-30px) scale(0.9);
     }
     to {
         opacity: 1;
@@ -603,37 +721,43 @@ body .wrap {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid #e5e7eb;
-    background: #f9fafb;
-    border-radius: 12px 12px 0 0;
+    padding: 24px 28px;
+    border-bottom: none;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
 }
 
 .modal-header h3 {
     margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: #111827;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
 }
 
 .close-btn {
-    background: none;
+    background: rgba(255,255,255,0.2);
     border: none;
-    font-size: 24px;
-    color: #6b7280;
+    font-size: 28px;
+    color: white;
     cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .close-btn:hover {
-    background: #e5e7eb;
-    color: #374151;
+    background: rgba(255,255,255,0.3);
+    transform: rotate(90deg);
 }
 
 .modal-body {
-    padding: 24px;
+    padding: 28px;
+    max-height: calc(90vh - 100px);
+    overflow-y: auto;
 }
 
 .form-group {
@@ -642,28 +766,29 @@ body .wrap {
 
 .form-group label {
     display: block;
-    margin-bottom: 6px;
-    font-weight: 500;
-    color: #374151;
-    font-size: 14px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 15px;
 }
 
 .form-group input,
 .form-group textarea {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
     box-sizing: border-box;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    font-family: inherit;
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
 }
 
 .form-group textarea {
@@ -673,10 +798,10 @@ body .wrap {
 
 .form-actions {
     display: flex;
-    gap: 12px;
+    gap: 16px;
     justify-content: flex-end;
-    margin-top: 24px;
-    padding-top: 20px;
+    margin-top: 28px;
+    padding-top: 24px;
     border-top: 1px solid #e5e7eb;
 }
 
@@ -684,16 +809,20 @@ body .wrap {
     background: #6b7280;
     color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .btn-secondary:hover {
     background: #4b5563;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
 }
 
 .btn-primary {
@@ -795,14 +924,14 @@ jQuery(document).ready(function($) {
     // Render scale for higher-resolution drawing without changing visual size
     const RENDER_SCALE = 2;
     // Global view offset: X moves left/right in % of width; Y moves up/down in % of height
-    const VIEW_OFFSET_RATIO = -0.35; // X: negative = left
-    const VIEW_OFFSET_Y_RATIO = -0.10; // Y: negative = up (move to top by 10%)
+    const VIEW_OFFSET_RATIO = 0; // Center horizontally (0 = no offset)
+    const VIEW_OFFSET_Y_RATIO = 0; // Center vertically (0 = no offset)
     // Scale only the plots layer by +10% (background unchanged)
     const PLOT_SCALE = 1.7;
     // Transform only the plots layer 10% up (background unchanged)
-    const PLOT_OFFSET_Y_RATIO = -0.125;
+    const PLOT_OFFSET_Y_RATIO = 0;
     // Transform only the plots layer 3% right (background unchanged)
-    const PLOT_OFFSET_X_RATIO = 0.001;
+    const PLOT_OFFSET_X_RATIO = 0;
     
     function getViewOffsetScreen() {
         return canvasWidth * VIEW_OFFSET_RATIO;
