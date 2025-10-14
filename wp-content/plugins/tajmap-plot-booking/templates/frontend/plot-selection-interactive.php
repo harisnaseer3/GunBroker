@@ -288,9 +288,11 @@ $map_bg_url = $upload_dir['baseurl'] . '/2025/10/map-background.jpg';
 .interactive-map {
     position: relative;
     width: 100%;
+    max-width: 1200px; /* match admin canvas container width */
     height: 600px;
     background: #ffffff; /* clean canvas background */
     overflow: hidden;
+    margin: 0 auto; /* center the canvas */
 }
 
 #plot-canvas {
@@ -1661,8 +1663,24 @@ jQuery(document).ready(function($) {
             action: 'tajmap_pb_get_global_base_map',
             nonce: TajMapFrontend.nonce
         }, function(response) {
+            console.log('🗺️ AJAX response for base map:', response);
             if (response.success && response.data.base_map_image_id) {
                 console.log('🗺️ Found global base map ID:', response.data.base_map_image_id);
+                console.log('🗺️ Raw base_map_transform from DB:', response.data.base_map_transform);
+                
+                // Load saved transform if available (CRITICAL - this is what admin uses!)
+                let savedTransform = null;
+                if (response.data.base_map_transform) {
+                    try {
+                        savedTransform = JSON.parse(response.data.base_map_transform);
+                        console.log('✅ Successfully parsed saved transform:', savedTransform);
+                    } catch (e) {
+                        console.error('❌ Error parsing saved base map transform:', e);
+                        console.error('❌ Raw value was:', response.data.base_map_transform);
+                    }
+                } else {
+                    console.warn('⚠️ No base_map_transform found in response.data');
+                }
                 
                 // Get image URL
                 $.post(ajaxUrl, {
@@ -1676,24 +1694,46 @@ jQuery(document).ready(function($) {
                         globalBaseMapImage = new Image();
                         globalBaseMapImage.onload = function() {
                             console.log('🗺️ Global base map image loaded successfully');
+                            console.log('🗺️ Image dimensions:', globalBaseMapImage.width, 'x', globalBaseMapImage.height);
+                            console.log('🗺️ Canvas dimensions:', canvasWidth, 'x', canvasHeight);
                             
-                            // Always fit background image to canvas on load (ignore saved transform)
+                            // ALWAYS fit and center the base map to current canvas (same as admin initial setup)
+                            // This ensures plots align correctly regardless of canvas size differences
                             const imageAspect = globalBaseMapImage.width / globalBaseMapImage.height;
                             const canvasAspect = canvasWidth / canvasHeight;
-                            if (imageAspect > canvasAspect) {
-                                globalBaseMapTransform.width = canvasWidth;
-                                globalBaseMapTransform.height = globalBaseMapImage.height * (canvasWidth / globalBaseMapImage.width);
-                            } else {
-                                globalBaseMapTransform.height = canvasHeight;
-                                globalBaseMapTransform.width = globalBaseMapImage.width * (canvasHeight / globalBaseMapImage.height);
-                            }
-                            // Position at top-left corner
-                            globalBaseMapTransform.x = 0;
-                            globalBaseMapTransform.y = 0;
                             
-                            // Mark base map ready and attempt auto-fit
+                            let imageScale;
+                            if (imageAspect > canvasAspect) {
+                                // Image is wider - fit to width
+                                imageScale = canvasWidth / globalBaseMapImage.width;
+                                globalBaseMapTransform.width = canvasWidth;
+                                globalBaseMapTransform.height = globalBaseMapImage.height * imageScale;
+                            } else {
+                                // Image is taller - fit to height
+                                imageScale = canvasHeight / globalBaseMapImage.height;
+                                globalBaseMapTransform.width = globalBaseMapImage.width * imageScale;
+                                globalBaseMapTransform.height = canvasHeight;
+                            }
+                            
+                            // Center the image
+                            globalBaseMapTransform.x = (canvasWidth - globalBaseMapTransform.width) / 2;
+                            globalBaseMapTransform.y = (canvasHeight - globalBaseMapTransform.height) / 2;
+                            globalBaseMapTransform.scale = imageScale;
+                            
+                            console.log('📐 Calculated transform for user canvas:');
+                            console.log('   - x:', globalBaseMapTransform.x);
+                            console.log('   - y:', globalBaseMapTransform.y);
+                            console.log('   - width:', globalBaseMapTransform.width);
+                            console.log('   - height:', globalBaseMapTransform.height);
+                            console.log('   - scale:', globalBaseMapTransform.scale);
+                            
+                            // Mark base map ready
                             baseMapReady = true;
-                            maybeAutoFit();
+                            // Set default view (no pan/zoom - show full map)
+                            scale = 1;
+                            panX = 0;
+                            panY = 0;
+                            console.log('🎯 View settings - scale:', scale, 'panX:', panX, 'panY:', panY);
                             // Redraw canvas with base map
                             drawAll();
                         };
