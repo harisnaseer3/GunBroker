@@ -1247,14 +1247,16 @@ jQuery(document).ready(function($) {
             ctx.lineWidth = (2 / scale); // base thickness
             ctx.globalAlpha = opacity;
             
-            // Draw polygon
+            // Draw polygon - apply vertical offset to move plots up
+            const PLOT_OFFSET_Y = -42; // Move plots up by 50px
+            
             ctx.beginPath();
-            ctx.moveTo(coords[0].x, coords[0].y);
-            console.log(`🎨 Plot ${index} starting at:`, coords[0]);
+            ctx.moveTo(coords[0].x, coords[0].y + PLOT_OFFSET_Y);
+            console.log(`🎨 Plot ${index} starting at:`, coords[0].x, coords[0].y + PLOT_OFFSET_Y);
             
             for (let i = 1; i < coords.length; i++) {
-                ctx.lineTo(coords[i].x, coords[i].y);
-                console.log(`🎨 Plot ${index} line to:`, coords[i]);
+                ctx.lineTo(coords[i].x, coords[i].y + PLOT_OFFSET_Y);
+                console.log(`🎨 Plot ${index} line to:`, coords[i].x, coords[i].y + PLOT_OFFSET_Y);
             }
             ctx.closePath();
             ctx.fill();
@@ -1265,7 +1267,7 @@ jQuery(document).ready(function($) {
             // Draw plot name
             if (scale > 0.5) {
                 const centerX = coords.reduce((sum, p) => sum + p.x, 0) / coords.length;
-                const centerY = coords.reduce((sum, p) => sum + p.y, 0) / coords.length;
+                const centerY = (coords.reduce((sum, p) => sum + p.y, 0) / coords.length) + PLOT_OFFSET_Y;
                 ctx.fillStyle = '#1f2937';
                 ctx.font = `${12 / scale}px Arial`;
                 ctx.textAlign = 'center';
@@ -1561,17 +1563,20 @@ jQuery(document).ready(function($) {
             clearTimeout(hoverTimeout);
             
             const rect = canvas.getBoundingClientRect();
-            // Invert plots-only scale and offsets when hit-testing so interactions align
-            const x = (e.clientX - rect.left - panX - getViewOffsetScreen() - getPlotOffsetScreenX()) / (scale * PLOT_SCALE);
-            const y = (e.clientY - rect.top - panY - getViewOffsetScreenY() - getPlotOffsetScreenY()) / (scale * PLOT_SCALE);
+            // Convert screen coordinates to world coordinates
+            const mouseX = (e.clientX - rect.left - panX) / scale;
+            const mouseY = (e.clientX - rect.top - panY) / scale;
             
-            // Find hovered plot
+            // Find hovered plot - account for plot offset
+            const PLOT_OFFSET_Y = -50; // Same offset used in drawPlot
             let hoveredPlot = null;
             window.plots.forEach(plot => {
                 if (plot.coordinates) {
                     try {
                         const coords = parseCoordinates(plot.coordinates);
-                        if (isPointInPolygon(x, y, coords)) {
+                        // Apply offset to coordinates for hit testing
+                        const offsetCoords = coords.map(p => ({ x: p.x, y: p.y + PLOT_OFFSET_Y }));
+                        if (isPointInPolygon(mouseX, mouseY, offsetCoords)) {
                             hoveredPlot = plot;
                         }
                     } catch (e) {
@@ -1634,15 +1639,18 @@ jQuery(document).ready(function($) {
             if (isDragging) return;
             
             const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left - panX - getViewOffsetScreen() - getPlotOffsetScreenX()) / (scale * PLOT_SCALE);
-            const y = (e.clientY - rect.top - panY - getViewOffsetScreenY() - getPlotOffsetScreenY()) / (scale * PLOT_SCALE);
+            const mouseX = (e.clientX - rect.left - panX) / scale;
+            const mouseY = (e.clientY - rect.top - panY) / scale;
             
-            // Find clicked plot
+            // Find clicked plot - account for plot offset
+            const PLOT_OFFSET_Y = -50; // Same offset used in drawPlot
             window.plots.forEach(plot => {
                 if (plot.coordinates) {
                     try {
                         const coords = parseCoordinates(plot.coordinates);
-                        if (isPointInPolygon(x, y, coords)) {
+                        // Apply offset to coordinates for hit testing
+                        const offsetCoords = coords.map(p => ({ x: p.x, y: p.y + PLOT_OFFSET_Y }));
+                        if (isPointInPolygon(mouseX, mouseY, offsetCoords)) {
                             selectPlot(plot);
                         }
                     } catch (e) {
