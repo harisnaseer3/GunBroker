@@ -32,39 +32,39 @@ $map_bg_url = $upload_dir['baseurl'] . '/2025/10/map-background.jpg';
                     <p>Loading plots...</p>
                 </div>
                 <canvas id="plot-canvas" width="800" height="600"></canvas>
-                
-                <!-- Hover Popup -->
-                <div id="plot-hover-popup" class="plot-hover-popup" style="display: none;">
-                    <div class="popup-content">
-                        <div class="popup-header">
-                            <h4 id="popup-plot-name">Plot Name</h4>
-                            <span id="popup-plot-status" class="status-badge">Available</span>
+            </div>
+        </div>
+
+        <!-- Hover Popup - Moved outside container for proper positioning -->
+        <div id="plot-hover-popup" class="plot-hover-popup" style="display: none;">
+            <div class="popup-content">
+                <div class="popup-header">
+                    <h4 id="popup-plot-name">Plot Name</h4>
+                    <span id="popup-plot-status" class="status-badge">Available</span>
+                </div>
+                <div class="popup-body">
+                    <div class="popup-details">
+                        <div class="detail-row">
+                            <span class="label">Sector:</span>
+                            <span id="popup-plot-sector">-</span>
                         </div>
-                        <div class="popup-body">
-                            <div class="popup-details">
-                                <div class="detail-row">
-                                    <span class="label">Sector:</span>
-                                    <span id="popup-plot-sector">-</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="label">Block:</span>
-                                    <span id="popup-plot-block">-</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="label">Street:</span>
-                                    <span id="popup-plot-street">-</span>
-                                </div>
-                                <div class="detail-row" id="popup-description-row" style="display: none;">
-                                    <span class="label">Description:</span>
-                                    <span id="popup-plot-description">-</span>
-                                </div>
-                            </div>
-                            <div class="popup-actions">
-                                <button id="popup-contact-btn" class="contact-btn" onclick="openContactForm()">
-                                    📝 Inquire Plot
-                                </button>
-                            </div>
+                        <div class="detail-row">
+                            <span class="label">Block:</span>
+                            <span id="popup-plot-block">-</span>
                         </div>
+                        <div class="detail-row">
+                            <span class="label">Street:</span>
+                            <span id="popup-plot-street">-</span>
+                        </div>
+                        <div class="detail-row" id="popup-description-row" style="display: none;">
+                            <span class="label">Description:</span>
+                            <span id="popup-plot-description">-</span>
+                        </div>
+                    </div>
+                    <div class="popup-actions">
+                        <button id="popup-contact-btn" class="contact-btn" onclick="openContactForm()">
+                            📝 Inquire Plot
+                        </button>
                     </div>
                 </div>
             </div>
@@ -536,12 +536,12 @@ body .wrap {
 
 /* Hover Popup Styles */
 .plot-hover-popup {
-    position: absolute;
+    position: fixed;
     background: white;
     border: none;
     border-radius: 12px;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
+    z-index: 10000;
     pointer-events: auto;
     max-width: 300px;
     opacity: 0;
@@ -1588,31 +1588,34 @@ jQuery(document).ready(function($) {
         // Mouse move for hover popup - immediate show
         let hoverTimeout;
         let lastHoveredPlot = null;
-        
+
         $('#plot-canvas').on('mousemove', function(e) {
             if (isDragging) return;
-            
+
             // Clear previous timeout
             clearTimeout(hoverTimeout);
-            
+
             const rect = canvas.getBoundingClientRect();
             // Convert screen coordinates to world coordinates (account for all transforms)
             const mouseX = (e.clientX - rect.left - panX - getViewOffsetScreen()) / scale;
             const mouseY = (e.clientY - rect.top - panY - getViewOffsetScreenY()) / scale;
-            
-            // Find hovered plot - account for plot offset
+
+            // Find hovered plot - account for plot offset and PLOT_SCALE
             const PLOT_OFFSET_Y = -42; // Same offset used in drawPlot (match drawing offset)
             let hoveredPlot = null;
-            
+
             // Loop through plots in reverse order (last drawn = on top)
             for (let i = window.plots.length - 1; i >= 0; i--) {
                 const plot = window.plots[i];
                 if (plot.coordinates) {
                     try {
                         const coords = parseCoordinates(plot.coordinates);
-                        // Apply offset to coordinates for hit testing
+                        // Apply PLOT_SCALE and offset to coordinates for hit testing (same as drawing)
+                        // First apply the offset, then scale, then apply plot offset X
+                        const scaledMouseX = (mouseX - getPlotOffsetScreenX() / scale) / PLOT_SCALE;
+                        const scaledMouseY = (mouseY - getPlotOffsetScreenY() / scale) / PLOT_SCALE;
                         const offsetCoords = coords.map(p => ({ x: p.x, y: p.y + PLOT_OFFSET_Y }));
-                        if (isPointInPolygon(mouseX, mouseY, offsetCoords)) {
+                        if (isPointInPolygon(scaledMouseX, scaledMouseY, offsetCoords)) {
                             hoveredPlot = plot;
                             console.log('🎯 Hovered plot:', plot.plot_name, 'ID:', plot.id);
                             break; // Stop at first match (topmost plot)
@@ -1622,11 +1625,11 @@ jQuery(document).ready(function($) {
                     }
                 }
             }
-            
+
             if (hoveredPlot) {
                 // Plot is hovered - change cursor to pointer
                 canvas.style.cursor = 'pointer';
-                
+
                 if (hoveredPlot.id !== lastHoveredPlot?.id) {
                     // New plot hovered, show popup immediately
                     showHoverPopup(e, hoveredPlot);
@@ -1637,7 +1640,7 @@ jQuery(document).ready(function($) {
             } else {
                 // No plot hovered - reset cursor
                 canvas.style.cursor = isDragging ? 'grabbing' : 'default';
-                
+
                 if (window.isPopupVisible && !window.isMouseOverPopup) {
                     // Hide popup after delay
                     hoverTimeout = setTimeout(() => {
@@ -1691,7 +1694,7 @@ jQuery(document).ready(function($) {
         $('#plot-canvas').on('click', function(e) {
             // Ignore clicks if dragging or if mouse moved significantly
             if (isDragging) return;
-            
+
             // Check if mouse moved significantly since mousedown
             if (isMouseDown) {
                 const deltaX = Math.abs(e.clientX - mouseDownX);
@@ -1700,21 +1703,23 @@ jQuery(document).ready(function($) {
                     return; // Was a drag attempt, not a click
                 }
             }
-            
+
             const rect = canvas.getBoundingClientRect();
             // Convert screen coordinates to world coordinates (account for all transforms)
             const mouseX = (e.clientX - rect.left - panX - getViewOffsetScreen()) / scale;
             const mouseY = (e.clientY - rect.top - panY - getViewOffsetScreenY()) / scale;
-            
-            // Find clicked plot - account for plot offset
+
+            // Find clicked plot - account for plot offset and PLOT_SCALE
             const PLOT_OFFSET_Y = -42; // Same offset used in drawPlot (match drawing offset)
             window.plots.forEach(plot => {
                 if (plot.coordinates) {
                     try {
                         const coords = parseCoordinates(plot.coordinates);
-                        // Apply offset to coordinates for hit testing
+                        // Apply PLOT_SCALE and offset to coordinates for hit testing (same as drawing)
+                        const scaledMouseX = (mouseX - getPlotOffsetScreenX() / scale) / PLOT_SCALE;
+                        const scaledMouseY = (mouseY - getPlotOffsetScreenY() / scale) / PLOT_SCALE;
                         const offsetCoords = coords.map(p => ({ x: p.x, y: p.y + PLOT_OFFSET_Y }));
-                        if (isPointInPolygon(mouseX, mouseY, offsetCoords)) {
+                        if (isPointInPolygon(scaledMouseX, scaledMouseY, offsetCoords)) {
                             selectPlot(plot);
                         }
                     } catch (e) {
@@ -1945,20 +1950,20 @@ jQuery(document).ready(function($) {
             block: plot.block,
             street: plot.street
         });
-        
+
         const popup = $('#plot-hover-popup');
         const rect = canvas.getBoundingClientRect();
-        
+
         // Store the current plot ID for contact form
         window.currentHoveredPlotId = plot.id;
-        
+
         // Update popup content with fallbacks
         $('#popup-plot-name').text(plot.plot_name || 'Unknown Plot');
         $('#popup-plot-status').text(plot.status || 'Unknown').removeClass('available sold').addClass(plot.status || 'available');
         $('#popup-plot-sector').text(plot.sector || 'N/A');
         $('#popup-plot-block').text(plot.block || 'N/A');
         $('#popup-plot-street').text(plot.street || 'N/A');
-        
+
         // Show description if available
         if (plot.description && plot.description.trim()) {
             $('#popup-plot-description').text(plot.description);
@@ -1966,34 +1971,42 @@ jQuery(document).ready(function($) {
         } else {
             $('#popup-description-row').hide();
         }
-        
-        // Position popup
-        const mouseX = event.clientX - rect.left;
-        const mouseY = event.clientY - rect.top;
-        
+
+        // Position popup - use absolute positioning relative to the page
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+
         // Calculate popup position (very close to mouse)
-        const popupWidth = 280;
-        const popupHeight = 200;
-        const offsetX = 5; // Very small gap - close to cursor
-        const offsetY = -popupHeight - 5; // Very small gap - close to cursor
-        
+        const popupWidth = 300;
+        const popupHeight = 250;
+        const offsetX = 15; // Offset from cursor
+        const offsetY = 15; // Offset from cursor
+
         let left = mouseX + offsetX;
         let top = mouseY + offsetY;
-        
-        // Adjust if popup would go off screen
-        if (left + popupWidth > rect.width) {
+
+        // Adjust if popup would go off screen (check against window dimensions)
+        const windowWidth = $(window).width();
+        const windowHeight = $(window).height();
+
+        if (left + popupWidth > windowWidth) {
             left = mouseX - popupWidth - offsetX;
         }
-        if (top < 0) {
-            top = mouseY + 20;
+        if (top + popupHeight > windowHeight) {
+            top = mouseY - popupHeight - offsetY;
         }
-        
+
+        // Ensure popup stays within bounds
+        left = Math.max(10, Math.min(left, windowWidth - popupWidth - 10));
+        top = Math.max(10, Math.min(top, windowHeight - popupHeight - 10));
+
         popup.css({
             left: left + 'px',
             top: top + 'px',
-            display: 'block'
+            display: 'block',
+            position: 'fixed' // Use fixed positioning to position relative to viewport
         });
-        
+
         // Show with animation
         setTimeout(() => {
             popup.addClass('show');
