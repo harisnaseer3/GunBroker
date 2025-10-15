@@ -160,7 +160,12 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
                                 <div class="lead-meta">
                                     <span class="lead-date"><?php echo human_time_diff(strtotime($lead['created_at']), current_time('timestamp')); ?> ago</span>
                                     <?php if ($lead['message']): ?>
-                                        <span class="has-message">Has message</span>
+                                        <span class="has-message" onclick="toggleMessage(<?php echo $lead['id']; ?>)" style="cursor: pointer;" title="Click to view message">
+                                            💬 Has message
+                                        </span>
+                                        <div class="lead-message" id="message-<?php echo $lead['id']; ?>" style="display: none;">
+                                            <?php echo esc_html($lead['message']); ?>
+                                        </div>
                                     <?php endif; ?>
                                     <?php if (!empty($lead['admin_name'])): ?>
                                         <span class="admin-name">
@@ -208,6 +213,14 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
                                 </div>
                                 <div class="lead-meta">
                                     <span class="lead-date"><?php echo human_time_diff(strtotime($lead['created_at']), current_time('timestamp')); ?> ago</span>
+                                    <?php if ($lead['message']): ?>
+                                        <span class="has-message" onclick="toggleMessage(<?php echo $lead['id']; ?>)" style="cursor: pointer;" title="Click to view message">
+                                            💬 Has message
+                                        </span>
+                                        <div class="lead-message" id="message-<?php echo $lead['id']; ?>" style="display: none;">
+                                            <?php echo esc_html($lead['message']); ?>
+                                        </div>
+                                    <?php endif; ?>
                                     <?php if (!empty($lead['admin_name'])): ?>
                                         <span class="admin-name">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -254,6 +267,14 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
                                 </div>
                                 <div class="lead-meta">
                                     <span class="lead-date"><?php echo human_time_diff(strtotime($lead['created_at']), current_time('timestamp')); ?> ago</span>
+                                    <?php if ($lead['message']): ?>
+                                        <span class="has-message" onclick="toggleMessage(<?php echo $lead['id']; ?>)" style="cursor: pointer;" title="Click to view message">
+                                            💬 Has message
+                                        </span>
+                                        <div class="lead-message" id="message-<?php echo $lead['id']; ?>" style="display: none;">
+                                            <?php echo esc_html($lead['message']); ?>
+                                        </div>
+                                    <?php endif; ?>
                                     <?php if (!empty($lead['admin_name'])): ?>
                                         <span class="admin-name">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -300,6 +321,14 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
                                 </div>
                                 <div class="lead-meta">
                                     <span class="lead-date"><?php echo human_time_diff(strtotime($lead['created_at']), current_time('timestamp')); ?> ago</span>
+                                    <?php if ($lead['message']): ?>
+                                        <span class="has-message" onclick="toggleMessage(<?php echo $lead['id']; ?>)" style="cursor: pointer;" title="Click to view message">
+                                            💬 Has message
+                                        </span>
+                                        <div class="lead-message" id="message-<?php echo $lead['id']; ?>" style="display: none;">
+                                            <?php echo esc_html($lead['message']); ?>
+                                        </div>
+                                    <?php endif; ?>
                                     <?php if (!empty($lead['admin_name'])): ?>
                                         <span class="admin-name">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -598,6 +627,17 @@ function hideStatusLoadingOverlay() {
 function contactLead(leadId) {
     setButtonLoadingState(leadId, 'Contact');
     updateLeadStatus(leadId, 'contacted');
+}
+
+function toggleMessage(leadId) {
+    const messageDiv = document.getElementById('message-' + leadId);
+    if (messageDiv) {
+        if (messageDiv.style.display === 'none') {
+            messageDiv.style.display = 'block';
+        } else {
+            messageDiv.style.display = 'none';
+        }
+    }
 }
 
 function markInterested(leadId) {
@@ -946,13 +986,16 @@ jQuery(document).ready(function($) {
 /* Kanban Board Styles */
 .leads-kanban {
     margin-top: 20px;
+    overflow-x: hidden; /* Prevent horizontal scroll on kanban container */
 }
 
 .kanban-columns {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
-    min-height: 600px;
+    align-items: start; /* Align columns to top */
+    width: 100%; /* Ensure it doesn't exceed container width */
+    max-width: 100%; /* Prevent overflow */
 }
 
 .kanban-column {
@@ -960,6 +1003,8 @@ jQuery(document).ready(function($) {
     border-radius: 8px;
     padding: 15px;
     border: 1px solid #e9ecef;
+    min-width: 0; /* Prevent column from exceeding grid cell width */
+    overflow: hidden; /* Prevent content overflow */
 }
 
 .column-header {
@@ -987,7 +1032,30 @@ jQuery(document).ready(function($) {
 }
 
 .column-content {
-    min-height: 500px;
+    height: 600px; /* Fixed height - roughly fits 4 leads */
+    max-height: 600px; /* Maximum height */
+    overflow-y: auto !important; /* FORCE vertical scrollbar when content exceeds height */
+    overflow-x: hidden; /* Prevent horizontal scrollbar */
+    padding-right: 5px; /* Space for scrollbar */
+}
+
+/* Custom scrollbar for column content */
+.column-content::-webkit-scrollbar {
+    width: 8px; /* Wider for better visibility */
+}
+
+.column-content::-webkit-scrollbar-track {
+    background: #e5e7eb;
+    border-radius: 4px;
+}
+
+.column-content::-webkit-scrollbar-thumb {
+    background: #9ca3af; /* Darker for better visibility */
+    border-radius: 4px;
+}
+
+.column-content::-webkit-scrollbar-thumb:hover {
+    background: #6b7280; /* Even darker on hover */
 }
 
 .lead-card {
@@ -998,6 +1066,9 @@ jQuery(document).ready(function($) {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     border-left: 4px solid #0073aa;
     transition: all 0.3s ease;
+    word-wrap: break-word; /* Wrap long words */
+    overflow-wrap: break-word; /* Break long words if needed */
+    max-width: 100%; /* Don't exceed column width */
 }
 
 .lead-card:hover {
@@ -1048,6 +1119,38 @@ jQuery(document).ready(function($) {
     padding: 2px 6px;
     border-radius: 3px;
     font-size: 10px;
+    transition: all 0.2s ease;
+}
+
+.has-message:hover {
+    background: #1976d2;
+    color: white;
+    transform: scale(1.05);
+}
+
+.lead-message {
+    margin-top: 8px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-left: 3px solid #1976d2;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #333;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+        margin-top: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 200px;
+        margin-top: 8px;
+    }
 }
 
 .admin-name {
