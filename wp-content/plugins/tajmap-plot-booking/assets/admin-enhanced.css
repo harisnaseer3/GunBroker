@@ -1333,7 +1333,7 @@ h4 { font-size: 1.125rem; }
     background: #f9fafb;
     border-left: 1px solid #e5e7eb;
     padding: 1rem;
-    overflow-y: auto;
+    overflow-y: visible; /* Remove scrollbar from sidebar container */
 }
 
 .sidebar-header {
@@ -1395,8 +1395,8 @@ h4 { font-size: 1.125rem; }
 }
 
 .plots-list {
-    max-height: calc(5 * 4rem); /* 5 items before scroll */
-    overflow-y: auto;           /* add scrollbar after 5 items */
+    max-height: calc(100vh - 300px); /* Full height minus header and controls */
+    overflow-y: auto;                /* Single scrollbar for plot list */
     padding-right: 8px;
     space-y: 0.5rem;
 }
@@ -1465,6 +1465,11 @@ h4 { font-size: 1.125rem; }
 .plot-status.available {
     background: #d1fae5;
     color: #065f46;
+}
+
+.plot-status.reserved {
+    background: #fef3c7;
+    color: #92400e;
 }
 
 .plot-status.sold {

@@ -385,7 +385,12 @@ class Plugin {
 		$block = isset($_POST['block']) ? sanitize_text_field(wp_unslash($_POST['block'])) : '';
 		$description = isset($_POST['description']) ? sanitize_textarea_field(wp_unslash($_POST['description'])) : '';
 		$coordinates = isset($_POST['coordinates']) ? wp_kses_post(wp_unslash($_POST['coordinates'])) : '';
-		$status = isset($_POST['status']) && $_POST['status'] === 'sold' ? 'sold' : 'available';
+		$status = isset($_POST['status']) ? sanitize_text_field($_POST['status']) : 'available';
+		// Validate status
+		$valid_statuses = ['available', 'sold', 'reserved'];
+		if (!in_array($status, $valid_statuses)) {
+			$status = 'available'; // Default to available if invalid
+		}
 		$base_image_id = isset($_POST['base_image_id']) && !empty($_POST['base_image_id']) ? intval($_POST['base_image_id']) : null;
 		$base_image_transform = isset($_POST['base_image_transform']) ? wp_kses_post(wp_unslash($_POST['base_image_transform'])) : null;
 		
@@ -445,7 +450,12 @@ class Plugin {
 		}
 		global $wpdb;
 		$id = isset($_POST['id']) ? intval($_POST['id']) : 0;
-		$status = isset($_POST['status']) && $_POST['status'] === 'sold' ? 'sold' : 'available';
+		$status = isset($_POST['status']) ? sanitize_text_field($_POST['status']) : 'available';
+		// Validate status
+		$valid_statuses = ['available', 'sold', 'reserved'];
+		if (!in_array($status, $valid_statuses)) {
+			$status = 'available'; // Default to available if invalid
+		}
 		if ($id > 0) {
 			$wpdb->update(TAJMAP_PB_TABLE_PLOTS, ['status' => $status, 'updated_at' => current_time('mysql')], ['id' => $id]);
 		}
@@ -966,6 +976,12 @@ class Plugin {
 			'available'
 		));
 
+		// Reserved plots
+		$reserved_plots = $wpdb->get_var($wpdb->prepare(
+			'SELECT COUNT(*) FROM ' . TAJMAP_PB_TABLE_PLOTS . ' WHERE status = %s',
+			'reserved'
+		));
+
 		// Sold plots
 		$sold_plots = $wpdb->get_var($wpdb->prepare(
 			'SELECT COUNT(*) FROM ' . TAJMAP_PB_TABLE_PLOTS . ' WHERE status = %s',
@@ -998,6 +1014,7 @@ class Plugin {
 		wp_send_json_success([
 			'total_plots' => $total_plots,
 			'available_plots' => $available_plots,
+			'reserved_plots' => $reserved_plots,
 			'sold_plots' => $sold_plots,
 			'total_leads' => $total_leads,
 			'recent_leads' => $recent_leads,

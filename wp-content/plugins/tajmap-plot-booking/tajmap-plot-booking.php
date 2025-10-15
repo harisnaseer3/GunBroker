@@ -54,7 +54,7 @@ register_activation_hook(__FILE__, function () {
 		sector VARCHAR(191) NULL,
 		block VARCHAR(191) NULL,
 		coordinates LONGTEXT NOT NULL,
-		status ENUM('available','sold') NOT NULL DEFAULT 'available',
+		status ENUM('available','reserved','sold') NOT NULL DEFAULT 'available',
 		base_image_id BIGINT UNSIGNED NULL,
 		base_image_transform LONGTEXT NULL,
 		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -63,6 +63,9 @@ register_activation_hook(__FILE__, function () {
 		KEY status_idx (status)
 	) $charset_collate;";
 	dbDelta($plots_sql);
+	
+	// Update status ENUM to include 'reserved' for existing tables
+	$wpdb->query("ALTER TABLE `" . TAJMAP_PB_TABLE_PLOTS . "` MODIFY COLUMN `status` ENUM('available','reserved','sold') NOT NULL DEFAULT 'available'");
 	
 	// Check if base_image_transform column exists, if not add it
 	$column_exists = $wpdb->get_results($wpdb->prepare(

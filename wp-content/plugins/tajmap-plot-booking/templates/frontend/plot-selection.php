@@ -58,6 +58,7 @@ if (!defined('ABSPATH')) { exit; }
                         <select id="filter-status" class="filter-select">
                             <option value="">All Status</option>
                             <option value="available">Available</option>
+                            <option value="reserved">Reserved</option>
                             <option value="sold">Sold</option>
                         </select>
                     </div>

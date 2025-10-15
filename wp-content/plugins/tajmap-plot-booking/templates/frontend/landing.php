@@ -25,6 +25,7 @@ if (!defined('ABSPATH')) { exit; }
                         <select id="search-status" class="search-input">
                             <option value="">All Status</option>
                             <option value="available">Available</option>
+                            <option value="reserved">Reserved</option>
                             <option value="sold">Sold</option>
                         </select>
                         <button id="search-btn" class="search-btn">Search Plots</button>

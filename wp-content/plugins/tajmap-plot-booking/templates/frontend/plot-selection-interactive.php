@@ -298,12 +298,8 @@ $map_bg_url = $upload_dir['baseurl'] . '/2025/10/map-background.jpg';
 #plot-canvas {
     width: 100%;
     height: 100%;
-    cursor: grab;
+    cursor: default; /* Normal cursor by default - changes to pointer over plots */
     display: block;
-}
-
-#plot-canvas:active {
-    cursor: grabbing;
 }
 
 .loading-overlay {
@@ -491,6 +487,12 @@ body .wrap {
     box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
+.plot-status.reserved {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
 .plot-details {
     font-size: 0.9rem;
     color: #6b7280;
@@ -603,6 +605,11 @@ body .wrap {
 .status-badge.available {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.status-badge.reserved {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
 }
 
 .popup-body {
@@ -1237,8 +1244,17 @@ jQuery(document).ready(function($) {
             }
             
             // Set plot style
-            const color = plot.status === 'available' ? '#10b981' : '#ef4444';
-            const opacity = plot.status === 'available' ? 0.7 : 0.5;
+            let color, opacity;
+            if (plot.status === 'available') {
+                color = '#10b981'; // Green for available
+                opacity = 0.3; // Transparent for available
+            } else if (plot.status === 'reserved') {
+                color = '#f59e0b'; // Yellow for reserved
+                opacity = 0.7; // Solid yellow for reserved
+            } else {
+                color = '#ef4444'; // Red for sold
+                opacity = 0.5;
+            }
             
             console.log(`🎨 Plot ${index} style - color: ${color}, opacity: ${opacity}`);
             
@@ -1529,17 +1545,33 @@ jQuery(document).ready(function($) {
             drawAll();
         });
         
-        // Pan functionality
+        // Pan functionality - with drag threshold to prevent accidental dragging
+        let mouseDownX = 0;
+        let mouseDownY = 0;
+        let isMouseDown = false;
+        const DRAG_THRESHOLD = 5; // pixels - must move this far to start dragging
+        
         $('#interactive-map').on('mousedown', function(e) {
             if (e.target === canvas) {
-                isDragging = true;
+                isMouseDown = true;
+                mouseDownX = e.clientX;
+                mouseDownY = e.clientY;
                 dragStartX = e.clientX - panX;
                 dragStartY = e.clientY - panY;
-                canvas.style.cursor = 'grabbing';
             }
         });
         
         $(document).on('mousemove', function(e) {
+            if (isMouseDown && !isDragging) {
+                // Check if moved beyond threshold
+                const deltaX = Math.abs(e.clientX - mouseDownX);
+                const deltaY = Math.abs(e.clientY - mouseDownY);
+                if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) {
+                    isDragging = true;
+                    canvas.style.cursor = 'grabbing';
+                }
+            }
+            
             if (isDragging) {
                 panX = e.clientX - dragStartX;
                 panY = e.clientY - dragStartY;
@@ -1549,7 +1581,8 @@ jQuery(document).ready(function($) {
         
         $(document).on('mouseup', function() {
             isDragging = false;
-            canvas.style.cursor = 'grab';
+            isMouseDown = false;
+            canvas.style.cursor = 'default';
         });
         
         // Mouse move for hover popup - immediate show
@@ -1563,14 +1596,17 @@ jQuery(document).ready(function($) {
             clearTimeout(hoverTimeout);
             
             const rect = canvas.getBoundingClientRect();
-            // Convert screen coordinates to world coordinates
-            const mouseX = (e.clientX - rect.left - panX) / scale;
-            const mouseY = (e.clientX - rect.top - panY) / scale;
+            // Convert screen coordinates to world coordinates (account for all transforms)
+            const mouseX = (e.clientX - rect.left - panX - getViewOffsetScreen()) / scale;
+            const mouseY = (e.clientY - rect.top - panY - getViewOffsetScreenY()) / scale;
             
             // Find hovered plot - account for plot offset
-            const PLOT_OFFSET_Y = -50; // Same offset used in drawPlot
+            const PLOT_OFFSET_Y = -42; // Same offset used in drawPlot (match drawing offset)
             let hoveredPlot = null;
-            window.plots.forEach(plot => {
+            
+            // Loop through plots in reverse order (last drawn = on top)
+            for (let i = window.plots.length - 1; i >= 0; i--) {
+                const plot = window.plots[i];
                 if (plot.coordinates) {
                     try {
                         const coords = parseCoordinates(plot.coordinates);
@@ -1578,27 +1614,40 @@ jQuery(document).ready(function($) {
                         const offsetCoords = coords.map(p => ({ x: p.x, y: p.y + PLOT_OFFSET_Y }));
                         if (isPointInPolygon(mouseX, mouseY, offsetCoords)) {
                             hoveredPlot = plot;
+                            console.log('🎯 Hovered plot:', plot.plot_name, 'ID:', plot.id);
+                            break; // Stop at first match (topmost plot)
                         }
                     } catch (e) {
                         console.error('Error checking plot hover:', e);
                     }
                 }
-            });
+            }
             
-            if (hoveredPlot && hoveredPlot.id !== lastHoveredPlot?.id) {
-                // New plot hovered, show popup immediately
-                showHoverPopup(e, hoveredPlot);
-                lastHoveredPlot = hoveredPlot;
-                window.isPopupVisible = true;
-            } else if (!hoveredPlot && window.isPopupVisible && !window.isMouseOverPopup) {
-                // No plot hovered and mouse not over popup, hide popup after short delay
-                hoverTimeout = setTimeout(() => {
-                    if (!window.isMouseOverPopup) {
-                        hideHoverPopup();
-                        lastHoveredPlot = null;
-                        window.isPopupVisible = false;
-                    }
-                }, 500); // Short delay to allow moving to popup
+            if (hoveredPlot) {
+                // Plot is hovered - change cursor to pointer
+                canvas.style.cursor = 'pointer';
+                
+                if (hoveredPlot.id !== lastHoveredPlot?.id) {
+                    // New plot hovered, show popup immediately
+                    showHoverPopup(e, hoveredPlot);
+                    lastHoveredPlot = hoveredPlot;
+                    window.isPopupVisible = true;
+                }
+                // If same plot, keep popup visible (do nothing)
+            } else {
+                // No plot hovered - reset cursor
+                canvas.style.cursor = isDragging ? 'grabbing' : 'default';
+                
+                if (window.isPopupVisible && !window.isMouseOverPopup) {
+                    // Hide popup after delay
+                    hoverTimeout = setTimeout(() => {
+                        if (!window.isMouseOverPopup) {
+                            hideHoverPopup();
+                            lastHoveredPlot = null;
+                            window.isPopupVisible = false;
+                        }
+                    }, 300); // 300ms delay to allow moving to popup
+                }
             }
         });
         
@@ -1625,25 +1674,40 @@ jQuery(document).ready(function($) {
             // Keep popup visible when mouse is over it
         });
         
-        // Track when mouse leaves popup - hide it immediately
+        // Track when mouse leaves popup - hide after small delay
         $('#plot-hover-popup').on('mouseleave', function() {
             window.isMouseOverPopup = false;
-            // Hide popup immediately when mouse leaves popup
-            hideHoverPopup();
-            lastHoveredPlot = null;
-            window.isPopupVisible = false;
+            // Hide popup after small delay when mouse leaves popup
+            hoverTimeout = setTimeout(() => {
+                if (!window.isMouseOverPopup) {
+                    hideHoverPopup();
+                    lastHoveredPlot = null;
+                    window.isPopupVisible = false;
+                }
+            }, 200); // Small delay to prevent accidental closing
         });
         
-        // Click on plot
+        // Click on plot - only if not dragging and mouse hasn't moved much
         $('#plot-canvas').on('click', function(e) {
+            // Ignore clicks if dragging or if mouse moved significantly
             if (isDragging) return;
             
+            // Check if mouse moved significantly since mousedown
+            if (isMouseDown) {
+                const deltaX = Math.abs(e.clientX - mouseDownX);
+                const deltaY = Math.abs(e.clientY - mouseDownY);
+                if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) {
+                    return; // Was a drag attempt, not a click
+                }
+            }
+            
             const rect = canvas.getBoundingClientRect();
-            const mouseX = (e.clientX - rect.left - panX) / scale;
-            const mouseY = (e.clientY - rect.top - panY) / scale;
+            // Convert screen coordinates to world coordinates (account for all transforms)
+            const mouseX = (e.clientX - rect.left - panX - getViewOffsetScreen()) / scale;
+            const mouseY = (e.clientY - rect.top - panY - getViewOffsetScreenY()) / scale;
             
             // Find clicked plot - account for plot offset
-            const PLOT_OFFSET_Y = -50; // Same offset used in drawPlot
+            const PLOT_OFFSET_Y = -42; // Same offset used in drawPlot (match drawing offset)
             window.plots.forEach(plot => {
                 if (plot.coordinates) {
                     try {
@@ -1873,14 +1937,23 @@ jQuery(document).ready(function($) {
     
     // Set the current hovered plot ID when showing popup
     function showHoverPopup(event, plot) {
+        console.log('📋 Showing popup for plot:', {
+            id: plot.id,
+            name: plot.plot_name,
+            status: plot.status,
+            sector: plot.sector,
+            block: plot.block,
+            street: plot.street
+        });
+        
         const popup = $('#plot-hover-popup');
         const rect = canvas.getBoundingClientRect();
         
         // Store the current plot ID for contact form
         window.currentHoveredPlotId = plot.id;
         
-        // Update popup content
-        $('#popup-plot-name').text(plot.plot_name || 'Plot');
+        // Update popup content with fallbacks
+        $('#popup-plot-name').text(plot.plot_name || 'Unknown Plot');
         $('#popup-plot-status').text(plot.status || 'Unknown').removeClass('available sold').addClass(plot.status || 'available');
         $('#popup-plot-sector').text(plot.sector || 'N/A');
         $('#popup-plot-block').text(plot.block || 'N/A');

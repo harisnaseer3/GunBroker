@@ -241,6 +241,7 @@ $area_unit_label = $unit_labels[$measurement_units] ?? 'sq ft';
                             <label for="plot-status">Status</label>
                             <select id="plot-status" name="status">
                                 <option value="available">Available</option>
+                                <option value="reserved">Reserved</option>
                                 <option value="sold">Sold</option>
                             </select>
                         </div>

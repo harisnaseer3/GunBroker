@@ -21,6 +21,7 @@ if (!defined('ABSPATH')) { exit; }
 				<label>Status<br>
 					<select id="tajmap-pb-status">
 						<option value="available">Available</option>
+						<option value="reserved">Reserved</option>
 						<option value="sold">Sold</option>
 					</select>
 				</label>

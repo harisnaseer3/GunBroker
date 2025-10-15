@@ -1243,9 +1243,6 @@
 
                     // Redraw canvas
                     drawAll();
-                    
-                    // Reload plots from database to ensure we have the latest data
-                    reloadPlotsFromDatabase();
                 }
             } else {
                 alert('Error saving plot: ' + (response.data || 'Unknown error'));
@@ -1574,6 +1571,10 @@
             case 'sold':
                 ctx.fillStyle = 'rgba(239, 68, 68, 0.3)';
                 ctx.strokeStyle = '#dc2626';
+                break;
+            case 'reserved':
+                ctx.fillStyle = 'rgba(245, 158, 11, 0.7)'; // Yellow for reserved
+                ctx.strokeStyle = '#d97706';
                 break;
             case 'available':
             default:
