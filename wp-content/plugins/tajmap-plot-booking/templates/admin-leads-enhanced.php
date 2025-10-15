@@ -30,16 +30,20 @@ $where_clause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
 // Get all leads for Kanban board (not filtered)
 $all_leads = $wpdb->get_results(
-    'SELECT l.*, p.plot_name, p.street, p.sector, p.block FROM ' . TAJMAP_PB_TABLE_LEADS . ' l
+    'SELECT l.*, p.plot_name, p.street, p.sector, p.block, u.display_name as admin_name 
+     FROM ' . TAJMAP_PB_TABLE_LEADS . ' l
      LEFT JOIN ' . TAJMAP_PB_TABLE_PLOTS . ' p ON p.id = l.plot_id
+     LEFT JOIN ' . $wpdb->users . ' u ON u.ID = l.admin_user_id
      ORDER BY l.created_at DESC',
     ARRAY_A
 );
 
 // Get filtered leads for list view
 $leads = $wpdb->get_results($wpdb->prepare(
-    'SELECT l.*, p.plot_name, p.street, p.sector, p.block FROM ' . TAJMAP_PB_TABLE_LEADS . ' l
+    'SELECT l.*, p.plot_name, p.street, p.sector, p.block, u.display_name as admin_name 
+     FROM ' . TAJMAP_PB_TABLE_LEADS . ' l
      LEFT JOIN ' . TAJMAP_PB_TABLE_PLOTS . ' p ON p.id = l.plot_id
+     LEFT JOIN ' . $wpdb->users . ' u ON u.ID = l.admin_user_id
      ' . $where_clause . ' ORDER BY l.created_at DESC',
     $params
 ), ARRAY_A);
@@ -158,6 +162,15 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
                                     <?php if ($lead['message']): ?>
                                         <span class="has-message">Has message</span>
                                     <?php endif; ?>
+                                    <?php if (!empty($lead['admin_name'])): ?>
+                                        <span class="admin-name">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                <circle cx="12" cy="7" r="4"></circle>
+                                            </svg>
+                                            <?php echo esc_html($lead['admin_name']); ?>
+                                        </span>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="lead-actions">
                                     <button class="btn small primary" onclick="viewLead(<?php echo $lead['id']; ?>)">View</button>
@@ -195,6 +208,15 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
                                 </div>
                                 <div class="lead-meta">
                                     <span class="lead-date"><?php echo human_time_diff(strtotime($lead['created_at']), current_time('timestamp')); ?> ago</span>
+                                    <?php if (!empty($lead['admin_name'])): ?>
+                                        <span class="admin-name">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                <circle cx="12" cy="7" r="4"></circle>
+                                            </svg>
+                                            <?php echo esc_html($lead['admin_name']); ?>
+                                        </span>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="lead-actions">
                                     <button class="btn small primary" onclick="viewLead(<?php echo $lead['id']; ?>)">View</button>
@@ -232,6 +254,15 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
                                 </div>
                                 <div class="lead-meta">
                                     <span class="lead-date"><?php echo human_time_diff(strtotime($lead['created_at']), current_time('timestamp')); ?> ago</span>
+                                    <?php if (!empty($lead['admin_name'])): ?>
+                                        <span class="admin-name">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                <circle cx="12" cy="7" r="4"></circle>
+                                            </svg>
+                                            <?php echo esc_html($lead['admin_name']); ?>
+                                        </span>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="lead-actions">
                                     <button class="btn small primary" onclick="viewLead(<?php echo $lead['id']; ?>)">View</button>
@@ -269,6 +300,15 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
                                 </div>
                                 <div class="lead-meta">
                                     <span class="lead-date"><?php echo human_time_diff(strtotime($lead['created_at']), current_time('timestamp')); ?> ago</span>
+                                    <?php if (!empty($lead['admin_name'])): ?>
+                                        <span class="admin-name">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                <circle cx="12" cy="7" r="4"></circle>
+                                            </svg>
+                                            <?php echo esc_html($lead['admin_name']); ?>
+                                        </span>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="lead-actions">
                                     <button class="btn small primary" onclick="viewLead(<?php echo $lead['id']; ?>)">View</button>
@@ -1008,6 +1048,25 @@ jQuery(document).ready(function($) {
     padding: 2px 6px;
     border-radius: 3px;
     font-size: 10px;
+}
+
+.admin-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f3e8ff;
+    color: #7c3aed;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.admin-name svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
 }
 
 .lead-actions {

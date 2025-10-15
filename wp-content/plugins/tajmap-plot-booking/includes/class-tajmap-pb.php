@@ -58,6 +58,11 @@ class Plugin {
 		add_action('wp_ajax_tajmap_pb_save_settings', [$this, 'ajax_save_settings']);
 		add_action('wp_ajax_tajmap_pb_test_configuration', [$this, 'ajax_test_configuration']);
 		add_action('wp_ajax_tajmap_pb_export_settings', [$this, 'ajax_export_settings']);
+		
+		// Admin Users AJAX handlers
+		add_action('wp_ajax_tajmap_pb_get_admin_users', [$this, 'ajax_get_admin_users']);
+		add_action('wp_ajax_tajmap_pb_save_admin_user', [$this, 'ajax_save_admin_user']);
+		add_action('wp_ajax_tajmap_pb_get_admin_performance', [$this, 'ajax_get_admin_performance']);
 		add_action('wp_ajax_tajmap_pb_reset_settings', [$this, 'ajax_reset_settings']);
 		add_action('wp_ajax_tajmap_pb_get_image_url', [$this, 'ajax_get_image_url']);
 		add_action('wp_ajax_nopriv_tajmap_pb_get_image_url', [$this, 'ajax_get_image_url']);
@@ -133,6 +138,22 @@ class Plugin {
 			'tajmap-plot-settings',
 			[$this, 'render_settings_page']
 		);
+		add_submenu_page(
+			'tajmap-plot-management',
+			'Admin Users',
+			'Admin Users',
+			'manage_options',
+			'tajmap-admin-users',
+			[$this, 'render_admin_users_page']
+		);
+		add_submenu_page(
+			null, // Hidden from menu
+			'Admin Performance',
+			'Admin Performance',
+			'manage_options',
+			'tajmap-admin-performance',
+			[$this, 'render_admin_performance_page']
+		);
 	}
 
 	public function enqueue_admin_assets($hook) {
@@ -195,6 +216,14 @@ class Plugin {
 
 	public function render_settings_page() {
 		include TAJMAP_PB_PATH . 'templates/admin-settings.php';
+	}
+
+	public function render_admin_users_page() {
+		include TAJMAP_PB_PATH . 'templates/admin-users.php';
+	}
+
+	public function render_admin_performance_page() {
+		include TAJMAP_PB_PATH . 'templates/admin-performance.php';
 	}
 
 	public function shortcode($atts) {
@@ -514,6 +543,7 @@ class Plugin {
 		global $wpdb;
 		$id = isset($_POST['id']) ? intval($_POST['id']) : 0;
 		$status = isset($_POST['status']) ? sanitize_text_field($_POST['status']) : 'new';
+		$current_user_id = get_current_user_id();
 		
 		// Validate status
 		$valid_statuses = ['new', 'contacted', 'interested', 'closed'];
@@ -522,8 +552,26 @@ class Plugin {
 		}
 		
 		if ($id > 0) {
-			$result = $wpdb->update(TAJMAP_PB_TABLE_LEADS, ['status' => $status], ['id' => $id]);
+			// Update lead status and assign to current admin
+			$result = $wpdb->update(
+				TAJMAP_PB_TABLE_LEADS, 
+				[
+					'status' => $status,
+					'admin_user_id' => $current_user_id
+				], 
+				['id' => $id]
+			);
+			
 			if ($result !== false) {
+				// Log this activity in lead history
+				$wpdb->insert(TAJMAP_PB_TABLE_LEAD_HISTORY, [
+					'lead_id' => $id,
+					'user_id' => $current_user_id,
+					'action' => 'Status changed to ' . $status,
+					'details' => 'Lead status updated',
+					'created_at' => current_time('mysql')
+				]);
+				
 				wp_send_json_success(['message' => 'Status updated successfully']);
 			} else {
 				wp_send_json_error(['message' => 'Failed to update status: ' . $wpdb->last_error], 500);
@@ -1300,6 +1348,175 @@ class Plugin {
 		wp_send_json_success([
 			'base_map_image_id' => $base_map_image_id,
 			'base_map_transform' => $base_map_transform
+		]);
+	}
+
+	// Admin Users Management AJAX handlers
+	public function ajax_get_admin_users() {
+		$this->verify_nonce('tajmap_pb_admin');
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error(['message' => 'Unauthorized'], 403);
+		}
+
+		global $wpdb;
+
+		// Get all WordPress users with admin capabilities
+		$users = get_users(['role__in' => ['administrator', 'editor']]);
+		
+		$admin_users = [];
+		$total_leads_handled = 0;
+		$active_count = 0;
+
+		foreach ($users as $user) {
+			// Count leads handled by this admin (where they changed the status)
+			$lead_stats = $wpdb->get_row($wpdb->prepare(
+				"SELECT 
+					COUNT(*) as total_leads,
+					SUM(CASE WHEN l.status = 'contacted' THEN 1 ELSE 0 END) as contacted_leads,
+					SUM(CASE WHEN l.status = 'interested' THEN 1 ELSE 0 END) as interested_leads,
+					SUM(CASE WHEN l.status = 'closed' THEN 1 ELSE 0 END) as closed_leads
+				FROM " . TAJMAP_PB_TABLE_LEADS . " l
+				WHERE l.admin_user_id = %d",
+				$user->ID
+			), ARRAY_A);
+
+			// Get last activity
+			$last_activity = $wpdb->get_var($wpdb->prepare(
+				"SELECT MAX(created_at) FROM " . TAJMAP_PB_TABLE_LEAD_HISTORY . " WHERE user_id = %d",
+				$user->ID
+			));
+
+			$total_leads = intval($lead_stats['total_leads'] ?? 0);
+			$contacted = intval($lead_stats['contacted_leads'] ?? 0);
+			$interested = intval($lead_stats['interested_leads'] ?? 0);
+			$closed = intval($lead_stats['closed_leads'] ?? 0);
+
+			$total_leads_handled += $total_leads;
+
+			// Check if active in last 30 days
+			if ($last_activity && strtotime($last_activity) > strtotime('-30 days')) {
+				$active_count++;
+			}
+
+			$admin_users[] = [
+				'ID' => $user->ID,
+				'display_name' => $user->display_name,
+				'email' => $user->user_email,
+				'role' => implode(', ', $user->roles),
+				'total_leads' => $total_leads,
+				'contacted_leads' => $contacted,
+				'interested_leads' => $interested,
+				'closed_leads' => $closed,
+				'last_active' => $last_activity ? date('M j, Y', strtotime($last_activity)) : 'Never'
+			];
+		}
+
+		wp_send_json_success([
+			'users' => $admin_users,
+			'stats' => [
+				'total_admins' => count($users),
+				'active_admins' => $active_count,
+				'total_leads_handled' => $total_leads_handled
+			]
+		]);
+	}
+
+	public function ajax_save_admin_user() {
+		$this->verify_nonce('tajmap_pb_admin');
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error(['message' => 'Unauthorized'], 403);
+		}
+
+		// This function can be used to assign roles or additional metadata
+		// For now, WordPress user management handles the actual user data
+		
+		wp_send_json_success(['message' => 'Admin user updated successfully']);
+	}
+
+	public function ajax_get_admin_performance() {
+		$this->verify_nonce('tajmap_pb_admin');
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error(['message' => 'Unauthorized'], 403);
+		}
+
+		global $wpdb;
+
+		$user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
+		$days = isset($_POST['days']) ? intval($_POST['days']) : 30;
+
+		if ($user_id <= 0) {
+			wp_send_json_error(['message' => 'Invalid user ID'], 400);
+		}
+
+		$date_filter = $days < 9999 ? "AND l.created_at >= DATE_SUB(NOW(), INTERVAL $days DAY)" : "";
+
+		// Get performance stats
+		$stats = $wpdb->get_row($wpdb->prepare(
+			"SELECT 
+				COUNT(*) as total,
+				SUM(CASE WHEN l.status = 'contacted' THEN 1 ELSE 0 END) as contacted,
+				SUM(CASE WHEN l.status = 'interested' THEN 1 ELSE 0 END) as interested,
+				SUM(CASE WHEN l.status = 'closed' THEN 1 ELSE 0 END) as closed
+			FROM " . TAJMAP_PB_TABLE_LEADS . " l
+			WHERE l.admin_user_id = %d $date_filter",
+			$user_id
+		), ARRAY_A);
+
+		// Get chart data (last X days)
+		$chart_days = min($days, 30);
+		$chart_data = [
+			'labels' => [],
+			'contacted' => [],
+			'interested' => [],
+			'closed' => []
+		];
+
+		for ($i = $chart_days - 1; $i >= 0; $i--) {
+			$date = date('Y-m-d', strtotime("-$i days"));
+			$chart_data['labels'][] = date('M j', strtotime($date));
+
+			$day_stats = $wpdb->get_row($wpdb->prepare(
+				"SELECT 
+					SUM(CASE WHEN l.status = 'contacted' THEN 1 ELSE 0 END) as contacted,
+					SUM(CASE WHEN l.status = 'interested' THEN 1 ELSE 0 END) as interested,
+					SUM(CASE WHEN l.status = 'closed' THEN 1 ELSE 0 END) as closed
+				FROM " . TAJMAP_PB_TABLE_LEADS . " l
+				WHERE l.admin_user_id = %d AND DATE(l.created_at) = %s",
+				$user_id,
+				$date
+			), ARRAY_A);
+
+			$chart_data['contacted'][] = intval($day_stats['contacted'] ?? 0);
+			$chart_data['interested'][] = intval($day_stats['interested'] ?? 0);
+			$chart_data['closed'][] = intval($day_stats['closed'] ?? 0);
+		}
+
+		// Get recent activities
+		$activities = $wpdb->get_results($wpdb->prepare(
+			"SELECT 
+				h.created_at as date,
+				h.action,
+				h.details,
+				l.phone as lead_email,
+				l.status as new_status,
+				p.plot_name
+			FROM " . TAJMAP_PB_TABLE_LEAD_HISTORY . " h
+			LEFT JOIN " . TAJMAP_PB_TABLE_LEADS . " l ON h.lead_id = l.id
+			LEFT JOIN " . TAJMAP_PB_TABLE_PLOTS . " p ON l.plot_id = p.id
+			WHERE h.user_id = %d $date_filter
+			ORDER BY h.created_at DESC
+			LIMIT 20",
+			$user_id
+		), ARRAY_A);
+
+		foreach ($activities as &$activity) {
+			$activity['date'] = date('M j, Y g:i a', strtotime($activity['date']));
+		}
+
+		wp_send_json_success([
+			'stats' => $stats,
+			'chart_data' => $chart_data,
+			'activities' => $activities
 		]);
 	}
 }

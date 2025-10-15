@@ -67,6 +67,17 @@ register_activation_hook(__FILE__, function () {
 	// Update status ENUM to include 'reserved' for existing tables
 	$wpdb->query("ALTER TABLE `" . TAJMAP_PB_TABLE_PLOTS . "` MODIFY COLUMN `status` ENUM('available','reserved','sold') NOT NULL DEFAULT 'available'");
 	
+	// Add admin_user_id column to leads table if it doesn't exist
+	$admin_user_column = $wpdb->get_results($wpdb->prepare(
+		"SHOW COLUMNS FROM `" . TAJMAP_PB_TABLE_LEADS . "` LIKE %s",
+		'admin_user_id'
+	));
+	if (empty($admin_user_column)) {
+		$wpdb->query("ALTER TABLE `" . TAJMAP_PB_TABLE_LEADS . "` ADD COLUMN `admin_user_id` BIGINT UNSIGNED NULL AFTER `plot_id`");
+		$wpdb->query("ALTER TABLE `" . TAJMAP_PB_TABLE_LEADS . "` ADD KEY `admin_user_idx` (`admin_user_id`)");
+		error_log('TajMap: Added admin_user_id column to leads table');
+	}
+	
 	// Check if base_image_transform column exists, if not add it
 	$column_exists = $wpdb->get_results($wpdb->prepare(
 		"SHOW COLUMNS FROM `" . TAJMAP_PB_TABLE_PLOTS . "` LIKE %s",
