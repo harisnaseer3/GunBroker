@@ -935,9 +935,10 @@ jQuery(document).ready(function($) {
     // Global view offset: X moves left/right in % of width; Y moves up/down in % of height
     const VIEW_OFFSET_RATIO = 0; // Center horizontally (0 = no offset)
     const VIEW_OFFSET_Y_RATIO = 0; // Center vertically (0 = no offset)
-    // Scale only the plots layer by +10% (background unchanged)
-    const PLOT_SCALE = 1.7;
-    // Transform only the plots layer 10% up (background unchanged)
+    // Scale only the plots layer to match base map regions (fine-tuned for alignment)
+    const PLOT_SCALE_X = 1.71; // Horizontal scaling - increased by ~10% from 1.7 for better region matching
+    const PLOT_SCALE_Y = 1.72; // Vertical scaling - PLOT_SCALE_X * 1.02 (additional 2% Y-axis scaling)
+    // Transform only the plots layer upward for vertical alignment (background unchanged)
     const PLOT_OFFSET_Y_RATIO = 0;
     // Transform only the plots layer 3% right (background unchanged)
     const PLOT_OFFSET_X_RATIO = 0;
@@ -1211,10 +1212,10 @@ jQuery(document).ready(function($) {
         
         console.log('🎨 Transform applied - panX:', panX, 'panY:', panY, 'scale:', scale);
         
-        // Draw plots with plots-only scaling and X/Y offsets
+        // Draw plots with plots-only scaling and X/Y offsets (separate X and Y scaling)
         ctx.save();
-        ctx.scale(PLOT_SCALE, PLOT_SCALE);
-        ctx.translate(getPlotOffsetScreenX() / PLOT_SCALE, getPlotOffsetScreenY() / PLOT_SCALE);
+        ctx.scale(PLOT_SCALE_X, PLOT_SCALE_Y);
+        ctx.translate(getPlotOffsetScreenX() / PLOT_SCALE_X, getPlotOffsetScreenY() / PLOT_SCALE_Y);
         window.plots.forEach((plot, index) => {
             console.log(`🎨 Drawing plot ${index}:`, plot);
             drawPlot(plot, index);
@@ -1263,8 +1264,8 @@ jQuery(document).ready(function($) {
             ctx.lineWidth = (2 / scale); // base thickness
             ctx.globalAlpha = opacity;
             
-            // Draw polygon - apply vertical offset to move plots up
-            const PLOT_OFFSET_Y = -42; // Move plots up by 50px
+            // Draw polygon - apply vertical offset to move plots up for alignment
+            const PLOT_OFFSET_Y = -44; // Fine-tuned vertical offset (adjusted from -46, translated -2 on Y-axis)
             
             ctx.beginPath();
             ctx.moveTo(coords[0].x, coords[0].y + PLOT_OFFSET_Y);
@@ -1601,7 +1602,7 @@ jQuery(document).ready(function($) {
             const mouseY = (e.clientY - rect.top - panY - getViewOffsetScreenY()) / scale;
 
             // Find hovered plot - account for plot offset and PLOT_SCALE
-            const PLOT_OFFSET_Y = -42; // Same offset used in drawPlot (match drawing offset)
+            const PLOT_OFFSET_Y = -44; // Same offset used in drawPlot (match drawing offset)
             let hoveredPlot = null;
 
             // Loop through plots in reverse order (last drawn = on top)
@@ -1610,10 +1611,10 @@ jQuery(document).ready(function($) {
                 if (plot.coordinates) {
                     try {
                         const coords = parseCoordinates(plot.coordinates);
-                        // Apply PLOT_SCALE and offset to coordinates for hit testing (same as drawing)
-                        // First apply the offset, then scale, then apply plot offset X
-                        const scaledMouseX = (mouseX - getPlotOffsetScreenX() / scale) / PLOT_SCALE;
-                        const scaledMouseY = (mouseY - getPlotOffsetScreenY() / scale) / PLOT_SCALE;
+                        // Apply PLOT_SCALE_X/Y and offset to coordinates for hit testing (same as drawing)
+                        // First apply the offset, then scale, then apply plot offset X/Y
+                        const scaledMouseX = (mouseX - getPlotOffsetScreenX() / scale) / PLOT_SCALE_X;
+                        const scaledMouseY = (mouseY - getPlotOffsetScreenY() / scale) / PLOT_SCALE_Y;
                         const offsetCoords = coords.map(p => ({ x: p.x, y: p.y + PLOT_OFFSET_Y }));
                         if (isPointInPolygon(scaledMouseX, scaledMouseY, offsetCoords)) {
                             hoveredPlot = plot;
@@ -1710,14 +1711,14 @@ jQuery(document).ready(function($) {
             const mouseY = (e.clientY - rect.top - panY - getViewOffsetScreenY()) / scale;
 
             // Find clicked plot - account for plot offset and PLOT_SCALE
-            const PLOT_OFFSET_Y = -42; // Same offset used in drawPlot (match drawing offset)
+            const PLOT_OFFSET_Y = -44; // Same offset used in drawPlot (match drawing offset)
             window.plots.forEach(plot => {
                 if (plot.coordinates) {
                     try {
                         const coords = parseCoordinates(plot.coordinates);
-                        // Apply PLOT_SCALE and offset to coordinates for hit testing (same as drawing)
-                        const scaledMouseX = (mouseX - getPlotOffsetScreenX() / scale) / PLOT_SCALE;
-                        const scaledMouseY = (mouseY - getPlotOffsetScreenY() / scale) / PLOT_SCALE;
+                        // Apply PLOT_SCALE_X/Y and offset to coordinates for hit testing (same as drawing)
+                        const scaledMouseX = (mouseX - getPlotOffsetScreenX() / scale) / PLOT_SCALE_X;
+                        const scaledMouseY = (mouseY - getPlotOffsetScreenY() / scale) / PLOT_SCALE_Y;
                         const offsetCoords = coords.map(p => ({ x: p.x, y: p.y + PLOT_OFFSET_Y }));
                         if (isPointInPolygon(scaledMouseX, scaledMouseY, offsetCoords)) {
                             selectPlot(plot);
