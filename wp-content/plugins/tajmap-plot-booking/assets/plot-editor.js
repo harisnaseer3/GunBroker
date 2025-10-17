@@ -304,6 +304,12 @@
         // Plot details panel events
         // (removed) plot details panel events
 
+        // Plot search functionality
+        $('#plots-search-input').on('input', function() {
+            const searchQuery = $(this).val().toLowerCase();
+            filterPlots(searchQuery);
+        });
+
         // Image upload events
         $('#upload-base-image').on('click', function(e) {
             e.preventDefault();
@@ -1333,7 +1339,7 @@
 
     function updatePlotList() {
         // Update the plot count in the sidebar header
-        $('.sidebar-header h3').text(`Existing Plots (${plots.length})`);
+        $('#plots-total-count').text(plots.length);
 
         // If no plots exist, show the create first plot message
         if (plots.length === 0) {
@@ -1351,7 +1357,13 @@
         plots.forEach(plot => {
             const statusClass = plot.status || 'available';
             plotListHtml += `
-                <div class="plot-list-item" data-id="${plot.id || ''}">
+                <div class="plot-list-item" data-id="${plot.id || ''}"
+                     data-name="${(plot.plot_name || 'Unnamed Plot').toLowerCase()}"
+                     data-sector="${(plot.sector || '').toLowerCase()}"
+                     data-type="${(plot.type || '').toLowerCase()}"
+                     data-category="${(plot.category || '').toLowerCase()}"
+                     data-street="${(plot.street || '').toLowerCase()}"
+                     data-status="${statusClass.toLowerCase()}">
                     <div class="plot-info">
                         <h4>${plot.plot_name || 'Unnamed Plot'}</h4>
                         <div class="plot-meta">
@@ -1381,6 +1393,59 @@
         });
 
         $('#plots-list').html(plotListHtml);
+    }
+
+    function filterPlots(searchQuery) {
+        const plotItems = $('.plot-list-item');
+        let visibleCount = 0;
+
+        if (!searchQuery || searchQuery.trim() === '') {
+            // Show all plots if search is empty
+            plotItems.show();
+            visibleCount = plotItems.length;
+        } else {
+            // Filter plots based on search query
+            plotItems.each(function() {
+                const $item = $(this);
+                const name = $item.data('name') || '';
+                const sector = $item.data('sector') || '';
+                const type = $item.data('type') || '';
+                const category = $item.data('category') || '';
+                const street = $item.data('street') || '';
+                const status = $item.data('status') || '';
+
+                // Check if any field matches the search query
+                const matches = name.includes(searchQuery) ||
+                              sector.includes(searchQuery) ||
+                              type.includes(searchQuery) ||
+                              category.includes(searchQuery) ||
+                              street.includes(searchQuery) ||
+                              status.includes(searchQuery);
+
+                if (matches) {
+                    $item.show();
+                    visibleCount++;
+                } else {
+                    $item.hide();
+                }
+            });
+        }
+
+        // Update the count to show filtered results
+        $('#plots-total-count').text(visibleCount);
+
+        // Show message if no results
+        if (visibleCount === 0) {
+            if ($('#no-search-results').length === 0) {
+                $('#plots-list').append(`
+                    <div id="no-search-results" class="no-plots">
+                        <p>No plots found matching "${searchQuery}"</p>
+                    </div>
+                `);
+            }
+        } else {
+            $('#no-search-results').remove();
+        }
     }
 
     function sortPlots(sortBy) {

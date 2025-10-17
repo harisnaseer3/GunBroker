@@ -1497,6 +1497,41 @@ h4 { font-size: 1.125rem; }
     overflow-y: visible; /* Remove scrollbar from sidebar container */
 }
 
+/* Plot Search Box */
+.plots-search {
+    position: relative;
+    margin-bottom: 0.75rem;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem 0.5rem 2rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-input:hover {
+    border-color: #9ca3af;
+}
+
+.search-icon {
+    position: absolute;
+    left: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    pointer-events: none;
+}
+
 .sidebar-header {
     display: flex;
     justify-content: space-between;
@@ -1556,7 +1591,7 @@ h4 { font-size: 1.125rem; }
 }
 
 .plots-list {
-    max-height: calc(100vh - 300px); /* Full height minus header and controls */
+    max-height: calc(50vh - 100px); /* Reduced height for better UX */
     overflow-y: auto;                /* Single scrollbar for plot list */
     padding-right: 8px;
     space-y: 0.5rem;

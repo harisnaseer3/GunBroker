@@ -336,14 +336,23 @@ $area_unit_label = $unit_labels[$measurement_units] ?? 'sq ft';
     <!-- Existing Plots Sidebar -->
     <div class="plots-sidebar">
         <div class="sidebar-header">
-            <h3>Existing Plots (<?php echo count($plots); ?>)</h3>
+            <h3>Existing Plots (<span id="plots-total-count"><?php echo count($plots); ?></span>)</h3>
             <button class="sidebar-toggle" id="sidebar-toggle">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="15,18 9,12 15,6"></polyline>
                 </svg>
             </button>
         </div>
-        
+
+        <!-- Search Box -->
+        <div class="plots-search">
+            <input type="text" id="plots-search-input" class="search-input" placeholder="Search plots...">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+        </div>
+
         <div class="plots-sort">
             <select id="plots-sort" class="sort-select">
                 <option value="newest">Latest First</option>
