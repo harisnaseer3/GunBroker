@@ -49,8 +49,12 @@ $map_bg_url = $upload_dir['baseurl'] . '/2025/10/map-background.jpg';
                             <span id="popup-plot-sector">-</span>
                         </div>
                         <div class="detail-row">
-                            <span class="label">Block:</span>
-                            <span id="popup-plot-block">-</span>
+                            <span class="label">Type:</span>
+                            <span id="popup-plot-type">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Category:</span>
+                            <span id="popup-plot-category">-</span>
                         </div>
                         <div class="detail-row">
                             <span class="label">Street:</span>
@@ -1322,8 +1326,8 @@ jQuery(document).ready(function($) {
                     <div class="plot-name">${plot.plot_name || 'Plot ' + (index + 1)}</div>
                     <div class="plot-status ${plot.status || 'unknown'}">${plot.status || 'Unknown'}</div>
                     <div class="plot-details">
-                        Sector: ${plot.sector || 'N/A'} | Block: ${plot.block || 'N/A'}<br>
-                        Street: ${plot.street || 'N/A'}
+                        Sector: ${plot.sector || 'N/A'} | Type: ${plot.type || 'N/A'}<br>
+                        Category: ${plot.category || 'N/A'} | Street: ${plot.street || 'N/A'}
                     </div>
                 </div>
             `);
@@ -1388,7 +1392,8 @@ jQuery(document).ready(function($) {
             <h4>${plot.plot_name || 'Plot'}</h4>
             <p><strong>Status:</strong> <span class="plot-status ${plot.status}">${plot.status || 'Unknown'}</span></p>
             <p><strong>Sector:</strong> ${plot.sector || 'N/A'}</p>
-            <p><strong>Block:</strong> ${plot.block || 'N/A'}</p>
+            <p><strong>Type:</strong> ${plot.type || 'N/A'}</p>
+            <p><strong>Category:</strong> ${plot.category || 'N/A'}</p>
             <p><strong>Street:</strong> ${plot.street || 'N/A'}</p>
             <p><strong>Plot ID:</strong> ${plot.id || 'N/A'}</p>
             <p><strong>Created:</strong> ${plot.created_at || 'N/A'}</p>
@@ -1962,7 +1967,8 @@ jQuery(document).ready(function($) {
         $('#popup-plot-name').text(plot.plot_name || 'Unknown Plot');
         $('#popup-plot-status').text(plot.status || 'Unknown').removeClass('available sold').addClass(plot.status || 'available');
         $('#popup-plot-sector').text(plot.sector || 'N/A');
-        $('#popup-plot-block').text(plot.block || 'N/A');
+        $('#popup-plot-type').text(plot.type || 'N/A');
+        $('#popup-plot-category').text(plot.category || 'N/A');
         $('#popup-plot-street').text(plot.street || 'N/A');
 
         // Show description if available
@@ -2092,7 +2098,7 @@ function openContactForm() {
         jQuery('.modal-header h3').text(`Inquire about Plot: ${plot.plot_name || 'N/A'}`);
         
         // Auto-fill message with plot details
-        const plotDetails = `Plot: ${plot.plot_name || 'N/A'}\nSector: ${plot.sector || 'N/A'}\nBlock: ${plot.block || 'N/A'}\nStreet: ${plot.street || 'N/A'}\n\nI am interested in this plot. Please provide more information about availability and pricing.`;
+        const plotDetails = `Plot: ${plot.plot_name || 'N/A'}\nSector: ${plot.sector || 'N/A'}\nType: ${plot.type || 'N/A'}\nCategory: ${plot.category || 'N/A'}\nStreet: ${plot.street || 'N/A'}\n\nI am interested in this plot. Please provide more information about availability and pricing.`;
         jQuery('#contact-message').val(plotDetails);
     }
     

@@ -9,7 +9,7 @@
 			if(p.plot_name){ labelParts.push(p.plot_name); }
 			if(p.street){ labelParts.push(p.street); }
 			var label = labelParts.join(' ');
-			if(p.block){ label += ', '+p.block+' Block'; }
+			if(p.type){ label += ', '+p.type+' Type'; }
 			var $poly = $(document.createElementNS('http://www.w3.org/2000/svg','polygon'))
 				.attr('points', pointsAttr)
 				.attr('data-id', p.id)

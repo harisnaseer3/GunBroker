@@ -173,7 +173,8 @@ if (!current_user_can('manage_options')) {
                         plot_name VARCHAR(191) NOT NULL,
                         street VARCHAR(191) NULL,
                         sector VARCHAR(191) NULL,
-                        block VARCHAR(191) NULL,
+                        type VARCHAR(191) NULL,
+                        category VARCHAR(191) NULL,
                         coordinates LONGTEXT NOT NULL,
                         status ENUM('available','sold') NOT NULL DEFAULT 'available',
                         base_image_id BIGINT UNSIGNED NULL,
@@ -183,12 +184,32 @@ if (!current_user_can('manage_options')) {
                         PRIMARY KEY (id),
                         KEY status_idx (status)
                     ) $charset_collate;";
-                    
+
                     $result = dbDelta($plots_sql);
                     if ($result) {
                         $tables_created[] = 'Plots table';
                     } else {
                         $errors[] = 'Failed to create plots table';
+                    }
+
+                    // Add 'category' column and rename 'block' to 'type' if table exists (for existing installations)
+                    $table_name = $wpdb->prefix . 'tajmap_plots';
+                    $columns = $wpdb->get_col("DESCRIBE `{$table_name}`", 0);
+
+                    if (in_array('block', $columns)) {
+                        // Rename 'block' column to 'type'
+                        $wpdb->query("ALTER TABLE `{$table_name}` CHANGE `block` `type` VARCHAR(191) NULL");
+                        $tables_created[] = 'Renamed block column to type';
+                    } elseif (!in_array('type', $columns)) {
+                        // Add 'type' column if it doesn't exist
+                        $wpdb->query("ALTER TABLE `{$table_name}` ADD COLUMN `type` VARCHAR(191) NULL AFTER `sector`");
+                        $tables_created[] = 'Added type column';
+                    }
+
+                    if (!in_array('category', $columns)) {
+                        // Add 'category' column if it doesn't exist
+                        $wpdb->query("ALTER TABLE `{$table_name}` ADD COLUMN `category` VARCHAR(191) NULL AFTER `type`");
+                        $tables_created[] = 'Added category column';
                     }
                     
                     // Create leads table

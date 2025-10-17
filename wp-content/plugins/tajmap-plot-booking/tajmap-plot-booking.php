@@ -2,7 +2,7 @@
 /**
  * Plugin Name: TajMap Plot Booking
  * Description: Interactive real estate plot booking system with SVG overlays, admin polygon editor, and lead capture.
- * Version: 1.0.0
+ * Version: 2.0.4
  * Author: TajMap
  * License: GPL2
  */
@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 
 // Constants
 if (!defined('TAJMAP_PB_VERSION')) {
-	define('TAJMAP_PB_VERSION', '2.0.3');
+	define('TAJMAP_PB_VERSION', '2.0.4');
 }
 if (!defined('TAJMAP_PB_PATH')) {
 	define('TAJMAP_PB_PATH', plugin_dir_path(__FILE__));
@@ -52,7 +52,8 @@ register_activation_hook(__FILE__, function () {
 		plot_name VARCHAR(191) NOT NULL,
 		street VARCHAR(191) NULL,
 		sector VARCHAR(191) NULL,
-		block VARCHAR(191) NULL,
+		type VARCHAR(191) NULL,
+		category VARCHAR(191) NULL,
 		coordinates LONGTEXT NOT NULL,
 		status ENUM('available','reserved','sold') NOT NULL DEFAULT 'available',
 		base_image_id BIGINT UNSIGNED NULL,

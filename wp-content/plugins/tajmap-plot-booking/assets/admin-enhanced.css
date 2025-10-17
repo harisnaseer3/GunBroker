@@ -1478,7 +1478,7 @@ h4 { font-size: 1.125rem; }
 }
 
 .plot-sector,
-.plot-block {
+.plot-type {
     background: #e5e7eb;
     color: #374151;
     padding: 0.125rem 0.5rem;

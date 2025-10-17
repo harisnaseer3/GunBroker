@@ -411,7 +411,8 @@ class Plugin {
 		$plot_name = isset($_POST['plot_name']) ? sanitize_text_field(wp_unslash($_POST['plot_name'])) : '';
 		$street = isset($_POST['street']) ? sanitize_text_field(wp_unslash($_POST['street'])) : '';
 		$sector = isset($_POST['sector']) ? sanitize_text_field(wp_unslash($_POST['sector'])) : '';
-		$block = isset($_POST['block']) ? sanitize_text_field(wp_unslash($_POST['block'])) : '';
+		$type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : '';
+		$category = isset($_POST['category']) ? sanitize_text_field(wp_unslash($_POST['category'])) : '';
 		$description = isset($_POST['description']) ? sanitize_textarea_field(wp_unslash($_POST['description'])) : '';
 		$coordinates = isset($_POST['coordinates']) ? wp_kses_post(wp_unslash($_POST['coordinates'])) : '';
 		$status = isset($_POST['status']) ? sanitize_text_field($_POST['status']) : 'available';
@@ -422,15 +423,18 @@ class Plugin {
 		}
 		$base_image_id = isset($_POST['base_image_id']) && !empty($_POST['base_image_id']) ? intval($_POST['base_image_id']) : null;
 		$base_image_transform = isset($_POST['base_image_transform']) ? wp_kses_post(wp_unslash($_POST['base_image_transform'])) : null;
-		
+
 		error_log('TajMap: Parsed base_image_id: ' . var_export($base_image_id, true));
 		error_log('TajMap: Parsed base_image_transform: ' . var_export($base_image_transform, true));
+		error_log('TajMap: Parsed type: ' . var_export($type, true));
+		error_log('TajMap: Parsed category: ' . var_export($category, true));
 
 		$data = [
 			'plot_name' => $plot_name,
 			'street' => $street,
 			'sector' => $sector,
-			'block' => $block,
+			'type' => $type,
+			'category' => $category,
 			'description' => $description,
 			'coordinates' => $coordinates,
 			'status' => $status,
@@ -438,7 +442,7 @@ class Plugin {
 			'base_image_transform' => $base_image_transform,
 			'updated_at' => current_time('mysql'),
 		];
-		
+
 		error_log('TajMap: Data to be saved: ' . print_r($data, true));
 
 		if ($id > 0) {
@@ -591,15 +595,15 @@ class Plugin {
 		}
 		global $wpdb;
 		$rows = $wpdb->get_results(
-			'SELECT l.id, l.phone, l.email, l.message, l.status, l.created_at, p.plot_name, p.street, p.sector, p.block FROM ' . TAJMAP_PB_TABLE_LEADS . ' l LEFT JOIN ' . TAJMAP_PB_TABLE_PLOTS . ' p ON p.id = l.plot_id ORDER BY l.created_at DESC',
+			'SELECT l.id, l.phone, l.email, l.message, l.status, l.created_at, p.plot_name, p.street, p.sector, p.type, p.category FROM ' . TAJMAP_PB_TABLE_LEADS . ' l LEFT JOIN ' . TAJMAP_PB_TABLE_PLOTS . ' p ON p.id = l.plot_id ORDER BY l.created_at DESC',
 			ARRAY_A
 		);
 		header('Content-Type: text/csv');
 		header('Content-Disposition: attachment; filename="tajmap_leads_' . date('Ymd_His') . '.csv"');
 		$fh = fopen('php://output', 'w');
-		fputcsv($fh, ['ID','Phone','Email','Message','Status','Created At','Plot Name','Street','Sector','Block']);
+		fputcsv($fh, ['ID','Phone','Email','Message','Status','Created At','Plot Name','Street','Sector','Type','Category']);
 		foreach ($rows as $r) {
-			fputcsv($fh, [$r['id'],$r['phone'],$r['email'],$r['message'],$r['status'],$r['created_at'],$r['plot_name'],$r['street'],$r['sector'],$r['block']]);
+			fputcsv($fh, [$r['id'],$r['phone'],$r['email'],$r['message'],$r['status'],$r['created_at'],$r['plot_name'],$r['street'],$r['sector'],$r['type'],$r['category']]);
 		}
 		fclose($fh);
 		exit;
@@ -904,7 +908,7 @@ class Plugin {
 		}
 
 		$saved_plots = $wpdb->get_results($wpdb->prepare(
-			'SELECT sp.*, p.plot_name, p.street, p.sector, p.block, p.status FROM ' . TAJMAP_PB_TABLE_SAVED_PLOTS . ' sp
+			'SELECT sp.*, p.plot_name, p.street, p.sector, p.type, p.category, p.status FROM ' . TAJMAP_PB_TABLE_SAVED_PLOTS . ' sp
 			 JOIN ' . TAJMAP_PB_TABLE_PLOTS . ' p ON p.id = sp.plot_id
 			 WHERE sp.user_id = %d ORDER BY sp.created_at DESC',
 			$user_id
@@ -942,7 +946,7 @@ class Plugin {
 		$where_clause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
 		$leads = $wpdb->get_results($wpdb->prepare(
-			'SELECT l.*, p.plot_name, p.street, p.sector, p.block FROM ' . TAJMAP_PB_TABLE_LEADS . ' l
+			'SELECT l.*, p.plot_name, p.street, p.sector, p.type, p.category FROM ' . TAJMAP_PB_TABLE_LEADS . ' l
 			 LEFT JOIN ' . TAJMAP_PB_TABLE_PLOTS . ' p ON p.id = l.plot_id
 			 ' . $where_clause . ' ORDER BY l.created_at DESC',
 			$params
@@ -965,7 +969,7 @@ class Plugin {
 		}
 
 		$lead = $wpdb->get_row($wpdb->prepare(
-			'SELECT l.*, p.plot_name, p.street, p.sector, p.block FROM ' . TAJMAP_PB_TABLE_LEADS . ' l
+			'SELECT l.*, p.plot_name, p.street, p.sector, p.type, p.category FROM ' . TAJMAP_PB_TABLE_LEADS . ' l
 			 LEFT JOIN ' . TAJMAP_PB_TABLE_PLOTS . ' p ON p.id = l.plot_id WHERE l.id = %d',
 			$lead_id
 		), ARRAY_A);
@@ -1228,15 +1232,15 @@ class Plugin {
 		}
 		global $wpdb;
 		$leads = $wpdb->get_results(
-			'SELECT l.id, l.phone, l.email, l.message, l.status, l.source, l.created_at, p.plot_name, p.street, p.sector, p.block FROM ' . TAJMAP_PB_TABLE_LEADS . ' l LEFT JOIN ' . TAJMAP_PB_TABLE_PLOTS . ' p ON p.id = l.plot_id ORDER BY l.created_at DESC',
+			'SELECT l.id, l.phone, l.email, l.message, l.status, l.source, l.created_at, p.plot_name, p.street, p.sector, p.type, p.category FROM ' . TAJMAP_PB_TABLE_LEADS . ' l LEFT JOIN ' . TAJMAP_PB_TABLE_PLOTS . ' p ON p.id = l.plot_id ORDER BY l.created_at DESC',
 			ARRAY_A
 		);
 		header('Content-Type: text/csv');
 		header('Content-Disposition: attachment; filename="tajmap_leads_' . date('Ymd_His') . '.csv"');
 		$fh = fopen('php://output', 'w');
-		fputcsv($fh, ['ID','Phone','Email','Message','Status','Source','Created At','Plot Name','Street','Sector','Block']);
+		fputcsv($fh, ['ID','Phone','Email','Message','Status','Source','Created At','Plot Name','Street','Sector','Type','Category']);
 		foreach ($leads as $lead) {
-			fputcsv($fh, [$lead['id'],$lead['phone'],$lead['email'],$lead['message'],$lead['status'],$lead['source'],$lead['created_at'],$lead['plot_name'],$lead['street'],$lead['sector'],$lead['block']]);
+			fputcsv($fh, [$lead['id'],$lead['phone'],$lead['email'],$lead['message'],$lead['status'],$lead['source'],$lead['created_at'],$lead['plot_name'],$lead['street'],$lead['sector'],$lead['type'],$lead['category']]);
 		}
 		fclose($fh);
 		exit;

@@ -105,7 +105,7 @@
                         <h3>${plot.plot_name}</h3>
                         <div class="plot-details">
                             <span class="plot-sector">${plot.sector || 'N/A'}</span>
-                            <span class="plot-block">${plot.block || 'N/A'}</span>
+                            <span class="plot-type">${plot.type || 'N/A'}</span>
                             <span class="plot-status ${plot.status}">${plot.status}</span>
                         </div>
                         <button class="btn primary small" onclick="viewPlotDetails(${plot.id})">View Details</button>
@@ -486,8 +486,8 @@
                         <span>${plot.sector || 'N/A'}</span>
                     </div>
                     <div class="meta-item">
-                        <label>Block:</label>
-                        <span>${plot.block || 'N/A'}</span>
+                        <label>Type:</label>
+                        <span>${plot.type || 'N/A'}</span>
                     </div>
                     <div class="meta-item">
                         <label>Street:</label>
@@ -553,10 +553,10 @@
 
     function updateFiltersList() {
         const sectors = [...new Set(plots.map(p => p.sector).filter(Boolean))];
-        const blocks = [...new Set(plots.map(p => p.block).filter(Boolean))];
+        const types = [...new Set(plots.map(p => p.type).filter(Boolean))];
 
         const sectorSelect = $('#filter-sector');
-        const blockSelect = $('#filter-block');
+        const typeSelect = $('#filter-type');
 
         sectorSelect.empty();
         sectorSelect.append('<option value="">All Sectors</option>');
@@ -564,10 +564,10 @@
             sectorSelect.append(`<option value="${sector}">${sector}</option>`);
         });
 
-        blockSelect.empty();
-        blockSelect.append('<option value="">All Blocks</option>');
-        blocks.forEach(block => {
-            blockSelect.append(`<option value="${block}">${block}</option>`);
+        typeSelect.empty();
+        typeSelect.append('<option value="">All Types</option>');
+        types.forEach(type => {
+            typeSelect.append(`<option value="${type}">${type}</option>`);
         });
     }
 
@@ -654,7 +654,7 @@
                         <h4>${plot.plot_name}</h4>
                         <div class="plot-meta">
                             <span class="plot-sector">${plot.sector || 'N/A'}</span>
-                            <span class="plot-block">${plot.block || 'N/A'}</span>
+                            <span class="plot-type">${plot.type || 'N/A'}</span>
                             <span class="plot-status ${plot.status}">${plot.status}</span>
                         </div>
                     </div>
@@ -672,7 +672,7 @@
         tooltip.html(`
             <strong>${plot.plot_name}</strong><br>
             Sector: ${plot.sector || 'N/A'}<br>
-            Block: ${plot.block || 'N/A'}<br>
+            Type: ${plot.type || 'N/A'}<br>
             Status: ${plot.status}
         `).show();
 
@@ -785,7 +785,7 @@
                     <div class="confirmation-plot">
                         <h4>${selectedPlot.plot_name}</h4>
                         <p>Sector: ${selectedPlot.sector || 'N/A'}</p>
-                        <p>Block: ${selectedPlot.block || 'N/A'}</p>
+                        <p>Type: ${selectedPlot.type || 'N/A'}</p>
                     </div>
                 `);
             } else {
@@ -905,7 +905,7 @@
                 <div class="saved-plot-item" data-id="${plot.id}">
                     <h4>${plot.plot_name}</h4>
                     <p>Sector: ${plot.sector || 'N/A'}</p>
-                    <p>Block: ${plot.block || 'N/A'}</p>
+                    <p>Type: ${plot.type || 'N/A'}</p>
                     <span class="status-badge ${plot.status}">${plot.status}</span>
                 </div>
             `);

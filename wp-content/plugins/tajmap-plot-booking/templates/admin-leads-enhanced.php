@@ -30,7 +30,7 @@ $where_clause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
 // Get all leads for Kanban board (not filtered)
 $all_leads = $wpdb->get_results(
-    'SELECT l.*, p.plot_name, p.street, p.sector, p.block, u.display_name as admin_name 
+    'SELECT l.*, p.plot_name, p.street, p.sector, p.type, p.category, u.display_name as admin_name
      FROM ' . TAJMAP_PB_TABLE_LEADS . ' l
      LEFT JOIN ' . TAJMAP_PB_TABLE_PLOTS . ' p ON p.id = l.plot_id
      LEFT JOIN ' . $wpdb->users . ' u ON u.ID = l.admin_user_id
@@ -40,7 +40,7 @@ $all_leads = $wpdb->get_results(
 
 // Get filtered leads for list view
 $leads = $wpdb->get_results($wpdb->prepare(
-    'SELECT l.*, p.plot_name, p.street, p.sector, p.block, u.display_name as admin_name 
+    'SELECT l.*, p.plot_name, p.street, p.sector, p.type, p.category, u.display_name as admin_name
      FROM ' . TAJMAP_PB_TABLE_LEADS . ' l
      LEFT JOIN ' . TAJMAP_PB_TABLE_PLOTS . ' p ON p.id = l.plot_id
      LEFT JOIN ' . $wpdb->users . ' u ON u.ID = l.admin_user_id
@@ -378,9 +378,16 @@ $export_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_export_lea
                                 <?php if ($lead['plot_name']): ?>
                                     <div class="plot-info">
                                         <strong><?php echo esc_html($lead['plot_name']); ?></strong>
-                                        <?php if ($lead['sector'] || $lead['block']): ?>
+                                        <?php if ($lead['sector'] || $lead['type'] || $lead['category']): ?>
                                             <div class="plot-details">
-                                                <?php echo esc_html(trim(($lead['sector'] ?: '') . ' ' . ($lead['block'] ?: ''))); ?>
+                                                <?php
+                                                $details = array_filter([
+                                                    $lead['sector'] ? 'Sector: ' . $lead['sector'] : '',
+                                                    $lead['type'] ? 'Type: ' . $lead['type'] : '',
+                                                    $lead['category'] ? 'Category: ' . $lead['category'] : ''
+                                                ]);
+                                                echo esc_html(implode(' | ', $details));
+                                                ?>
                                             </div>
                                         <?php endif; ?>
                                     </div>

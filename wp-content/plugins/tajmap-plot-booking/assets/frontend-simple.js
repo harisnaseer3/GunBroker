@@ -225,7 +225,7 @@ jQuery(document).ready(function($) {
                 <strong>${plot.plot_name || 'Plot'}</strong><br>
                 Status: ${plot.status || 'Unknown'}<br>
                 Sector: ${plot.sector || 'N/A'}<br>
-                Block: ${plot.block || 'N/A'}
+                Type: ${plot.type || 'N/A'}
             </div>
         `);
         
@@ -269,7 +269,7 @@ jQuery(document).ready(function($) {
             <div class="plot-info">
                 <p><strong>Status:</strong> <span class="status-${plot.status}">${plot.status || 'Unknown'}</span></p>
                 <p><strong>Sector:</strong> ${plot.sector || 'N/A'}</p>
-                <p><strong>Block:</strong> ${plot.block || 'N/A'}</p>
+                <p><strong>Type:</strong> ${plot.type || 'N/A'}</p>
                 <p><strong>Street:</strong> ${plot.street || 'N/A'}</p>
                 <p><strong>Price:</strong> ${plot.price || 'N/A'}</p>
                 <p><strong>Area:</strong> ${plot.area || 'N/A'}</p>

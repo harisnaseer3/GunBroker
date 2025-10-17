@@ -415,7 +415,7 @@ jQuery(document).ready(function($) {
                     <div class="plot-name">${plot.plot_name || 'Plot ' + (index + 1)}</div>
                     <div class="plot-status ${plot.status || 'unknown'}">${plot.status || 'Unknown'}</div>
                     <div class="plot-details">
-                        Sector: ${plot.sector || 'N/A'} | Block: ${plot.block || 'N/A'} | Street: ${plot.street || 'N/A'}
+                        Sector: ${plot.sector || 'N/A'} | Type: ${plot.type || 'N/A'} | Category: ${plot.category || 'N/A'} | Street: ${plot.street || 'N/A'}
                     </div>
                 </div>
             `);
@@ -443,7 +443,8 @@ jQuery(document).ready(function($) {
             <h4>${plot.plot_name || 'Plot'}</h4>
             <p><strong>Status:</strong> <span class="plot-status ${plot.status}">${plot.status || 'Unknown'}</span></p>
             <p><strong>Sector:</strong> ${plot.sector || 'N/A'}</p>
-            <p><strong>Block:</strong> ${plot.block || 'N/A'}</p>
+            <p><strong>Type:</strong> ${plot.type || 'N/A'}</p>
+            <p><strong>Category:</strong> ${plot.category || 'N/A'}</p>
             <p><strong>Street:</strong> ${plot.street || 'N/A'}</p>
             <p><strong>Plot ID:</strong> ${plot.id || 'N/A'}</p>
             <p><strong>Created:</strong> ${plot.created_at || 'N/A'}</p>

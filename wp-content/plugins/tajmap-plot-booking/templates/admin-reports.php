@@ -10,6 +10,7 @@ global $wpdb;
 // Get analytics data
 $total_plots = $wpdb->get_var('SELECT COUNT(*) FROM ' . TAJMAP_PB_TABLE_PLOTS);
 $available_plots = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . TAJMAP_PB_TABLE_PLOTS . ' WHERE status = %s', 'available'));
+$reserved_plots = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . TAJMAP_PB_TABLE_PLOTS . ' WHERE status = %s', 'reserved'));
 $sold_plots = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . TAJMAP_PB_TABLE_PLOTS . ' WHERE status = %s', 'sold'));
 $total_leads = $wpdb->get_var('SELECT COUNT(*) FROM ' . TAJMAP_PB_TABLE_LEADS);
 $recent_leads = $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . TAJMAP_PB_TABLE_LEADS . ' WHERE created_at >= %s', date('Y-m-d H:i:s', strtotime('-30 days'))));
@@ -428,11 +429,12 @@ $export_leads_url = wp_nonce_url(admin_url('admin-post.php?action=tajmap_pb_expo
         var plotChart = new Chart(plotCtx, {
             type: 'pie',
             data: {
-                labels: ['Available', 'Sold'],
+                labels: ['Available', 'Reserved', 'Sold'],
                 datasets: [{
-                    data: [<?php echo $available_plots; ?>, <?php echo $sold_plots; ?>],
+                    data: [<?php echo $available_plots; ?>, <?php echo $reserved_plots; ?>, <?php echo $sold_plots; ?>],
                     backgroundColor: [
                         '#28a745',
+                        '#ffc107',
                         '#dc3545'
                     ]
                 }]

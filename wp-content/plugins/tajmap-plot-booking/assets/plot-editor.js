@@ -1129,7 +1129,8 @@
         $('#plot-id').val(plot.id || '');
         $('#plot-name').val(plot.plot_name || '');
         $('#plot-sector').val(plot.sector || '');
-        $('#plot-block').val(plot.block || '');
+        $('#plot-type').val(plot.type || '');
+        $('#plot-category').val(plot.category || '');
         $('#plot-street').val(plot.street || '');
         $('#plot-description').val(plot.description || '');
         $('#plot-status').val(plot.status || 'available');
@@ -1358,7 +1359,7 @@
                                 ${statusClass.charAt(0).toUpperCase() + statusClass.slice(1)}
                             </span>
                             ${plot.sector ? `<span class="plot-sector">${plot.sector}</span>` : ''}
-                            ${plot.block ? `<span class="plot-block">${plot.block}</span>` : ''}
+                            ${plot.type ? `<span class="plot-type">${plot.type}</span>` : ''}
                         </div>
                     </div>
                     <div class="plot-actions">

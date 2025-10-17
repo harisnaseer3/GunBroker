@@ -231,14 +231,20 @@ $area_unit_label = $unit_labels[$measurement_units] ?? 'sq ft';
                                 <input type="text" id="plot-sector" name="sector">
                             </div>
                             <div class="form-group">
-                                <label for="plot-block">Block</label>
-                                <input type="text" id="plot-block" name="block">
+                                <label for="plot-type">Type</label>
+                                <input type="text" id="plot-type" name="type">
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="plot-street">Street</label>
-                            <input type="text" id="plot-street" name="street">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="plot-category">Category</label>
+                                <input type="text" id="plot-category" name="category">
+                            </div>
+                            <div class="form-group">
+                                <label for="plot-street">Street</label>
+                                <input type="text" id="plot-street" name="street">
+                            </div>
                         </div>
                     </div>
 
@@ -354,8 +360,8 @@ $area_unit_label = $unit_labels[$measurement_units] ?? 'sq ft';
                                 <?php if ($plot['sector']): ?>
                                     <span class="plot-sector"><?php echo esc_html($plot['sector']); ?></span>
                                 <?php endif; ?>
-                                <?php if ($plot['block']): ?>
-                                    <span class="plot-block"><?php echo esc_html($plot['block']); ?></span>
+                                <?php if (!empty($plot['type'])): ?>
+                                    <span class="plot-type"><?php echo esc_html($plot['type']); ?></span>
                                 <?php endif; ?>
                             </div>
                         </div>
