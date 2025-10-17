@@ -1252,7 +1252,7 @@ jQuery(document).ready(function($) {
             let color, opacity;
             if (plot.status === 'available') {
                 color = '#10b981'; // Green for available
-                opacity = 0.3; // Transparent for available
+                opacity = 0; // Fully transparent for available
             } else if (plot.status === 'reserved') {
                 color = '#f59e0b'; // Yellow for reserved
                 opacity = 0.7; // Solid yellow for reserved

@@ -692,10 +692,19 @@ jQuery(document).ready(function($) {
                 console.log(`⚠️ Plot ${index} has only ${coords.length} coordinates, need at least 3`);
                 return;
             }
-            
+
             // Set plot style
-            const color = plot.status === 'available' ? '#10b981' : '#ef4444';
-            const opacity = plot.status === 'available' ? 0.6 : 0.4;
+            let color, opacity;
+            if (plot.status === 'available') {
+                color = '#10b981';
+                opacity = 0; // Fully transparent for available
+            } else if (plot.status === 'reserved') {
+                color = '#f59e0b';
+                opacity = 0.7; // Solid yellow for reserved
+            } else {
+                color = '#ef4444';
+                opacity = 0.5; // Red for sold
+            }
             
             console.log(`🎨 Plot ${index} style - color: ${color}, opacity: ${opacity}`);
             

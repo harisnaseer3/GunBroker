@@ -368,9 +368,18 @@ jQuery(document).ready(function($) {
             try {
                 const coords = JSON.parse(plot.coordinates);
                 const points = coords.map(point => `${point.x},${point.y}`).join(' ');
-                
-                const color = plot.status === 'available' ? '#10b981' : '#ef4444';
-                const opacity = plot.status === 'available' ? 0.7 : 0.5;
+
+                let color, opacity;
+                if (plot.status === 'available') {
+                    color = '#10b981';
+                    opacity = 0; // Fully transparent for available
+                } else if (plot.status === 'reserved') {
+                    color = '#f59e0b';
+                    opacity = 0.7; // Solid yellow for reserved
+                } else {
+                    color = '#ef4444';
+                    opacity = 0.5; // Red for sold
+                }
                 
                 const polygon = $(`
                     <polygon 

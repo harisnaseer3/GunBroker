@@ -83,6 +83,24 @@ $wp_users = get_users(['role__in' => ['administrator', 'editor']]);
                     </tr>
                 </tbody>
             </table>
+
+            <!-- Pagination -->
+            <div id="users-pagination" class="tablenav bottom" style="display: none;">
+                <div class="tablenav-pages">
+                    <span class="displaying-num" id="users-count-display">0 items</span>
+                    <span class="pagination-links">
+                        <button class="button first-page" id="users-first-page" disabled>«</button>
+                        <button class="button prev-page" id="users-prev-page" disabled>‹</button>
+                        <span class="paging-input">
+                            <span class="tablenav-paging-text">
+                                <span id="users-current-page">1</span> of <span id="users-total-pages">1</span>
+                            </span>
+                        </span>
+                        <button class="button next-page" id="users-next-page" disabled>›</button>
+                        <button class="button last-page" id="users-last-page" disabled>»</button>
+                    </span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -275,10 +293,72 @@ $wp_users = get_users(['role__in' => ['administrator', 'editor']]);
     justify-content: flex-end;
     margin-top: 20px;
 }
+
+/* Pagination Styles */
+#users-pagination {
+    margin-top: 20px;
+    padding: 10px 0;
+}
+
+#users-pagination .tablenav-pages {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#users-pagination .displaying-num {
+    font-size: 14px;
+    color: #666;
+}
+
+#users-pagination .pagination-links {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+#users-pagination .pagination-links button {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+#users-pagination .pagination-links button:hover:not(:disabled) {
+    background: #f0f0f0;
+    border-color: #999;
+}
+
+#users-pagination .pagination-links button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#users-pagination .paging-input {
+    padding: 0 10px;
+}
+
+#users-pagination .tablenav-paging-text {
+    font-size: 14px;
+    color: #666;
+}
+
+#users-pagination #users-current-page {
+    font-weight: 600;
+    color: #1f2937;
+}
 </style>
 
 <script>
 jQuery(document).ready(function($) {
+    let allUsers = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
+
     // Load admin users data
     function loadAdminUsers() {
         $.post(ajaxurl, {
@@ -286,22 +366,30 @@ jQuery(document).ready(function($) {
             nonce: '<?php echo wp_create_nonce('tajmap_pb_admin'); ?>'
         }, function(response) {
             if (response.success) {
-                renderAdminUsers(response.data.users);
+                allUsers = response.data.users;
+                renderAdminUsers();
                 updateStats(response.data.stats);
+                updatePagination();
             } else {
                 $('#admin-users-list').html('<tr><td colspan="10" style="text-align: center; padding: 20px;">Error loading users</td></tr>');
             }
         });
     }
 
-    function renderAdminUsers(users) {
-        if (users.length === 0) {
+    function renderAdminUsers() {
+        if (allUsers.length === 0) {
             $('#admin-users-list').html('<tr><td colspan="10" style="text-align: center; padding: 20px;">No admin users found</td></tr>');
+            $('#users-pagination').hide();
             return;
         }
 
+        // Calculate pagination
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, allUsers.length);
+        const usersToDisplay = allUsers.slice(startIndex, endIndex);
+
         let html = '';
-        users.forEach(function(user) {
+        usersToDisplay.forEach(function(user) {
             const successRate = user.total_leads > 0 ? ((user.closed_leads / user.total_leads) * 100).toFixed(1) : 0;
             let rateClass = 'low';
             if (successRate >= 50) rateClass = 'high';
@@ -327,6 +415,57 @@ jQuery(document).ready(function($) {
 
         $('#admin-users-list').html(html);
     }
+
+    function updatePagination() {
+        const totalPages = Math.ceil(allUsers.length / itemsPerPage);
+
+        // Show/hide pagination based on number of records
+        if (allUsers.length > itemsPerPage) {
+            $('#users-pagination').show();
+        } else {
+            $('#users-pagination').hide();
+            return;
+        }
+
+        // Update display text
+        $('#users-count-display').text(allUsers.length + ' items');
+        $('#users-current-page').text(currentPage);
+        $('#users-total-pages').text(totalPages);
+
+        // Enable/disable buttons
+        $('#users-first-page, #users-prev-page').prop('disabled', currentPage === 1);
+        $('#users-next-page, #users-last-page').prop('disabled', currentPage === totalPages);
+    }
+
+    // Pagination button handlers
+    $('#users-first-page').on('click', function() {
+        currentPage = 1;
+        renderAdminUsers();
+        updatePagination();
+    });
+
+    $('#users-prev-page').on('click', function() {
+        if (currentPage > 1) {
+            currentPage--;
+            renderAdminUsers();
+            updatePagination();
+        }
+    });
+
+    $('#users-next-page').on('click', function() {
+        const totalPages = Math.ceil(allUsers.length / itemsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderAdminUsers();
+            updatePagination();
+        }
+    });
+
+    $('#users-last-page').on('click', function() {
+        currentPage = Math.ceil(allUsers.length / itemsPerPage);
+        renderAdminUsers();
+        updatePagination();
+    });
 
     function updateStats(stats) {
         $('#total-admins').text(stats.total_admins || 0);
