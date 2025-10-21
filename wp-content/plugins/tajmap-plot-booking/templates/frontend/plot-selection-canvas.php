@@ -510,7 +510,7 @@ jQuery(document).ready(function($) {
             return;
         }
         
-        const ajaxUrl = TajMapFrontend.ajaxUrl || 'http://localhost/Gunbroker/wp-admin/admin-ajax.php';
+        const ajaxUrl = TajMapFrontend.ajaxUrl || '/wp-admin/admin-ajax.php';
         console.log('Using AJAX URL:', ajaxUrl);
         
         $.ajax({
@@ -1023,7 +1023,7 @@ jQuery(document).ready(function($) {
     function loadGlobalBaseMap() {
         console.log('🗺️ Loading global base map...');
         
-        const ajaxUrl = TajMapFrontend.ajaxUrl || 'http://localhost/Gunbroker/wp-admin/admin-ajax.php';
+        const ajaxUrl = TajMapFrontend.ajaxUrl || '/wp-admin/admin-ajax.php';
         
         $.post(ajaxUrl, {
             action: 'tajmap_pb_get_global_base_map',

@@ -717,22 +717,20 @@ class Plugin {
 
 	public function plot_selection_shortcode($atts) {
 		error_log('TajMap: plot_selection_shortcode called at ' . current_time('mysql'));
-		error_log('TajMap: Plugin constants: ' . print_r([
-			'TAJMAP_PB_URL' => defined('TAJMAP_PB_URL') ? TAJMAP_PB_URL : 'NOT_DEFINED',
-			'TAJMAP_PB_VERSION' => defined('TAJMAP_PB_VERSION') ? TAJMAP_PB_VERSION : 'NOT_DEFINED',
-			'TAJMAP_PB_PATH' => defined('TAJMAP_PB_PATH') ? TAJMAP_PB_PATH : 'NOT_DEFINED'
-		], true));
-		
-		ob_start();
+
+		// Enqueue styles and scripts properly to avoid HTML encoding issues
 		wp_enqueue_style('tajmap-frontend', TAJMAP_PB_URL . 'assets/frontend.css', [], TAJMAP_PB_VERSION);
-		// Do NOT enqueue the simple frontend script here; the interactive template contains its own JS.
-		// Instead, inject the TajMapFrontend config inline for the template to consume.
-		echo '<script>window.TajMapFrontend = ' . wp_json_encode([
-			'ajaxUrl' => 'http://localhost/Gunbroker/wp-admin/admin-ajax.php',
+		wp_enqueue_script('tajmap-plot-interactive', TAJMAP_PB_URL . 'assets/plot-interactive.js', ['jquery'], TAJMAP_PB_VERSION, true);
+
+		// Localize script with configuration
+		wp_localize_script('tajmap-plot-interactive', 'TajMapFrontend', [
+			'ajaxUrl' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce('tajmap_pb_frontend'),
 			'homeUrl' => home_url(),
 			'pluginName' => 'TAJMAP_PLOT_BOOKING',
-		]) . ';</script>';
+		]);
+
+		ob_start();
 		include TAJMAP_PB_PATH . 'templates/frontend/plot-selection-interactive.php';
 		return ob_get_clean();
 	}
