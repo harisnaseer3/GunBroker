@@ -33,14 +33,22 @@ jQuery(document).ready(function($) {
         width: 0,
         height: 0
     };
+    // Store initial base map transform for scaling reference
+    let initialBaseMapTransform = {
+        width: 0,
+        height: 0
+    };
     // Render scale for higher-resolution drawing without changing visual size
     const RENDER_SCALE = 2;
     // Global view offset: X moves left/right in % of width; Y moves up/down in % of height
     const VIEW_OFFSET_RATIO = 0; // Center horizontally (0 = no offset)
     const VIEW_OFFSET_Y_RATIO = 0; // Center vertically (0 = no offset)
-    // Scale only the plots layer to match base map regions (fine-tuned for alignment)
-    const PLOT_SCALE_X = 1.71; // Horizontal scaling - increased by ~10% from 1.7 for better region matching
-    const PLOT_SCALE_Y = 1.72; // Vertical scaling - PLOT_SCALE_X * 1.02 (additional 2% Y-axis scaling)
+    // Base scale for plots layer to match base map regions (fine-tuned for alignment)
+    const BASE_PLOT_SCALE_X = 1.71; // Horizontal scaling - increased by ~10% from 1.7 for better region matching
+    const BASE_PLOT_SCALE_Y = 1.72; // Vertical scaling - BASE_PLOT_SCALE_X * 1.02 (additional 2% Y-axis scaling)
+    // Dynamic plot scale that adjusts with canvas resize
+    let PLOT_SCALE_X = BASE_PLOT_SCALE_X;
+    let PLOT_SCALE_Y = BASE_PLOT_SCALE_Y;
     // Transform only the plots layer upward for vertical alignment (background unchanged)
     const PLOT_OFFSET_Y_RATIO = 0;
     // Transform only the plots layer 3% right (background unchanged)
@@ -112,13 +120,13 @@ jQuery(document).ready(function($) {
         const container = $('#interactive-map');
         canvasWidth = container.width();
         canvasHeight = container.height();
-        
+
         // Increase drawing buffer for sharper render; keep CSS size the same
         canvas.style.width = canvasWidth + 'px';
         canvas.style.height = canvasHeight + 'px';
         canvas.width = Math.floor(canvasWidth * RENDER_SCALE);
         canvas.height = Math.floor(canvasHeight * RENDER_SCALE);
-        
+
         console.log('Canvas resized:', canvasWidth, 'x', canvasHeight);
 
         // Refit base map to canvas on resize so it always fits view
@@ -135,6 +143,15 @@ jQuery(document).ready(function($) {
             // Position at top-left corner
             globalBaseMapTransform.x = 0;
             globalBaseMapTransform.y = 0;
+
+            // Recalculate plot scaling based on base map size change
+            if (initialBaseMapTransform.width > 0 && initialBaseMapTransform.height > 0) {
+                const scaleChangeX = globalBaseMapTransform.width / initialBaseMapTransform.width;
+                const scaleChangeY = globalBaseMapTransform.height / initialBaseMapTransform.height;
+                PLOT_SCALE_X = BASE_PLOT_SCALE_X * scaleChangeX;
+                PLOT_SCALE_Y = BASE_PLOT_SCALE_Y * scaleChangeY;
+                console.log('Plot scales updated - X:', PLOT_SCALE_X, 'Y:', PLOT_SCALE_Y);
+            }
         }
 
         // Redraw
@@ -528,8 +545,8 @@ jQuery(document).ready(function($) {
             
             // Zoom in a bit
             scale = Math.min(2, Math.max(0.5, scale * 1.5));
-            
-            updateZoomDisplay();
+
+            // updateZoomDisplay(); // DISABLED
             drawAll();
         } catch (e) {
             console.error('Error centering on plot:', e);
@@ -538,39 +555,40 @@ jQuery(document).ready(function($) {
     
     // Setup controls
     function setupControls() {
-        $('#zoom-in').click(function() {
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = rect.left + rect.width / 2;
-            const mouseY = rect.top + rect.height / 2;
-            const oldScale = scale;
-            const newScale = Math.min(scale * 1.2, 5);
-            if (newScale !== oldScale) {
-                const worldX = (mouseX - rect.left - panX) / oldScale;
-                const worldY = (mouseY - rect.top - panY) / oldScale;
-                scale = newScale;
-                panX = mouseX - rect.left - worldX * scale;
-                panY = mouseY - rect.top - worldY * scale;
-            }
-            updateZoomDisplay();
-            drawAll();
-        });
-        
-        $('#zoom-out').click(function() {
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = rect.left + rect.width / 2;
-            const mouseY = rect.top + rect.height / 2;
-            const oldScale = scale;
-            const newScale = Math.max(scale / 1.2, 0.1);
-            if (newScale !== oldScale) {
-                const worldX = (mouseX - rect.left - panX) / oldScale;
-                const worldY = (mouseY - rect.top - panY) / oldScale;
-                scale = newScale;
-                panX = mouseX - rect.left - worldX * scale;
-                panY = mouseY - rect.top - worldY * scale;
-            }
-            updateZoomDisplay();
-            drawAll();
-        });
+        // Zoom buttons - DISABLED to prevent misalignment
+        // $('#zoom-in').click(function() {
+        //     const rect = canvas.getBoundingClientRect();
+        //     const mouseX = rect.left + rect.width / 2;
+        //     const mouseY = rect.top + rect.height / 2;
+        //     const oldScale = scale;
+        //     const newScale = Math.min(scale * 1.2, 5);
+        //     if (newScale !== oldScale) {
+        //         const worldX = (mouseX - rect.left - panX) / oldScale;
+        //         const worldY = (mouseY - rect.top - panY) / oldScale;
+        //         scale = newScale;
+        //         panX = mouseX - rect.left - worldX * scale;
+        //         panY = mouseY - rect.top - worldY * scale;
+        //     }
+        //     updateZoomDisplay();
+        //     drawAll();
+        // });
+
+        // $('#zoom-out').click(function() {
+        //     const rect = canvas.getBoundingClientRect();
+        //     const mouseX = rect.left + rect.width / 2;
+        //     const mouseY = rect.top + rect.height / 2;
+        //     const oldScale = scale;
+        //     const newScale = Math.max(scale / 1.2, 0.1);
+        //     if (newScale !== oldScale) {
+        //         const worldX = (mouseX - rect.left - panX) / oldScale;
+        //         const worldY = (mouseY - rect.top - panY) / oldScale;
+        //         scale = newScale;
+        //         panX = mouseX - rect.left - worldX * scale;
+        //         panY = mouseY - rect.top - worldY * scale;
+        //     }
+        //     updateZoomDisplay();
+        //     drawAll();
+        // });
         
         $('#fit-view').click(function() {
             fitToView();
@@ -580,7 +598,7 @@ jQuery(document).ready(function($) {
             scale = 1;
             panX = 0;
             panY = 0;
-            updateZoomDisplay();
+            // updateZoomDisplay(); // DISABLED
             drawAll();
         });
     }
@@ -626,37 +644,37 @@ jQuery(document).ready(function($) {
         // Center
         panX = (canvasWidth - (maxX - minX) * scale) / 2 - minX * scale;
         panY = (canvasHeight - (maxY - minY) * scale) / 2 - minY * scale;
-        
-        updateZoomDisplay();
+
+        // updateZoomDisplay(); // DISABLED
         drawAll();
     }
     
-    // Update zoom display
-    function updateZoomDisplay() {
-        $('#zoom-percentage').text(Math.round(scale * 100) + '%');
-    }
-    
+    // Update zoom display - DISABLED (zoom removed)
+    // function updateZoomDisplay() {
+    //     $('#zoom-percentage').text(Math.round(scale * 100) + '%');
+    // }
+
     // Setup event listeners
     function setupEventListeners() {
-        // Mouse wheel zoom
-        $('#interactive-map').on('wheel', function(e) {
-            e.preventDefault();
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX;
-            const mouseY = e.clientY;
-            const oldScale = scale;
-            const zoomFactor = e.originalEvent.deltaY > 0 ? 0.9 : 1.1;
-            const newScale = Math.max(0.1, Math.min(5, scale * zoomFactor));
-            if (newScale !== oldScale) {
-                const worldX = (mouseX - rect.left - panX - getViewOffsetScreen()) / oldScale;
-                const worldY = (mouseY - rect.top - panY - getViewOffsetScreenY()) / oldScale;
-                scale = newScale;
-                panX = mouseX - rect.left - worldX * scale - getViewOffsetScreen();
-                panY = mouseY - rect.top - worldY * scale - getViewOffsetScreenY();
-            }
-            updateZoomDisplay();
-            drawAll();
-        });
+        // Mouse wheel zoom - DISABLED to prevent misalignment
+        // $('#interactive-map').on('wheel', function(e) {
+        //     e.preventDefault();
+        //     const rect = canvas.getBoundingClientRect();
+        //     const mouseX = e.clientX;
+        //     const mouseY = e.clientY;
+        //     const oldScale = scale;
+        //     const zoomFactor = e.originalEvent.deltaY > 0 ? 0.9 : 1.1;
+        //     const newScale = Math.max(0.1, Math.min(5, scale * zoomFactor));
+        //     if (newScale !== oldScale) {
+        //         const worldX = (mouseX - rect.left - panX - getViewOffsetScreen()) / oldScale;
+        //         const worldY = (mouseY - rect.top - panY - getViewOffsetScreenY()) / oldScale;
+        //         scale = newScale;
+        //         panX = mouseX - rect.left - worldX * scale - getViewOffsetScreen();
+        //         panY = mouseY - rect.top - worldY * scale - getViewOffsetScreenY();
+        //     }
+        //     updateZoomDisplay();
+        //     drawAll();
+        // });
         
         // Pan functionality - with drag threshold to prevent accidental dragging
         let mouseDownX = 0;
@@ -886,12 +904,12 @@ jQuery(document).ready(function($) {
                             console.log('🗺️ Global base map image loaded successfully');
                             console.log('🗺️ Image dimensions:', globalBaseMapImage.width, 'x', globalBaseMapImage.height);
                             console.log('🗺️ Canvas dimensions:', canvasWidth, 'x', canvasHeight);
-                            
+
                             // ALWAYS fit and center the base map to current canvas (same as admin initial setup)
                             // This ensures plots align correctly regardless of canvas size differences
                             const imageAspect = globalBaseMapImage.width / globalBaseMapImage.height;
                             const canvasAspect = canvasWidth / canvasHeight;
-                            
+
                             let imageScale;
                             if (imageAspect > canvasAspect) {
                                 // Image is wider - fit to width
@@ -904,19 +922,24 @@ jQuery(document).ready(function($) {
                                 globalBaseMapTransform.width = globalBaseMapImage.width * imageScale;
                                 globalBaseMapTransform.height = canvasHeight;
                             }
-                            
+
                             // Center the image
                             globalBaseMapTransform.x = (canvasWidth - globalBaseMapTransform.width) / 2;
                             globalBaseMapTransform.y = (canvasHeight - globalBaseMapTransform.height) / 2;
                             globalBaseMapTransform.scale = imageScale;
-                            
+
+                            // Store initial base map dimensions for resize scaling reference
+                            initialBaseMapTransform.width = globalBaseMapTransform.width;
+                            initialBaseMapTransform.height = globalBaseMapTransform.height;
+                            console.log('📐 Initial base map dimensions stored:', initialBaseMapTransform.width, 'x', initialBaseMapTransform.height);
+
                             console.log('📐 Calculated transform for user canvas:');
                             console.log('   - x:', globalBaseMapTransform.x);
                             console.log('   - y:', globalBaseMapTransform.y);
                             console.log('   - width:', globalBaseMapTransform.width);
                             console.log('   - height:', globalBaseMapTransform.height);
                             console.log('   - scale:', globalBaseMapTransform.scale);
-                            
+
                             // Mark base map ready
                             baseMapReady = true;
                             // Set default view (no pan/zoom - show full map)

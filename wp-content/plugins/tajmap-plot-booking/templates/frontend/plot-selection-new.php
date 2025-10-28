@@ -18,8 +18,6 @@ if (!defined('ABSPATH')) { exit; }
             
             <!-- Map Controls -->
             <div class="map-controls">
-                <button id="zoom-in" class="control-btn">+</button>
-                <button id="zoom-out" class="control-btn">-</button>
                 <button id="fit-view" class="control-btn">⌂</button>
             </div>
         </div>
@@ -466,30 +464,31 @@ jQuery(document).ready(function($) {
     
     // Setup map controls
     function setupMapControls() {
-        $('#zoom-in').click(function() {
-            mapScale = Math.min(mapScale * 1.2, 3);
-            updateMapTransform();
-        });
-        
-        $('#zoom-out').click(function() {
-            mapScale = Math.max(mapScale / 1.2, 0.1);
-            updateMapTransform();
-        });
-        
+        // Zoom buttons - DISABLED to prevent misalignment
+        // $('#zoom-in').click(function() {
+        //     mapScale = Math.min(mapScale * 1.2, 3);
+        //     updateMapTransform();
+        // });
+
+        // $('#zoom-out').click(function() {
+        //     mapScale = Math.max(mapScale / 1.2, 0.1);
+        //     updateMapTransform();
+        // });
+
         $('#fit-view').click(function() {
             mapScale = 1;
             mapOffsetX = 0;
             mapOffsetY = 0;
             updateMapTransform();
         });
-        
-        // Mouse wheel zoom
-        $('#plot-map').on('wheel', function(e) {
-            e.preventDefault();
-            const delta = e.originalEvent.deltaY > 0 ? 0.9 : 1.1;
-            mapScale = Math.max(0.1, Math.min(3, mapScale * delta));
-            updateMapTransform();
-        });
+
+        // Mouse wheel zoom - DISABLED to prevent misalignment
+        // $('#plot-map').on('wheel', function(e) {
+        //     e.preventDefault();
+        //     const delta = e.originalEvent.deltaY > 0 ? 0.9 : 1.1;
+        //     mapScale = Math.max(0.1, Math.min(3, mapScale * delta));
+        //     updateMapTransform();
+        // });
         
         // Pan functionality
         $('#plot-map').on('mousedown', function(e) {

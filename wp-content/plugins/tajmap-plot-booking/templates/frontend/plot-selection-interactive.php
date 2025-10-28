@@ -6,7 +6,7 @@ if (!defined('ABSPATH')) { exit; }
     <!-- Header -->
     <div class="plot-header">
         <h1>Available Plots</h1>
-        <p>Interactive Plot Selection - Click and drag to explore, zoom to see details</p>
+        <p>Interactive Plot Selection - Click and drag to explore</p>
     </div>
 
     <!-- Main Content -->
@@ -15,13 +15,8 @@ if (!defined('ABSPATH')) { exit; }
         <div class="map-container">
             <div class="map-header">
                 <div class="map-controls">
-                    <button id="zoom-in" class="control-btn" title="Zoom In">+</button>
-                    <button id="zoom-out" class="control-btn" title="Zoom Out">-</button>
                     <button id="fit-view" class="control-btn" title="Fit to View">⌂</button>
                     <button id="reset-view" class="control-btn" title="Reset View">↻</button>
-                </div>
-                <div class="zoom-level">
-                    <span id="zoom-percentage">100%</span>
                 </div>
             </div>
             

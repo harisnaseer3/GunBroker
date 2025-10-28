@@ -16,11 +16,6 @@ if (!defined('ABSPATH')) { exit; }
                 <div class="toolbar-left">
                     <span class="canvas-status" id="canvas-status">Loading plots...</span>
                 </div>
-                <div class="toolbar-center">
-                    <div class="zoom-controls">
-                        <span class="zoom-level" id="zoom-level">100%</span>
-                    </div>
-                </div>
                 <div class="toolbar-right">
                     <button class="btn small" id="show-grid-toggle">Show Grid</button>
                 </div>
@@ -141,20 +136,6 @@ if (!defined('ABSPATH')) { exit; }
     color: #6b7280;
     font-size: 14px;
     font-weight: 500;
-}
-
-.zoom-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.zoom-level {
-    color: #6b7280;
-    font-size: 14px;
-    font-weight: 500;
-    min-width: 50px;
-    text-align: center;
 }
 
 .btn {
@@ -884,8 +865,7 @@ jQuery(document).ready(function($) {
             
             // Zoom in a bit
             scale = Math.min(2, Math.max(0.5, scale * 1.5));
-            
-            updateZoomDisplay();
+
             drawAll();
         } catch (e) {
             console.error('Error centering on plot:', e);
@@ -951,27 +931,26 @@ jQuery(document).ready(function($) {
         // Center
         panX = (canvasWidth - (maxX - minX) * scale) / 2 - minX * scale;
         panY = (canvasHeight - (maxY - minY) * scale) / 2 - minY * scale;
-        
-        updateZoomDisplay();
+
         drawAll();
     }
-    
-    // Update zoom display
-    function updateZoomDisplay() {
-        $('#zoom-level').text(Math.round(scale * 100) + '%');
-    }
+
+    // Update zoom display - REMOVED (zoom disabled)
+    // function updateZoomDisplay() {
+    //     $('#zoom-level').text(Math.round(scale * 100) + '%');
+    // }
     
     // Setup event listeners
     function setupEventListeners() {
-        // Mouse wheel zoom
-        $('.canvas-wrapper').on('wheel', function(e) {
-            e.preventDefault();
-            const delta = e.originalEvent.deltaY > 0 ? 0.9 : 1.1;
-            scale = Math.max(0.1, Math.min(5, scale * delta));
-            updateZoomDisplay();
-            drawAll();
-        });
-        
+        // Mouse wheel zoom - DISABLED to prevent misalignment
+        // $('.canvas-wrapper').on('wheel', function(e) {
+        //     e.preventDefault();
+        //     const delta = e.originalEvent.deltaY > 0 ? 0.9 : 1.1;
+        //     scale = Math.max(0.1, Math.min(5, scale * delta));
+        //     updateZoomDisplay();
+        //     drawAll();
+        // });
+
         // Pan functionality
         $('.canvas-wrapper').on('mousedown', function(e) {
             if (e.target === canvas) {

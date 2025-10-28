@@ -215,10 +215,10 @@
                 </svg>
             `);
         }
-        
-        // Add mouse wheel zoom
-        mapContainer.on('wheel', handleMapWheel);
-        
+
+        // Add mouse wheel zoom - DISABLED to prevent misalignment
+        // mapContainer.on('wheel', handleMapWheel);
+
         // Add pan functionality
         let isPanning = false;
         let startX = 0, startY = 0;
@@ -576,15 +576,16 @@
     }
 
     function initializeMapControls() {
-        $('#zoom-in').on('click', function() {
-            mapScale = Math.min(mapScale * 1.2, 5);
-            updateMapTransform();
-        });
+        // Zoom buttons - DISABLED to prevent misalignment
+        // $('#zoom-in').on('click', function() {
+        //     mapScale = Math.min(mapScale * 1.2, 5);
+        //     updateMapTransform();
+        // });
 
-        $('#zoom-out').on('click', function() {
-            mapScale = Math.max(mapScale / 1.2, 0.1);
-            updateMapTransform();
-        });
+        // $('#zoom-out').on('click', function() {
+        //     mapScale = Math.max(mapScale / 1.2, 0.1);
+        //     updateMapTransform();
+        // });
 
         $('#fit-view').on('click', function() {
             fitToView();
@@ -606,13 +607,14 @@
         });
     }
 
-    function handleMapWheel(e) {
-        e.preventDefault();
-        const delta = e.originalEvent.deltaY;
-        const zoomFactor = delta > 0 ? 0.9 : 1.1;
-        mapScale = Math.max(0.1, Math.min(5, mapScale * zoomFactor));
-        updateMapTransform();
-    }
+    // Mouse wheel zoom handler - DISABLED to prevent misalignment
+    // function handleMapWheel(e) {
+    //     e.preventDefault();
+    //     const delta = e.originalEvent.deltaY;
+    //     const zoomFactor = delta > 0 ? 0.9 : 1.1;
+    //     mapScale = Math.max(0.1, Math.min(5, mapScale * zoomFactor));
+    //     updateMapTransform();
+    // }
 
     function updateMapTransform() {
         const group = $('#plots-svg .plot-group');
