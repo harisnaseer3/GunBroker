@@ -33,26 +33,23 @@ jQuery(document).ready(function($) {
         width: 0,
         height: 0
     };
-    // Store initial base map transform for scaling reference
-    let initialBaseMapTransform = {
-        width: 0,
-        height: 0
-    };
+    // Reference canvas size that plot scales were tuned for (desktop size)
+    const REFERENCE_CANVAS_WIDTH = 1200;
+    const REFERENCE_CANVAS_HEIGHT = 600;
     // Render scale for higher-resolution drawing without changing visual size
     const RENDER_SCALE = 2;
     // Global view offset: X moves left/right in % of width; Y moves up/down in % of height
     const VIEW_OFFSET_RATIO = 0; // Center horizontally (0 = no offset)
     const VIEW_OFFSET_Y_RATIO = 0; // Center vertically (0 = no offset)
-    // Base scale for plots layer to match base map regions (fine-tuned for alignment)
-    const BASE_PLOT_SCALE_X = 1.71; // Horizontal scaling - increased by ~10% from 1.7 for better region matching
-    const BASE_PLOT_SCALE_Y = 1.72; // Vertical scaling - BASE_PLOT_SCALE_X * 1.02 (additional 2% Y-axis scaling)
-    // Dynamic plot scale that adjusts with canvas resize
+    // Base scale for plots layer to match base map regions (fine-tuned for reference canvas size)
+    const BASE_PLOT_SCALE_X = 1.71; // Horizontal scaling - tuned for 1200px wide canvas
+    const BASE_PLOT_SCALE_Y = 1.72; // Vertical scaling - tuned for 600px tall canvas
+    // Dynamic plot scale that adjusts with canvas size
     let PLOT_SCALE_X = BASE_PLOT_SCALE_X;
     let PLOT_SCALE_Y = BASE_PLOT_SCALE_Y;
-    // Transform only the plots layer upward for vertical alignment (background unchanged)
-    const PLOT_OFFSET_Y_RATIO = 0;
-    // Transform only the plots layer 3% right (background unchanged)
-    const PLOT_OFFSET_X_RATIO = 0;
+    // Transform plots layer for alignment (negative = left/up, positive = right/down)
+    const PLOT_OFFSET_X_RATIO = 0.00001; // Move left 10%
+    const PLOT_OFFSET_Y_RATIO = 0.005; // Move down 3%
     
     function getViewOffsetScreen() {
         return canvasWidth * VIEW_OFFSET_RATIO;
@@ -66,6 +63,35 @@ jQuery(document).ready(function($) {
     function getPlotOffsetScreenX() {
         return canvasWidth * PLOT_OFFSET_X_RATIO;
     }
+
+    // Recalculate plot scales based on current canvas size vs reference size
+    function updatePlotScales() {
+        if (!globalBaseMapImage || !globalBaseMapTransform.width || !globalBaseMapTransform.height) {
+            console.log('⚠️ Cannot update plot scales - base map not ready');
+            return;
+        }
+
+        // Calculate scale ratio between current base map size and reference size
+        // We use base map dimensions rather than canvas dimensions because base map might not fill entire canvas
+        const referenceBaseMapWidth = REFERENCE_CANVAS_WIDTH;
+        const referenceBaseMapHeight = REFERENCE_CANVAS_HEIGHT;
+
+        const scaleRatioX = globalBaseMapTransform.width / referenceBaseMapWidth;
+        const scaleRatioY = globalBaseMapTransform.height / referenceBaseMapHeight;
+
+        // Apply base scales with dynamic adjustments
+        // Scale X-axis +15%, Y-axis -15%
+        PLOT_SCALE_X = BASE_PLOT_SCALE_X * scaleRatioX * 1.175;
+        PLOT_SCALE_Y = BASE_PLOT_SCALE_Y * scaleRatioY * 0.835;
+
+        console.log('📐 Plot scales updated:');
+        console.log('   Base map size:', globalBaseMapTransform.width, 'x', globalBaseMapTransform.height);
+        console.log('   Reference size:', referenceBaseMapWidth, 'x', referenceBaseMapHeight);
+        console.log('   Scale ratio X:', scaleRatioX, 'Y:', scaleRatioY);
+        console.log('   Final PLOT_SCALE_X:', PLOT_SCALE_X, '(+15% adjustment)');
+        console.log('   Final PLOT_SCALE_Y:', PLOT_SCALE_Y, '(-15% adjustment)');
+    }
+
     // Auto-fit coordination flags
     let baseMapReady = false;
     let plotsReady = false;
@@ -127,7 +153,7 @@ jQuery(document).ready(function($) {
         canvas.width = Math.floor(canvasWidth * RENDER_SCALE);
         canvas.height = Math.floor(canvasHeight * RENDER_SCALE);
 
-        console.log('Canvas resized:', canvasWidth, 'x', canvasHeight);
+        console.log('🔄 Canvas resized:', canvasWidth, 'x', canvasHeight);
 
         // Refit base map to canvas on resize so it always fits view
         if (globalBaseMapImage) {
@@ -144,14 +170,8 @@ jQuery(document).ready(function($) {
             globalBaseMapTransform.x = 0;
             globalBaseMapTransform.y = 0;
 
-            // Recalculate plot scaling based on base map size change
-            if (initialBaseMapTransform.width > 0 && initialBaseMapTransform.height > 0) {
-                const scaleChangeX = globalBaseMapTransform.width / initialBaseMapTransform.width;
-                const scaleChangeY = globalBaseMapTransform.height / initialBaseMapTransform.height;
-                PLOT_SCALE_X = BASE_PLOT_SCALE_X * scaleChangeX;
-                PLOT_SCALE_Y = BASE_PLOT_SCALE_Y * scaleChangeY;
-                console.log('Plot scales updated - X:', PLOT_SCALE_X, 'Y:', PLOT_SCALE_Y);
-            }
+            // Update plot scales to match new base map size
+            updatePlotScales();
         }
 
         // Redraw
@@ -928,17 +948,15 @@ jQuery(document).ready(function($) {
                             globalBaseMapTransform.y = (canvasHeight - globalBaseMapTransform.height) / 2;
                             globalBaseMapTransform.scale = imageScale;
 
-                            // Store initial base map dimensions for resize scaling reference
-                            initialBaseMapTransform.width = globalBaseMapTransform.width;
-                            initialBaseMapTransform.height = globalBaseMapTransform.height;
-                            console.log('📐 Initial base map dimensions stored:', initialBaseMapTransform.width, 'x', initialBaseMapTransform.height);
-
                             console.log('📐 Calculated transform for user canvas:');
                             console.log('   - x:', globalBaseMapTransform.x);
                             console.log('   - y:', globalBaseMapTransform.y);
                             console.log('   - width:', globalBaseMapTransform.width);
                             console.log('   - height:', globalBaseMapTransform.height);
                             console.log('   - scale:', globalBaseMapTransform.scale);
+
+                            // Update plot scales to match base map size
+                            updatePlotScales();
 
                             // Mark base map ready
                             baseMapReady = true;
