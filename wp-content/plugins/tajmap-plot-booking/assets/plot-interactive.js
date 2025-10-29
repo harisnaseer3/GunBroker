@@ -33,23 +33,63 @@ jQuery(document).ready(function($) {
         width: 0,
         height: 0
     };
-    // Reference canvas size that plot scales were tuned for (desktop size)
-    const REFERENCE_CANVAS_WIDTH = 1200;
-    const REFERENCE_CANVAS_HEIGHT = 600;
+
+    // Mobile device detection
+    function isMobileDevice() {
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i;
+        return mobileRegex.test(userAgent.toLowerCase());
+    }
+
+    const IS_MOBILE = isMobileDevice();
+    console.log('📱 Device type:', IS_MOBILE ? 'MOBILE' : 'DESKTOP');
+
+    // Desktop configuration
+    const DESKTOP_CONFIG = {
+        REFERENCE_CANVAS_WIDTH: 1200,
+        REFERENCE_CANVAS_HEIGHT: 600,
+        RENDER_SCALE: 2,
+        VIEW_OFFSET_RATIO: 0,
+        VIEW_OFFSET_Y_RATIO: 0,
+        BASE_PLOT_SCALE_X: 1.71,
+        BASE_PLOT_SCALE_Y: 1.72,
+        PLOT_OFFSET_X_RATIO: 0.00001,
+        PLOT_OFFSET_Y_RATIO: 0.00
+    };
+
+    // Mobile configuration (you can adjust these values as needed)
+    const MOBILE_CONFIG = {
+        REFERENCE_CANVAS_WIDTH: 600,  // Smaller reference width for mobile
+        REFERENCE_CANVAS_HEIGHT: 800, // Taller reference height for mobile
+        RENDER_SCALE: 1.5,             // Lower render scale for performance
+        VIEW_OFFSET_RATIO: 0,          // Adjust if needed
+        VIEW_OFFSET_Y_RATIO: 0,        // Adjust if needed
+        BASE_PLOT_SCALE_X: 0.85,       // Adjust if needed for mobile
+        BASE_PLOT_SCALE_Y: 2.3,       // Adjust if needed for mobile
+        PLOT_OFFSET_X_RATIO: 0.0,  // Adjust if needed
+        PLOT_OFFSET_Y_RATIO: 0.240     // Adjust if needed
+    };
+
+    // Select configuration based on device type
+    const CONFIG = IS_MOBILE ? MOBILE_CONFIG : DESKTOP_CONFIG;
+
+    // Reference canvas size that plot scales were tuned for
+    const REFERENCE_CANVAS_WIDTH = CONFIG.REFERENCE_CANVAS_WIDTH;
+    const REFERENCE_CANVAS_HEIGHT = CONFIG.REFERENCE_CANVAS_HEIGHT;
     // Render scale for higher-resolution drawing without changing visual size
-    const RENDER_SCALE = 2;
+    const RENDER_SCALE = CONFIG.RENDER_SCALE;
     // Global view offset: X moves left/right in % of width; Y moves up/down in % of height
-    const VIEW_OFFSET_RATIO = 0; // Center horizontally (0 = no offset)
-    const VIEW_OFFSET_Y_RATIO = 0; // Center vertically (0 = no offset)
+    const VIEW_OFFSET_RATIO = CONFIG.VIEW_OFFSET_RATIO; // Center horizontally (0 = no offset)
+    const VIEW_OFFSET_Y_RATIO = CONFIG.VIEW_OFFSET_Y_RATIO; // Center vertically (0 = no offset)
     // Base scale for plots layer to match base map regions (fine-tuned for reference canvas size)
-    const BASE_PLOT_SCALE_X = 1.71; // Horizontal scaling - tuned for 1200px wide canvas
-    const BASE_PLOT_SCALE_Y = 1.72; // Vertical scaling - tuned for 600px tall canvas
+    const BASE_PLOT_SCALE_X = CONFIG.BASE_PLOT_SCALE_X; // Horizontal scaling
+    const BASE_PLOT_SCALE_Y = CONFIG.BASE_PLOT_SCALE_Y; // Vertical scaling
     // Dynamic plot scale that adjusts with canvas size
     let PLOT_SCALE_X = BASE_PLOT_SCALE_X;
     let PLOT_SCALE_Y = BASE_PLOT_SCALE_Y;
     // Transform plots layer for alignment (negative = left/up, positive = right/down)
-    const PLOT_OFFSET_X_RATIO = 0.00001; // Move left 10%
-    const PLOT_OFFSET_Y_RATIO = 0.005; // Move down 3%
+    const PLOT_OFFSET_X_RATIO = CONFIG.PLOT_OFFSET_X_RATIO;
+    const PLOT_OFFSET_Y_RATIO = CONFIG.PLOT_OFFSET_Y_RATIO;
     
     function getViewOffsetScreen() {
         return canvasWidth * VIEW_OFFSET_RATIO;
